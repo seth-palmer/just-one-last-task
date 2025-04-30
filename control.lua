@@ -1,3 +1,7 @@
+-- variables (read only)
+local item_sprites = {"inserter", "transport-belt", "stone-furnace", "assembling-machine-3", "storage-chest", "sulfur", "utility-science-pack", "laser-turret"}
+
+
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convenience, don't worry if you don't understand how this works
 script.on_init(function()
@@ -7,23 +11,34 @@ script.on_init(function()
         if freeplay["set_disable_crashsite"] then remote.call("freeplay", "set_disable_crashsite", true) end
     end
 
+    -- store players and their info
     storage.players = {}
 end)
 
 
 script.on_event(defines.events.on_player_created, function(event)
+    -- get player by index
     local player = game.get_player(event.player_index)
-    storage.players[player.index] = { controls_active = true }
+    -- initialize our data for the player
+    storage.players[player.index] = { controls_active = true, button_count = 0 }
 
     local screen_element = player.gui.screen
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
-    main_frame.style.size = {385, 165}
+    main_frame.style.size = {500, 165}
     main_frame.auto_center = true
 
     local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical", style="ugg_content_frame"}
     local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal", style="ugg_controls_flow"}
 
     controls_flow.add{type="button", name="ugg_controls_toggle", caption={"ugg.deactivate"}}
+
+    -- a slider and textfield
+    controls_flow.add{type="slider", name="ugg_controls_slider", value=0, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
+
+    controls_flow.add{type="textfield", name="ugg_controls_textfield", text="0", numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
+
+    controls_flow.add{type="textfield", name="ugg_controls_textfield_2", text="task", style="ugg_controls_textfield"}
+
 end)
 
 
@@ -34,5 +49,46 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         local control_toggle = event.element
         control_toggle.caption = (player_storage.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
+
+        local player = game.get_player(event.player_index)
+        local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
+        controls_flow.ugg_controls_slider.enabled = player_storage.controls_active
+        controls_flow.ugg_controls_textfield.enabled = player_storage.controls_active
     end
 end)
+
+script.on_event(defines.events.on_gui_value_changed, function(event)
+  if event.element.name == "ugg_controls_slider" then
+    local player = game.get_player(event.player_index)
+    local player_storage = storage.players[player.index]
+
+    local new_button_count = event.element.slider_value
+    player_storage.button_count = new_button_count
+
+    local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
+    controls_flow.ugg_controls_textfield.text = tostring(new_button_count)
+  end
+
+end)
+
+
+script.on_event(defines.events.on_gui_text_changed, function(event)
+    if event.element.name == "ugg_controls_textfield" then
+        local player = game.get_player(event.player_index)
+        local player_storage = storage.players[player.index]
+
+        -- button count
+        local new_button_count = tonumber(event.element.text) or 0
+        local capped_button_count = math.min(new_button_count, #item_sprites)
+        player_storage.button_count = capped_button_count
+
+        local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
+        controls_flow.ugg_controls_slider.slider_value = capped_button_count
+    end
+
+end)
+
+
+
+
+
