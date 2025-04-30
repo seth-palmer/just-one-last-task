@@ -1,6 +1,23 @@
 --control.lua
 
---[[
+script.on_event(defines.events.on_player_created, function(event)
+  -- get current player
+  local player = game.get_player(event.player_index)
+
+  -- get screen to add our gui to
+  local screen_element = player.gui.screen
+
+  -- make a 'frame' (window)
+  local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"jolt.hello_world"}}
+
+  -- set gui settings
+  main_frame.style.size = {400, 400}
+  main_frame.auto_center = false
+
+end)
+
+
+--[[ code from tutorial
 script.on_event(defines.events.on_player_changed_position,
   function(event)
     local player = game.get_player(event.player_index) -- get the player that moved
