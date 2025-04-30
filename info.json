@@ -1,0 +1,10 @@
+{
+  "name": "just-one-last-task",
+  "version": "0.1.0",
+  "title": "JOLT - Just One Last Task",
+  "author": "Arcosh",
+  "factorio_version": "2.0",
+  "dependencies": ["base >= 2.0"],
+  "description": "A focused task mod that takes up minimal space, allowing you to see just the current working task, or review the full list."
+}
+
