@@ -29,3 +29,23 @@ styles["ugg_deep_frame"] = {
     right_margin = 8,
     bottom_margin = 4
 }
+
+styles["task_list"] = {
+    type = "frame_style",
+    parent = "inside_shallow_frame_with_padding",
+    vertically_stretchable = "on",
+    top_margin = 20
+}
+
+styles["task_controls"] = {
+    type = "frame_style",
+    parent = "inside_shallow_frame_with_padding",
+    vertically_stretchable = "on",
+    top_margin = 20
+}
+
+
+styles["jolt_add_task_textfield"] = {
+    type = "textbox_style",
+    width = 200
+}

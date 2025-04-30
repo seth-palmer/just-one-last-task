@@ -20,12 +20,15 @@ script.on_event(defines.events.on_player_created, function(event)
     -- get player by index
     local player = game.get_player(event.player_index)
     -- initialize our data for the player
-    storage.players[player.index] = { controls_active = true, button_count = 0 }
+    storage.players[player.index] = { controls_active = true, button_count = 0, next_task_id = 0 }
 
     local screen_element = player.gui.screen
-    local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
-    main_frame.style.size = {500, 165}
+    local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.mod_title"}}
+    main_frame.style.size = {400, 300}
     main_frame.auto_center = true
+
+
+
 
     local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical", style="ugg_content_frame"}
     local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal", style="ugg_controls_flow"}
@@ -35,10 +38,24 @@ script.on_event(defines.events.on_player_created, function(event)
     -- a slider and textfield
     controls_flow.add{type="slider", name="ugg_controls_slider", value=0, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
 
+
     controls_flow.add{type="textfield", name="ugg_controls_textfield", text="0", numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
 
-    controls_flow.add{type="textfield", name="ugg_controls_textfield_2", text="task", style="ugg_controls_textfield"}
 
+    --second row
+    local task_list = content_frame.add{type="frame", name="task_list", direction="vertical", style="task_list"}
+
+    task_list.add{type="label", name="task1", caption="A Task"}
+    task_list.add{type="label", name="task2", caption="A Task 2"}
+
+    --3rd row
+    local task_controls = content_frame.add{type="frame", name="task_controls", direction="horizontal", style="task_controls"}
+
+    task_controls.add{type="textfield", name="task_add_textfield", text="Add Task Here!", style="jolt_add_task_textfield"}
+
+    local color_green = {0, 1, 0, 1}
+    -- add button
+    task_controls.add{type="button", color=color_green, name="jolt_add", caption={"jolt.add"}}
 end)
 
 
@@ -55,6 +72,25 @@ script.on_event(defines.events.on_gui_click, function(event)
         controls_flow.ugg_controls_slider.enabled = player_storage.controls_active
         controls_flow.ugg_controls_textfield.enabled = player_storage.controls_active
     end
+
+    -- if add button pressed
+    if event.element.name == "jolt_add" then
+        local player_storage = storage.players[event.player_index]
+        local player = game.get_player(event.player_index)
+
+        -- get text in textfield
+        local task_controls = player.gui.screen.ugg_main_frame.content_frame.task_controls
+        local new_task_text = task_controls.task_add_textfield.text
+
+        local task_id = "task_" .. player_storage.next_task_id
+        player_storage.next_task_id = player_storage.next_task_id + 1
+
+
+        -- add to list
+        local task_list = player.gui.screen.ugg_main_frame.content_frame.task_list
+        task_list.add{type="label", name=task_id, caption=new_task_text}
+    end
+
 end)
 
 script.on_event(defines.events.on_gui_value_changed, function(event)
