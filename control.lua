@@ -20,11 +20,11 @@ script.on_event(defines.events.on_player_created, function(event)
     -- get player by index
     local player = game.get_player(event.player_index)
     -- initialize our data for the player
-    storage.players[player.index] = { controls_active = true, button_count = 0, next_task_id = 0 }
+    storage.players[player.index] = { controls_active = true, button_count = 0, next_task_id = 0, tasks = {} }
 
     local screen_element = player.gui.screen
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.mod_title"}}
-    main_frame.style.size = {400, 300}
+    main_frame.style.size = {400, 600}
     main_frame.auto_center = true
 
 
@@ -45,8 +45,7 @@ script.on_event(defines.events.on_player_created, function(event)
     --second row
     local task_list = content_frame.add{type="frame", name="task_list", direction="vertical", style="task_list"}
 
-    task_list.add{type="label", name="task1", caption="A Task"}
-    task_list.add{type="label", name="task2", caption="A Task 2"}
+--     task_list.add{type="label", name="task_demo", caption="A Task"}
 
     --3rd row
     local task_controls = content_frame.add{type="frame", name="task_controls", direction="horizontal", style="task_controls"}
@@ -84,14 +83,69 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         local task_id = "task_" .. player_storage.next_task_id
         player_storage.next_task_id = player_storage.next_task_id + 1
+        local task = {type="label", name=task_id, caption=new_task_text}
+--         player_storage.tasks.add(task)
+
 
 
         -- add to list
-        local task_list = player.gui.screen.ugg_main_frame.content_frame.task_list
-        task_list.add{type="label", name=task_id, caption=new_task_text}
+
+
+        add_task(player, task)
+        update_tasks(player)
+--         local task_list = player.gui.screen.ugg_main_frame.content_frame.task_list
+--         task_list.add{type="label", name=task_id, caption=new_task_text}
     end
 
 end)
+
+-- Add task for player
+-- @player - player to add to
+-- @task -   task details
+function add_task (player, task)
+    task.is_done = true
+    local player_storage = storage.players[player.index]
+    table.insert(player_storage.tasks, task)
+end
+
+-- Mark task as done
+-- @player - player to delete from
+-- @task -   task details
+function mark_task_done (player, task)
+    local player_storage = storage.players[player.index]
+    task.is_done = true
+    table.insert(player_storage.tasks, task)
+end
+
+-- Updates all tasks for player
+-- @player player to update task list
+function update_tasks (player)
+    -- get the task list
+    local task_list = player.gui.screen.ugg_main_frame.content_frame.task_list
+    local player_storage = storage.players[player.index]
+
+    -- clear the current list
+    task_list.clear()
+
+    -- Use ipairs to iterate through a numerical array - https://www.lua.org/pil/7.3.html
+    -- adding each task
+    for _, task in ipairs(player_storage.tasks) do
+        if not task.is_done then
+            task_list.add(task) -- add to gui
+        else
+            task.caption = "[done] " .. task.caption
+            red1 = {r = 0.5, g = 0, b = 0, a = 0.5}
+            local label = task_list.add(task)
+
+            -- must set the style to the element after it is created
+            label.style.font_color = red1
+
+        end
+    end
+end
+
+
+
 
 script.on_event(defines.events.on_gui_value_changed, function(event)
   if event.element.name == "ugg_controls_slider" then
