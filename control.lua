@@ -86,7 +86,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task = {type="label", name=task_id, caption=new_task_text}
 --         player_storage.tasks.add(task)
 
-
+        -- make new task object
+        --newTask = newTask(1, new_task_text)
 
         -- add to list
 
@@ -107,6 +108,51 @@ function add_task (player, task)
     local player_storage = storage.players[player.index]
     table.insert(player_storage.tasks, task)
 end
+
+
+function display_task (player, task)
+
+end
+
+-- Make a new Task object (sets as InComplete)
+-- @initialPriority - priority to add it with (1 = highest)
+-- @initialTitle -   task title
+function newTask (initialPriority, initialTitle)
+    -- default values
+    local defaultIsComplete = false
+
+    local self = {priority = initialPriority, title = initialTitle, isComplete = defaultIsComplete}
+
+    -- TODO functions (edit title, edit desc)
+
+    -- Set priority to provided value
+    -- TODO - use larger class to swap priorities
+    local setPriority = function (v)
+                            self.priority = v
+                        end
+    local markComplete = function ()
+                            self.isComplete = true
+                          end
+    local markIncomplete = function ()
+                            self.isComplete = false
+                          end
+
+    -- Getters
+    local getPriority = function () return self.priority end
+    local getTitle = function () return self.title end
+    local isComplete = function () return self.isComplete end
+
+    return {
+        setPriority = setPriority,
+        markComplete = markComplete,
+        markIncomplete = markIncomplete,
+        getPriority,
+        getTitle,
+        isComplete
+    }
+end
+
+
 
 -- Mark task as done
 -- @player - player to delete from
