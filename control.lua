@@ -1,3 +1,6 @@
+require("__flib__.position")
+
+
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convenience, don't worry if you don't understand how this works
 script.on_init(function()
@@ -17,11 +20,22 @@ end)
 
 script.on_event(defines.events.on_lua_shortcut, function(event)
     if event.prototype_name == "tasks-menu" then
-        -- Open menu
-        openTasksListMenu(event)
+        local player = game.get_player(event.player_index)
+        if player.gui.screen.ugg_main_frame then
+            closeTasksListMenu(event)
+        else
+            openTasksListMenu(event)
+        end
     end
 
 end) -- end on_lua_shortcut
+
+
+
+function closeTasksListMenu(event)
+    local player = game.get_player(event.player_index)
+    player.gui.screen.ugg_main_frame.destroy()
+end
 
 function openTasksListMenu(event)
     -- get player by index
@@ -69,7 +83,7 @@ function openTasksListMenu(event)
         name = "ugg_controls_slider",
         value = 0,
         minimum_value = 0,
-        maximum_value = #item_sprites,
+        maximum_value = 10,
         style = "notched_slider"
     }
 
