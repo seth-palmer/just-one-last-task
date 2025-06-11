@@ -2,6 +2,26 @@
 -- You don't need to understand how these work to follow along
 local styles = data.raw["gui-style"].default
 
+-- In data.lua or prototypes file
+data:extend({
+    {
+    type = "shortcut",
+    name = "tasks-menu",
+    order = "b[blueprints]-i[deconstruction-planner]",
+    action = "lua",
+    localised_name = {"jolt.tasks-menu"},
+    associated_control_input = "tasks-menu",
+    style = "green",
+    icon = "__base__/graphics/icons/shortcut-toolbar/mip/new-deconstruction-planner-x56.png",
+    icon_size = 56,
+    small_icon = "__base__/graphics/icons/shortcut-toolbar/mip/new-deconstruction-planner-x24.png",
+    small_icon_size = 24
+    }
+})
+
+
+
+
 styles["ugg_content_frame"] = {
     type = "frame_style",
     parent = "inside_shallow_frame_with_padding",
