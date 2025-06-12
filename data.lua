@@ -1,8 +1,13 @@
+
+-- Factorio LuaStyle
+-- https://lua-api.factorio.com/latest/classes/LuaStyle.html
+
+
 -- These are some style prototypes that the tutorial uses
 -- You don't need to understand how these work to follow along
 local styles = data.raw["gui-style"].default
 
--- In data.lua or prototypes file
+
 data:extend({
     {
     type = "shortcut",
@@ -18,8 +23,6 @@ data:extend({
     small_icon_size = 24
     }
 })
-
-
 
 
 styles["ugg_content_frame"] = {
