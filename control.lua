@@ -1,6 +1,10 @@
 --- control.lua
+
+--- Imports
 local TaskManager = require("scripts.task_manager")
 task_manager = TaskManager.new()
+local constants = require("constants")
+require("gui")
 
 -- Make sure the intro cinematic of freeplay doesn't play egroupery time we restart
 -- This is just for congroupenience, don't worry if you don't understand how this works
@@ -24,7 +28,7 @@ end)
 script.on_event(defines.events.on_lua_shortcut, function(event)
     if event.prototype_name == "tasks-menu" then
         local player = game.get_player(event.player_index)
-        if player.gui.screen.jolt_tasks_list then
+        if player.gui.screen.jolt_tasks_list_window then
             close_task_list_menu(event)
         else
             open_task_list_menu(event)
@@ -36,14 +40,30 @@ end) -- end on_lua_shortcut
 --- Close the task list menu
 function close_task_list_menu(event)
     local player = game.get_player(event.player_index)
-    player.gui.screen.jolt_tasks_list.destroy()
+    player.gui.screen.jolt_tasks_list_window.destroy()
 end
+
+local windows_to_close = {}
 
 --- Watch for clicks on gui elements for my mod (prefix "jolt_tasks") icon
 script.on_event(defines.events.on_gui_click, function(event)
-    if event.element.name == "tasks_menu_close_button" then
-        close_task_list_menu(event)
+    local element_name = event.element.name
+
+    -- Close my windows looking in dictionary to check if
+    -- it is one of my windows
+    local frame_name = windows_to_close[element_name]
+    if frame_name ~= nil then
+        local player = game.get_player(event.player_index)
+
+        -- Check if the frame still exists before destroying
+        if player.gui.screen[frame_name] and player.gui.screen[frame_name].valid then
+            player.gui.screen[frame_name].destroy()
+        end
+
+        -- Clean up the mapping
+        windows_to_close[element_name] = nil
     end
+
 end)
 
 --- Open the task list menu
@@ -60,43 +80,12 @@ function open_task_list_menu(event)
     }
 
     local screen_element = player.gui.screen
-    local main_frame = screen_element.add {
-        type = "frame",
-        name = "jolt_tasks_list",
-        direction = "vertical"
-    }
 
-    main_frame.style.size = {400, 600}
-    -- center the gui in the screen (not it's contents)
-    main_frame.auto_center = true
-
-    -- Title Bar
-    local title_bar = main_frame.add {
-        type = "flow",
-        direction = "horizontal"
-    }
-
-    local title = title_bar.add {
-        type = "label",
-        caption = "Tasks",
-        style = "frame_title",
-    }
-
-    -- drag handle
-    local dragger = title_bar.add {
-        type = "empty-widget",
-        style = "draggable_space",
-    }
-    dragger.style.size = {300, 24}
-    dragger.drag_target = main_frame
-
-    local close_button = title_bar.add {
-        type = "sprite-button",
-        style = "frame_action_button",
-        sprite = "utility/close",
-        name = "tasks_menu_close_button",
-        tooltip = "Close"
-    }
+    local close_button_name = "jolt_tasks_list_close_button"
+    local window_name = "jolt_tasks_list_window"
+    local main_frame = new_window(player, "Tasks", window_name, close_button_name, 400, 600)
+    -- Add event to watch for button click to close the window
+    windows_to_close[close_button_name] = window_name
 
 
     local content_frame = main_frame.add {
@@ -106,7 +95,22 @@ function open_task_list_menu(event)
         style = "ugg_content_frame"
     }
 
-    -- TODO remove
+    -- Add task button 
+    local add_task_button = main_frame.add {
+        type = "sprite-button",
+        style = "confirm_button",
+        sprite = "utility/add",
+        name = "jolt_tasks_add_task_button",
+        tooltip = "Add Task",
+    }
+
+    local close_button_name = "jolt_new_task_close_button"
+    local window_name = "jolt_new_task_window"
+    local new_task_window = new_window(player, "New Task", window_name, close_button_name, 250, 400)
+    -- Add event to watch for button click to close the window
+    windows_to_close[close_button_name] = window_name
+
+    -- TODO remove seed data
     -- Add temporary seed data (will add more on each launch of the menu)
 
     local t1Params = {title="Red Science", groupId=1, description="Automate 5/sec"}

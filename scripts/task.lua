@@ -1,7 +1,7 @@
 
 
 -- A class to store task information
---- @class Task: LuaObject
+--- @class Task
 Task = {}
 function Task.new(params)
     -- Check required arguments https://www.lua.org/pil/5.3.html

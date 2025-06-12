@@ -1,7 +1,7 @@
 require "scripts.utils"
 
 -- A class to store group information and tasks for that group
---- @class Group: LuaObject
+--- @class Group
 Group = {}
 function Group.new(params)
     if type(params.name) ~= "string" then 

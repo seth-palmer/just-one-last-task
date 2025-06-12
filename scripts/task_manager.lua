@@ -15,7 +15,7 @@ TaskManager = {}
 
 
 --- A class to store group information and tasks for that group
---- @class TaskManager: LuaObject
+--- @class TaskManager
 function TaskManager.new(params)
     -- Named Arguments as per - lua style https://www.lua.org/pil/5.3.html
 
