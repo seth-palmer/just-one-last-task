@@ -1,7 +1,8 @@
 -- A file to put helpful methods that could be used in more than one file
 
 -- Generate a random uuid https://gist.github.com/jrus/3197011
-math.randomseed(os.time())
+-- TODO fix to be truely random
+math.randomseed(1)
 local random = math.random
 function uuid()
     local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'

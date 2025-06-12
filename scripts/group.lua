@@ -4,12 +4,20 @@ require "scripts.utils"
 --- @class Group: LuaObject
 Group = {}
 function Group.new(params)
-    local self = {}
+    if type(params.name) ~= "string" then 
+        error("New group requires a name")
+    elseif type(params.icon) ~= "string" then
+        error("New group requires an icon path")
+    elseif type(params.group_id) ~= "number" then
+        error("New group requires a group id")
+    end
 
-    local groupId = params.groupId
+    local self = {}
+    
+
+    local group_id = params.group_id
     local name = params.name
     local icon = params.icon
-    local taskCount = 0
     
 
     -- A list of tasks
@@ -21,21 +29,32 @@ function Group.new(params)
 
     --- Return the number of tasks
     --- @return number
-    function self.getTaskCount()
-        count = 0
+    function self.get_task_count()
+        local count = 0
         for _ in pairs(tasks) do count = count + 1 end
         return count
     end
 
+
+    --- Get the group name
+    function self.get_name()
+        return name
+    end
+
+    --- Get the icon path
+    function self.get_icon_path()
+        return icon
+    end
+
     --- Returns the table of tasks with string uuid's as the keys
     --- @return table
-    function self.getTasks()
+    function self.get_tasks()
         return tasks
     end
 
     --- Swap the position of priorities 
     --- Important: local functions must be put above where they are used!
-    local function swapPriorities(index1, index2)
+    local function swap_priorities(index1, index2)
         local temp = priorities[index1]
         priorities[index1] = priorities[index2]
         priorities[index2] = temp
@@ -43,25 +62,25 @@ function Group.new(params)
 
     --- Adds a task making it with the provided parameters
     --- also adds it to the priority list 
-    --- @param taskParams table - with task details
-    --- @param insertAtEnd boolean - if the task should be added to the end of the list
-    function self.addTask(taskParams, insertAtEnd)
-        insertAtEnd = insertAtEnd or false
-
+    --- @param task_params table - with task details
+    --- @param insert_at_end boolean - if the task should be added to the end of the list
+    function self.add_task(task_params, insert_at_end)
+        insert_at_end = insert_at_end or false
+        task_params.group_id = group_id
         -- Create Make a new id for the task
         local id = uuid()
 
         -- Make a new task
-        local newTask = Task.new(taskParams)
+        local newTask = Task.new(task_params)
         tasks[id] = newTask
 
         -- Add id to end of priorities list
-        if insertAtEnd then
-            table.insert(priorities, id)  
+        if insert_at_end then
+            table.insert(priorities, id)
         -- or insert at end, then swap with first value   
         else
-            table.insert(priorities, id) 
-            swapPriorities(1, #priorities)
+            table.insert(priorities, id)
+            swap_priorities(1, #priorities)
         end
     end
 
@@ -69,16 +88,16 @@ function Group.new(params)
     local mt = {
         --- prints out group stats and all tasks in order or priority
         __tostring = function()
-            local info = string.format("GroupId: %d, Name: %s, Tasks Count: %d\n",
-             groupId, name, self.getTaskCount())
-            local displayTasks = ""
+            local info = string.format("group_id: %d, Name: %s, Tasks Count: %d\n",
+             group_id, name, self.get_task_count())
+            local display_tasks = ""
 
             for k, _ in pairs(priorities) do 
                 local taskId = priorities[k]
-                displayTasks = displayTasks .. k .. ": " .. tostring(tasks[taskId]) .. "\n"
+                display_tasks = display_tasks .. k .. ": " .. tostring(tasks[taskId]) .. "\n"
             end
 
-            return info .. displayTasks
+            return info .. display_tasks
         end
     }
 

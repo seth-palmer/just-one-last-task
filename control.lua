@@ -1,8 +1,9 @@
 --- control.lua
-local flib_gui = require("__flib__.gui")
+local TaskManager = require("scripts.task_manager")
+task_manager = TaskManager.new()
 
--- Make sure the intro cinematic of freeplay doesn't play every time we restart
--- This is just for convenience, don't worry if you don't understand how this works
+-- Make sure the intro cinematic of freeplay doesn't play egroupery time we restart
+-- This is just for congroupenience, don't worry if you don't understand how this works
 script.on_init(function()
     local freeplay = remote.interfaces["freeplay"]
     if freeplay then -- Disable freeplay popup-message
@@ -18,36 +19,41 @@ script.on_init(function()
     storage.players = {}
 end)
 
+--- Watch for clicks on the task shortcut icon to open and close
+--- the task list window
 script.on_event(defines.events.on_lua_shortcut, function(event)
     if event.prototype_name == "tasks-menu" then
         local player = game.get_player(event.player_index)
-        if player.gui.screen.ugg_main_frame then
-            closeTasksListMenu(event)
+        if player.gui.screen.jolt_tasks_list then
+            close_task_list_menu(event)
         else
-            openTasksListMenu(event)
+            open_task_list_menu(event)
         end
     end
 
 end) -- end on_lua_shortcut
 
-function closeTasksListMenu(event)
+--- Close the task list menu
+function close_task_list_menu(event)
     local player = game.get_player(event.player_index)
-    player.gui.screen.ugg_main_frame.destroy()
+    player.gui.screen.jolt_tasks_list.destroy()
 end
 
+--- Watch for clicks on gui elements for my mod (prefix "jolt_tasks") icon
 script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "tasks_menu_close_button" then
-        closeTasksListMenu(event)
+        close_task_list_menu(event)
     end
 end)
 
-function openTasksListMenu(event)
+--- Open the task list menu
+function open_task_list_menu(event)
     -- get player by index
     local player = game.get_player(event.player_index)
 
     -- initialize our data for the player
     storage.players[player.index] = {
-        controls_active = true,
+        controls_actigroupe = true,
         button_count = 0,
         next_task_id = 0,
         tasks = {}
@@ -56,13 +62,13 @@ function openTasksListMenu(event)
     local screen_element = player.gui.screen
     local main_frame = screen_element.add {
         type = "frame",
-        name = "ugg_main_frame",
+        name = "jolt_tasks_list",
         direction = "vertical"
     }
 
     main_frame.style.size = {400, 600}
     -- center the gui in the screen (not it's contents)
-    main_frame.auto_center = true 
+    main_frame.auto_center = true
 
     -- Title Bar
     local title_bar = main_frame.add {
@@ -100,14 +106,40 @@ function openTasksListMenu(event)
         style = "ugg_content_frame"
     }
 
+    -- TODO remove
+    -- Add temporary seed data (will add more on each launch of the menu)
+
+    local t1Params = {title="Red Science", groupId=1, description="Automate 5/sec"}
+    local t2Params = {title="Green Science", groupId=1, description="Automate 5/sec"}
+    local t3Params = {title="Millitary Science", groupId=1, description="Automate 5/sec"}
+    local t4Params = {title="Build Hubble Space Platform", groupId=2}
+
+    
+    task_manager.add_task(t1Params, 1, true)
+    task_manager.add_task(t2Params, 1, true)
+    task_manager.add_task(t3Params, 1, true)
+    task_manager.add_task(t4Params, 2, true)
+
+
     -- This will add a tabbed-pane and 2 tabs with contents.
     local tabbed_pane = content_frame.add{type="tabbed-pane"}
-    local tab1 = tabbed_pane.add{type="tab", caption="[img=space-location/nauvis] Nauvis"}
-    local tab2 = tabbed_pane.add{type="tab", caption="[img=item/thruster] Space"}
-    local label1 = tabbed_pane.add{type="label", caption="Label 1"}
-    local label2 = tabbed_pane.add{type="label", caption="Label 2"}
-    tabbed_pane.add_tab(tab1, label1)
-    tabbed_pane.add_tab(tab2, label2)
+
+    -- Get the groups, add tabs for each one and their tasks
+    for _, group in ipairs(task_manager.get_groups()) do
+        -- Add the tab and set the title
+        local tab_title = group.get_icon_path() .. " " .. group.get_name()
+        local new_tab = tabbed_pane.add{type="tab", caption=tab_title}
+
+        -- Add tasks for each group inside its tab
+        local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
+        for _, task in pairs(group.get_tasks()) do
+            local label = tab_content.add{type="label", caption=task.get_title()}
+        end
+        -- Add the content to the tab 
+        -- (Can only connect one thing so which is why I use another pane to group tasks)
+        tabbed_pane.add_tab(new_tab, tab_content)
+    end
+
 
 
     -- local controls_flow = content_frame.add {
@@ -120,16 +152,16 @@ function openTasksListMenu(event)
     -- controls_flow.add {
     --     type = "button",
     --     name = "ugg_controls_toggle",
-    --     caption = {"ugg.deactivate"}
+    --     caption = {"ugg.deactigroupate"}
     -- }
 
     -- -- a slider and textfield
     -- controls_flow.add {
     --     type = "slider",
     --     name = "ugg_controls_slider",
-    --     value = 0,
-    --     minimum_value = 0,
-    --     maximum_value = 10,
+    --     groupalue = 0,
+    --     minimum_groupalue = 0,
+    --     maximum_groupalue = 10,
     --     style = "notched_slider"
     -- }
 
@@ -139,7 +171,7 @@ function openTasksListMenu(event)
     --     text = "0",
     --     numeric = true,
     --     allow_decimal = false,
-    --     allow_negative = false,
+    --     allow_negatigroupe = false,
     --     style = "ugg_controls_textfield"
     -- }
 
