@@ -61,7 +61,8 @@ function openTasksListMenu(event)
     }
 
     main_frame.style.size = {400, 600}
-    main_frame.auto_center = true
+    -- center the gui in the screen (not it's contents)
+    main_frame.auto_center = true 
 
     -- Title Bar
     local title_bar = main_frame.add {
@@ -100,9 +101,9 @@ function openTasksListMenu(event)
     }
 
     -- This will add a tabbed-pane and 2 tabs with contents.
-    local tabbed_pane = main_frame.add{type="tabbed-pane"}
-    local tab1 = tabbed_pane.add{type="tab", caption="[img=space-location/nauvis]"}
-    local tab2 = tabbed_pane.add{type="tab", caption="[img=item/thruster]"}
+    local tabbed_pane = content_frame.add{type="tabbed-pane"}
+    local tab1 = tabbed_pane.add{type="tab", caption="[img=space-location/nauvis] Nauvis"}
+    local tab2 = tabbed_pane.add{type="tab", caption="[img=item/thruster] Space"}
     local label1 = tabbed_pane.add{type="label", caption="Label 1"}
     local label2 = tabbed_pane.add{type="label", caption="Label 2"}
     tabbed_pane.add_tab(tab1, label1)
