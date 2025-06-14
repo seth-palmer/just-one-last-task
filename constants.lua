@@ -14,6 +14,9 @@ constants.styles = {
         title = "frame_title",
         drag_bar = "draggable_space",
         button = "frame_action_button"
+    },
+    form = {
+        textfield = "textbox",
     }
     
 

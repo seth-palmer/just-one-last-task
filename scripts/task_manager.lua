@@ -34,12 +34,21 @@ function TaskManager.new(params)
     -- A list of taskIds
     local priorities = params.priorities or {}
 
-    --add to list with table.insert(players, "p1")
-
 
     --- Get the list of groups
     function self.get_groups()
         return groups
+    end
+
+    --- Get a list with all group names
+    function self.get_group_names()
+        local names = {}
+        for _, g in pairs(groups) do
+            -- Get the icon and name to display
+            local name = g.get_icon_path() .. " " .. g.get_name()
+            table.insert(names, name)
+        end
+        return names
     end
 
 

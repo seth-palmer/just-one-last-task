@@ -92,7 +92,7 @@ function Group.new(params)
              group_id, name, self.get_task_count())
             local display_tasks = ""
 
-            for k, _ in pairs(priorities) do 
+            for k, _ in pairs(priorities) do
                 local taskId = priorities[k]
                 display_tasks = display_tasks .. k .. ": " .. tostring(tasks[taskId]) .. "\n"
             end

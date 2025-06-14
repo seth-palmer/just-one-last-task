@@ -62,3 +62,18 @@ function new_window(player, window_title, frame_name, close_button_name, width, 
     return window
 end
 
+
+
+
+
+--- Adds a label to the provided parent and returns the reference
+---@param parent gui-element
+---@param text string
+function new_label(parent, text)
+    local label = parent.add {
+        type = "label",
+        caption = text
+    }
+    return label
+end
+
