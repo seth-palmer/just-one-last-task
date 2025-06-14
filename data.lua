@@ -1,3 +1,4 @@
+local constants = require "constants"
 
 -- Factorio LuaStyle
 -- https://lua-api.factorio.com/latest/classes/LuaStyle.html
@@ -11,11 +12,11 @@ local styles = data.raw["gui-style"].default
 data:extend({
     {
     type = "shortcut",
-    name = "tasks-menu",
+    name = constants.jolt.shortcuts.open_task_list_window,
     order = "b[blueprints]-i[deconstruction-planner]",
     action = "lua",
     localised_name = {"jolt.tasks-menu"},
-    associated_control_input = "tasks-menu",
+    associated_control_input = constants.jolt.shortcuts.open_task_list_window,
     style = "green",
     icon = "__base__/graphics/icons/shortcut-toolbar/mip/new-deconstruction-planner-x56.png",
     icon_size = 56,

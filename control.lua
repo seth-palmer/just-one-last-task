@@ -28,9 +28,9 @@ end)
 --- Watch for clicks on the task shortcut icon to open and close
 --- the task list window
 script.on_event(defines.events.on_lua_shortcut, function(event)
-    if event.prototype_name == "tasks-menu" then
+    if event.prototype_name == constants.jolt.shortcuts.open_task_list_window then
         local player = game.get_player(event.player_index)
-        if player.gui.screen.jolt_tasks_list_window then
+        if player.gui.screen[constants.jolt.task_list.window] then
             close_task_list_menu(event)
         else
             open_task_list_menu(event)
@@ -42,7 +42,7 @@ end) -- end on_lua_shortcut
 --- Close the task list menu
 function close_task_list_menu(event)
     local player = game.get_player(event.player_index)
-    player.gui.screen.jolt_tasks_list_window.destroy()
+    player.gui.screen[constants.jolt.task_list.window].destroy()
 end
 
 local windows_to_close = {}
@@ -50,24 +50,30 @@ local windows_to_close = {}
 --- Watch for clicks on gui elements for my mod (prefix "jolt_tasks") icon
 script.on_event(defines.events.on_gui_click, function(event)
     local element_name = event.element.name
+    
+    --TODO useful to debug naming issues
+    -- debug_print(event, "elementName = " .. element_name)
 
     -- Close my windows looking in dictionary to check if
     -- it is one of my windows
-    local frame_name = windows_to_close[element_name]
-    if frame_name ~= nil then
+    local window_name = windows_to_close[element_name]
+    if window_name ~= nil then
         local player = game.get_player(event.player_index)
 
         -- Check if the frame still exists before destroying
-        if player.gui.screen[frame_name] and player.gui.screen[frame_name].valid then
-            player.gui.screen[frame_name].destroy()
+        if player.gui.screen[window_name] and player.gui.screen[window_name].valid then
+            player.gui.screen[window_name].destroy()
         end
 
         -- Clean up the mapping
         windows_to_close[element_name] = nil
 
     -- Open new task window when Add task button clicked
-    elseif element_name == "jolt_tasks_add_task_button" then
+    elseif element_name == constants.jolt.task_list.add_task_button then
         open_new_task_window(event)
+    -- Add a new task confirm button clicked
+    elseif element_name == constants.jolt.new_task.confirm_button then
+        add_new_task(event)
     end
 end)
 
@@ -75,9 +81,8 @@ end)
 --- Called when a gui tab is changed
 ---@param event any
 script.on_event(defines.events.on_gui_selected_tab_changed, function (event)
-
     -- Check if it is the group tabs
-    if event.element.name == "jolt_group_tabs_pane" then
+    if event.element.name == constants.jolt.task_list.group_tabs_pane then
         -- get the index of the selected tab
         local selected_tab_index = event.element.selected_tab_index
 
@@ -99,9 +104,9 @@ function open_task_list_menu(event)
     local player = game.get_player(event.player_index)
 
     -- Make new window for tasks list
-    local close_button_name = "jolt_tasks_list_close_button"
-    local window_name = "jolt_tasks_list_window"
-    local main_frame = new_window(player, "Tasks", window_name, close_button_name, 400, 600)
+    local close_button_name = constants.jolt.task_list.close_window_button
+    local window_name = constants.jolt.task_list.window
+    local main_frame = new_window(player, {"gui.tasks_list_window_title"}, window_name, close_button_name, 400, 600)
 
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
@@ -123,7 +128,7 @@ function open_task_list_menu(event)
         type = "sprite-button",
         style = "confirm_button",
         sprite = "utility/add",
-        name = "jolt_tasks_add_task_button",
+        name = constants.jolt.task_list.add_task_button,
         tooltip = "Add Task",
     }
 
@@ -154,7 +159,7 @@ function open_task_list_menu(event)
     -- Add a tabbed-pane for all groups
     local tabbed_pane = content_frame.add{
         type="tabbed-pane",
-        name="jolt_group_tabs_pane",
+        name=constants.jolt.task_list.group_tabs_pane,
     }
 
     -- Get the groups, add tabs for each one and their tasks
@@ -226,26 +231,35 @@ end
 function open_new_task_window(event)
     local player = game.get_player(event.player_index)
 
+    -- Setup options for the new window
+    local options = {
+        player = player,
+        window_title = {"gui.new_task_window_title"},
+        window_name = constants.jolt.new_task.window,
+        back_button_name = constants.jolt.new_task.back_button,
+        confirm_button_name = constants.jolt.new_task.confirm_button
+    }
+
     -- Make the new window and set close button
-    local close_button_name = "jolt_new_task_close_button"
-    local window_name = "jolt_new_task_window"
-    local new_task_window = new_window(player, "New Task", window_name, close_button_name, 250, 400)
+    local new_task_window = new_dialog_window(options)
+    
     -- Add event to watch for button click to close the window
-    windows_to_close[close_button_name] = window_name
+    windows_to_close[options.back_button_name] = options.window_name
 
     -- Container to hold form inputs
     local new_task_form = new_task_window.add {
         type = "frame",
-        name = "jolt_new_task_form",
+        name = constants.jolt.new_task.form_container,
         direction = "vertical",
-        style = "ugg_content_frame"
+        style = "ugg_content_frame",
+        index = 2 -- Must set to 2 to place above the bottom row
     }
     
     -- Label "Title" and textbox input
     local task_title_label = new_label(new_task_form, "Title")
     local task_title_textbox = new_task_form.add {
         type = "textfield",
-        name = "jolt_new_task_title",
+        name = constants.jolt.new_task.title_textbox,
         text = "",
         style = constants.styles.form.textfield
     }
@@ -255,8 +269,8 @@ function open_new_task_window(event)
     -- Checkbox for "Add to top"
     local checkbox_add_to_top = new_task_form.add {
         type = "checkbox",
-        name = "jolt_checkbox_add_to_top",
-        caption = "Add to top",
+        name = constants.jolt.new_task.add_to_top_checkbox,
+        caption = {"new-task-window.add_to_top_checkbox_desc"},
         state = checkbox_default_state_add_to_top,
     }
 
@@ -266,7 +280,7 @@ function open_new_task_window(event)
     -- Dropdown to select which group the task is added to
     local dropdown_select_group = new_task_form.add {
         type = "drop-down",
-        name = "jolt_dropdown_select_group",
+        name = constants.jolt.new_task.group_dropdown,
         caption = "Group",
         items = task_manager.get_group_names(),
         style = "dropdown",
@@ -277,4 +291,59 @@ function open_new_task_window(event)
 
 
     --task_title.style.rich_text_setting = defines.rich_text_setting.enabled
+end
+
+--- Tries to add a new task checking the data in the new task window
+---@param event any
+function add_new_task(event)
+    -- Get screen
+    local player = game.get_player(event.player_index)
+    local screen = player.gui.screen
+    local window = screen[constants.jolt.new_task.window]
+    local form_container = window[constants.jolt.new_task.form_container]
+
+    -- Get elements
+    local textbox_title = form_container[constants.jolt.new_task.title_textbox]
+    local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
+    local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
+
+    -- Get Values
+    local title = textbox_title.text
+    local add_to_top = checkbox_add_to_top.state
+    local group_index = dropdown_group.selected_index
+
+    if title == "" then
+        debug_print(event, "display error")
+    end
+
+    local task_params = {
+        title = title,
+        group_id = group_index,
+    }
+
+    task_manager.add_task(task_params, group_index, add_to_top)
+
+    -- Close window
+    player.gui.screen[constants.jolt.new_task.window].destroy()
+
+    -- Refresh data
+    open_task_list_menu(event)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+--- function to print
+function debug_print(event, message)
+    local player = game.get_player(event.player_index)
+    player.print(message)
 end

@@ -53,6 +53,9 @@ function TaskManager.new(params)
 
 
     --- Add a task using provided parameters
+    ---@param task_params any
+    ---@param group_id any
+    ---@param insert_at_end any
     function self.add_task(task_params, group_id, insert_at_end)
         groups[group_id].add_task(task_params, insert_at_end)
     end
