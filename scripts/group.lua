@@ -46,10 +46,18 @@ function Group.new(params)
         return icon
     end
 
-    --- Returns the table of tasks with string uuid's as the keys
+    --- Returns the table of tasks ordered by priority
     --- @return table
     function self.get_tasks()
-        return tasks
+        -- Save tasks in new table
+        local ordered_tasks = {}
+
+        -- Go through the priority table (with task ids)
+        -- Add to the ordered tasks so they are returned in the proper order
+        for _, task_id in pairs(priorities) do
+            table.insert(ordered_tasks, tasks[task_id])
+        end
+        return ordered_tasks
     end
 
     --- Swap the position of priorities 
@@ -63,9 +71,12 @@ function Group.new(params)
     --- Adds a task making it with the provided parameters
     --- also adds it to the priority list 
     --- @param task_params table - with task details
-    --- @param insert_at_end boolean - if the task should be added to the end of the list
-    function self.add_task(task_params, insert_at_end)
-        insert_at_end = insert_at_end or false
+    --- @param add_to_top boolean - if the task should be added to the end of the list
+    function self.add_task(task_params, add_to_top)
+        if type(add_to_top) ~= "boolean" then
+            error("New task error: Must provide a boolean for variable [add_to_top]")
+        end
+
         task_params.group_id = group_id
         -- Create Make a new id for the task
         local id = uuid()
@@ -75,7 +86,7 @@ function Group.new(params)
         tasks[id] = newTask
 
         -- Add id to end of priorities list
-        if insert_at_end then
+        if not add_to_top then
             table.insert(priorities, id)
         -- or insert at end, then swap with first value   
         else

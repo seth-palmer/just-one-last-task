@@ -1,12 +1,31 @@
 --- control.lua
 
-local checkbox_default_state_add_to_top = false
-
 --- Imports
 local TaskManager = require("scripts.task_manager")
-task_manager = TaskManager.new()
 local constants = require("constants")
 require("gui")
+
+
+task_manager = TaskManager.new()
+local checkbox_default_state_add_to_top = false
+
+--region =======Seed Data=======
+
+    -- TODO remove seed data
+    -- Add temporary seed data (will add more on each launch of the menu)
+
+    -- local t1Params = {title="Red Science", groupId=1, description="Automate 5/sec"}
+    -- local t2Params = {title="Green Science", groupId=1, description="Automate 5/sec"}
+    -- local t3Params = {title="Millitary Science", groupId=1, description="Automate 5/sec"}
+    -- local t4Params = {title="Build Hubble Space Platform", groupId=2}
+
+    
+    -- task_manager.add_task(t1Params, 1, true)
+    -- task_manager.add_task(t2Params, 1, true)
+    -- task_manager.add_task(t3Params, 1, true)
+    -- task_manager.add_task(t4Params, 2, true)
+    --endregion
+
 
 -- Make sure the intro cinematic of freeplay doesn't play egroupery time we restart
 -- This is just for convinience, don't worry if you don't understand how this works
@@ -137,22 +156,7 @@ function open_task_list_menu(event)
     --endregion 
 
 
-    --region =======Seed Data=======
-
-    -- TODO remove seed data
-    -- Add temporary seed data (will add more on each launch of the menu)
-
-    local t1Params = {title="Red Science", groupId=1, description="Automate 5/sec"}
-    local t2Params = {title="Green Science", groupId=1, description="Automate 5/sec"}
-    local t3Params = {title="Millitary Science", groupId=1, description="Automate 5/sec"}
-    local t4Params = {title="Build Hubble Space Platform", groupId=2}
-
     
-    task_manager.add_task(t1Params, 1, true)
-    task_manager.add_task(t2Params, 1, true)
-    task_manager.add_task(t3Params, 1, true)
-    task_manager.add_task(t4Params, 2, true)
-    --endregion
 
     --region =======Tabs=======
 
@@ -270,7 +274,7 @@ function open_new_task_window(event)
     local checkbox_add_to_top = new_task_form.add {
         type = "checkbox",
         name = constants.jolt.new_task.add_to_top_checkbox,
-        caption = {"new-task-window.add_to_top_checkbox_desc"},
+        caption = {"new_task_window.add_to_top_checkbox_desc"},
         state = checkbox_default_state_add_to_top,
     }
 
@@ -296,13 +300,13 @@ end
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
 function add_new_task(event)
-    -- Get screen
+    -- Go through element tree to form_container
     local player = game.get_player(event.player_index)
     local screen = player.gui.screen
     local window = screen[constants.jolt.new_task.window]
     local form_container = window[constants.jolt.new_task.form_container]
 
-    -- Get elements
+    -- Get form elements
     local textbox_title = form_container[constants.jolt.new_task.title_textbox]
     local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
     local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
@@ -312,22 +316,29 @@ function add_new_task(event)
     local add_to_top = checkbox_add_to_top.state
     local group_index = dropdown_group.selected_index
 
-    if title == "" then
-        debug_print(event, "display error")
-    end
-
+    -- Make task parameters
     local task_params = {
         title = title,
         group_id = group_index,
     }
 
-    task_manager.add_task(task_params, group_index, add_to_top)
+    -- If no title display error and do not close window
+    if title == "" then
+        -- Create "flying text" with error message
+        player.create_local_flying_text {
+            text = {"new_task_window.no_title_error_message"},
+            create_at_cursor=true,
+        }
 
-    -- Close window
-    player.gui.screen[constants.jolt.new_task.window].destroy()
+    else -- If valid data add task
+        task_manager.add_task(task_params, group_index, add_to_top)
 
-    -- Refresh data
-    open_task_list_menu(event)
+        -- Close window
+        player.gui.screen[constants.jolt.new_task.window].destroy()
+
+        -- Refresh data
+        open_task_list_menu(event)
+    end
 end
 
 
