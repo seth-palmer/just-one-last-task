@@ -38,6 +38,8 @@ constants.jolt = {
         close_window_button = "jolt_tasks_list_close_button",
         group_tabs_pane = "jolt_group_tabs_pane",
         add_task_button = "jolt_add_task_button",
+        edit_task_button = "jolt_edit_task_button",
+        task_checkbox = "jolt_task_checkbox",
     },
     -- For new task window
     new_task = {
@@ -48,6 +50,10 @@ constants.jolt = {
         add_to_top_checkbox = "jolt_new_task_checkbox_add_to_top",
         group_dropdown = "jolt_new_task_group_dropdown",
         form_container = "jolt_new_task_form_container",
+    },
+    -- Edit task window 
+    edit_task = {
+        confirm_button = "jolt_edit_task_confirm_button",
     }
 }
 

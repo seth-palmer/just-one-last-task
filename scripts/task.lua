@@ -9,12 +9,15 @@ function Task.new(params)
         error("New task requires a title")
     elseif type(params.group_id) ~= "number" then
         error("New task requires a group id")
+    elseif type(params.task_id) ~= "string" then
+        error("New task requires a task uuid")
     end
 
     local self = {}
 
     local title = params.title
     local group_id = params.group_id
+    local task_id = params.task_id
 
     -- Default to empty description
     local description = params.description or ""
@@ -25,6 +28,25 @@ function Task.new(params)
     local assigned_player = params.assigned_player or "[Unasigned]"
 
     -- TODO store datetime https://www.lua.org/pil/22.1.html
+
+
+    --- Get the uuid of the task
+    --- @return string - uuid for the task
+    function self.get_id()
+        return task_id
+    end
+
+    --- Get the group id of the task
+    --- @return number - uuid for the task
+    function self.get_group_id()
+        return group_id
+    end
+
+    --- Set the group id of the task
+    ---@param new_group_id number - the new group id
+    function self.set_group_id(new_group_id)
+        group_id = new_group_id
+    end
 
     --- Get the title of the task
     --- @return string

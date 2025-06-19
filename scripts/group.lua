@@ -68,6 +68,16 @@ function Group.new(params)
         priorities[index2] = temp
     end
 
+    --- Get's the task with the matching id
+    ---@param task_id any
+    ---@return Task - or nil if no matching task exists
+    function self.get_task(task_id)
+        if tasks[task_id] ~= nil then
+            return tasks[task_id]
+        end
+        return nil
+    end
+
     --- Adds a task making it with the provided parameters
     --- also adds it to the priority list 
     --- @param task_params table - with task details
@@ -78,8 +88,10 @@ function Group.new(params)
         end
 
         task_params.group_id = group_id
+        
         -- Create Make a new id for the task
         local id = uuid()
+        task_params.task_id = id
 
         -- Make a new task
         local newTask = Task.new(task_params)
@@ -93,6 +105,19 @@ function Group.new(params)
             table.insert(priorities, id)
             swap_priorities(1, #priorities)
         end
+    end
+
+    function self.update_task(task_id, params)
+        -- Get the task
+        local task = tasks[task_id]
+
+        -- Use either the original data or the new data
+        local title = params.title or task.get_title()
+        local group_id = params.group_id or task.get_group_id()
+
+        -- Update the task
+        task.set_title(title)
+        task.set_group_id(group_id)
     end
 
     --- Setup metatable

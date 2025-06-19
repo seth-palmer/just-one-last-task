@@ -182,3 +182,35 @@ function new_label(parent, text)
     return label
 end
 
+--- Adds a row to the parent, for a individual task displaying title  
+---@param parent LuaGuiElement The gui object that the task will be added to
+---@param task Task The task object with title, desc, etc
+function new_gui_task(parent, task)
+    -- A container to put task details
+    local container = parent.add{type="flow", direction="horizontal"}
+
+    -- A checkbox to toggle completed status 
+    local checkbox_completed = container.add{
+        type="checkbox",
+        state=false,
+        caption=task.get_title()
+    }
+    checkbox_completed.style.maximal_width = 300
+    checkbox_completed.style.minimal_width = 50
+    checkbox_completed.style.horizontally_stretchable = true
+    
+
+    -- A label with the task title
+    -- local lbl_title = container.add{type="label", caption=task.get_title()}
+
+    -- A button to edit the task
+    local sbtn_edit = container.add {
+        type="sprite-button",
+        name = constants.jolt.task_list.edit_task_button,
+        sprite="utility/rename_icon",
+        tooltip={"task_list_window.tooltip_edit_task"},
+        tags = {task_id = task.get_id(), group_id=task.get_group_id()}
+    }
+    sbtn_edit.style.size = {24,24}
+
+end

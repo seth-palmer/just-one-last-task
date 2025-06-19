@@ -89,11 +89,31 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
-        open_new_task_window(event)
+        open_new_task_window(event, {})
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
         add_new_task(event)
+    -- If confirm button for edit task was clicked edit the task 
+    elseif element_name == constants.jolt.edit_task.confirm_button then
+        edit_task(event)
+    -- Edit task when edit button clicked 
+    elseif element_name == constants.jolt.task_list.edit_task_button then
+        -- Get the stored task id from tags 
+        local task_id = event.element.tags.task_id
+
+        -- Get the task 
+        local task = task_manager.get_task(task_id)
+        debug_print(event, event.element.tags.task_id)
+
+        -- Open the new task window with pre-filled data 
+        local params = {
+            title = task.get_title(),
+            group_id = task.get_group_id()
+        }
+        open_new_task_window(event, params)
+        
     end
+
 end)
 
 
@@ -113,6 +133,7 @@ script.on_event(defines.events.on_gui_selected_tab_changed, function (event)
     end
 
 end)
+
 
 --- Open the task list menu
 function open_task_list_menu(event)
@@ -175,8 +196,10 @@ function open_task_list_menu(event)
         -- Add tasks for each group inside its tab
         local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
         for _, task in pairs(group.get_tasks()) do
-            local label = tab_content.add{type="label", caption=task.get_title()}
+            new_gui_task(tab_content, task, task_id)
         end
+
+
         -- Add the content to the tab 
         -- (Can only connect one thing so which is why I use another pane to group tasks)
         tabbed_pane.add_tab(new_tab, tab_content)
@@ -232,7 +255,18 @@ end
 
 --- Opens a window with the form to create a new task
 ---@param event any
-function open_new_task_window(event)
+function open_new_task_window(event, params)
+    
+    -- Setup the data if editing an existing task
+    params = params or {}
+    local title = params.title or ""
+    local checkbox_state_add_to_top = params.checkbox_add_to_top or checkbox_default_state_add_to_top
+    
+    -- Get last selected tab index if this is a new task
+    local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
+
+    local group_id = params.group_id or last_group_selected_index
+
     local player = game.get_player(event.player_index)
 
     -- Setup options for the new window
@@ -243,6 +277,12 @@ function open_new_task_window(event)
         back_button_name = constants.jolt.new_task.back_button,
         confirm_button_name = constants.jolt.new_task.confirm_button
     }
+
+    -- TODO verify 
+    -- If editing an existing task change the confirm button
+    if params.is_edit then 
+        options.confirm_button_name = constants.jolt.edit_task.confirm_button
+    end
 
     -- Make the new window and set close button
     local new_task_window = new_dialog_window(options)
@@ -264,7 +304,7 @@ function open_new_task_window(event)
     local task_title_textbox = new_task_form.add {
         type = "textfield",
         name = constants.jolt.new_task.title_textbox,
-        text = "",
+        text = title,
         style = constants.styles.form.textfield
     }
     task_title_textbox.style.horizontally_stretchable = true
@@ -275,12 +315,10 @@ function open_new_task_window(event)
         type = "checkbox",
         name = constants.jolt.new_task.add_to_top_checkbox,
         caption = {"new_task_window.add_to_top_checkbox_desc"},
-        state = checkbox_default_state_add_to_top,
+        state = checkbox_state_add_to_top,
     }
 
-    -- Get last selected tab index
-    local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
-
+    
     -- Dropdown to select which group the task is added to
     local dropdown_select_group = new_task_form.add {
         type = "drop-down",
@@ -288,7 +326,7 @@ function open_new_task_window(event)
         caption = "Group",
         items = task_manager.get_group_names(),
         style = "dropdown",
-        selected_index = last_group_selected_index,
+        selected_index = group_id
     }
 
 
@@ -300,7 +338,7 @@ end
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
 function add_new_task(event)
-    -- Go through element tree to form_container
+    -- Go through element tree to get to the form_container
     local player = game.get_player(event.player_index)
     local screen = player.gui.screen
     local window = screen[constants.jolt.new_task.window]
@@ -340,6 +378,53 @@ function add_new_task(event)
         open_task_list_menu(event)
     end
 end
+
+-- TODO 
+--- Tries to add a new task checking the data in the new task window
+---@param event any
+function edit_task(event)
+    -- -- Go through element tree to get to the form_container
+    -- local player = game.get_player(event.player_index)
+    -- local screen = player.gui.screen
+    -- local window = screen[constants.jolt.new_task.window]
+    -- local form_container = window[constants.jolt.new_task.form_container]
+
+    -- -- Get form elements
+    -- local textbox_title = form_container[constants.jolt.new_task.title_textbox]
+    -- local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
+    -- local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
+
+    -- -- Get Values
+    -- local title = textbox_title.text
+    -- local add_to_top = checkbox_add_to_top.state
+    -- local group_index = dropdown_group.selected_index
+
+    -- -- Make task parameters
+    -- local task_params = {
+    --     title = title,
+    --     group_id = group_index,
+    -- }
+
+    -- -- If no title display error and do not close window
+    -- if title == "" then
+    --     -- Create "flying text" with error message
+    --     player.create_local_flying_text {
+    --         text = {"new_task_window.no_title_error_message"},
+    --         create_at_cursor=true,
+    --     }
+
+    -- else -- If valid data add task
+    --     task_manager.add_task(task_params, group_index, add_to_top)
+
+    --     -- Close window
+    --     player.gui.screen[constants.jolt.new_task.window].destroy()
+
+    --     -- Refresh data
+    --     open_task_list_menu(event)
+    -- end
+end
+
+
 
 
 

@@ -60,6 +60,26 @@ function TaskManager.new(params)
         groups[group_id].add_task(task_params, insert_at_end)
     end
 
+    --- Gets the task with the provided uuid
+    function self.get_task(task_id)
+        local task
+        -- Search through the groups 
+        for index, group in ipairs(groups) do
+            -- Check if the task exists in the group
+            task = group.get_task(task_id)
+
+            -- Exit loop if we have found the task
+            if task ~= nil then
+                break
+            end
+        end
+        if task == nil then
+            error("Task not found with id: " .. task_id)
+        end
+
+        return task
+    end
+
     -- For debugging
     function self.stats()
         -- '#' before a list makes it return a count (won't work for dictionaries)
