@@ -42,6 +42,15 @@ script.on_init(function()
 
     -- store players and their info
     storage.players = storage.players or {}
+
+    -- TODO 
+    -- store data for groups, tasks 
+    -- IMPORTANT: Can only store data not functions. So no putting a 
+    storage.task_data = storage.task_data or {
+        players = {},
+        groups = {},
+        priorities = {},
+    }
 end)
 
 --- Watch for clicks on the task shortcut icon to open and close
@@ -95,7 +104,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         add_new_task(event)
     -- If confirm button for edit task was clicked edit the task 
     elseif element_name == constants.jolt.edit_task.confirm_button then
-        edit_task(event)
+        add_new_task(event, true)
     -- Edit task when edit button clicked 
     elseif element_name == constants.jolt.task_list.edit_task_button then
         -- Get the stored task id from tags 
@@ -108,9 +117,10 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Open the new task window with pre-filled data 
         local params = {
             title = task.get_title(),
-            group_id = task.get_group_id()
+            group_id = task.get_group_id(),
+            task_id = task_id,
         }
-        open_new_task_window(event, params)
+        open_new_task_window(event, params, true)
         
     end
 
@@ -255,16 +265,18 @@ end
 
 --- Opens a window with the form to create a new task
 ---@param event any
-function open_new_task_window(event, params)
+function open_new_task_window(event, params, is_edit_task)
     
     -- Setup the data if editing an existing task
     params = params or {}
     local title = params.title or ""
+    local task_id = params.task_id or ""
     local checkbox_state_add_to_top = params.checkbox_add_to_top or checkbox_default_state_add_to_top
     
     -- Get last selected tab index if this is a new task
     local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
 
+    -- Set group id to the param if provided or the last group selected if new task
     local group_id = params.group_id or last_group_selected_index
 
     local player = game.get_player(event.player_index)
@@ -280,8 +292,9 @@ function open_new_task_window(event, params)
 
     -- TODO verify 
     -- If editing an existing task change the confirm button
-    if params.is_edit then 
+    if is_edit_task then 
         options.confirm_button_name = constants.jolt.edit_task.confirm_button
+        options.window_title = {"gui.edit_task_window_title"}
     end
 
     -- Make the new window and set close button
@@ -296,7 +309,8 @@ function open_new_task_window(event, params)
         name = constants.jolt.new_task.form_container,
         direction = "vertical",
         style = "ugg_content_frame",
-        index = 2 -- Must set to 2 to place above the bottom row
+        index = 2, -- Must set to 2 to place above the bottom row
+        tags = { task_id = task_id } -- Store task id if this is an edit task 
     }
     
     -- Label "Title" and textbox input
@@ -337,7 +351,7 @@ end
 
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
-function add_new_task(event)
+function add_new_task(event, is_edit_task)
     -- Go through element tree to get to the form_container
     local player = game.get_player(event.player_index)
     local screen = player.gui.screen
@@ -350,6 +364,7 @@ function add_new_task(event)
     local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
 
     -- Get Values
+    local task_id = form_container.tags.task_id
     local title = textbox_title.text
     local add_to_top = checkbox_add_to_top.state
     local group_index = dropdown_group.selected_index
@@ -358,6 +373,7 @@ function add_new_task(event)
     local task_params = {
         title = title,
         group_id = group_index,
+        add_to_top = add_to_top,
     }
 
     -- If no title display error and do not close window
@@ -369,7 +385,13 @@ function add_new_task(event)
         }
 
     else -- If valid data add task
-        task_manager.add_task(task_params, group_index, add_to_top)
+        if is_edit_task then 
+            debug_print(event, "updating...")
+            task_manager.update_task(task_params, task_id)
+        else
+            debug_print(event, "new task...")
+            task_manager.add_task(task_params, group_index, add_to_top)
+        end
 
         -- Close window
         player.gui.screen[constants.jolt.new_task.window].destroy()
@@ -378,52 +400,6 @@ function add_new_task(event)
         open_task_list_menu(event)
     end
 end
-
--- TODO 
---- Tries to add a new task checking the data in the new task window
----@param event any
-function edit_task(event)
-    -- -- Go through element tree to get to the form_container
-    -- local player = game.get_player(event.player_index)
-    -- local screen = player.gui.screen
-    -- local window = screen[constants.jolt.new_task.window]
-    -- local form_container = window[constants.jolt.new_task.form_container]
-
-    -- -- Get form elements
-    -- local textbox_title = form_container[constants.jolt.new_task.title_textbox]
-    -- local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
-    -- local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
-
-    -- -- Get Values
-    -- local title = textbox_title.text
-    -- local add_to_top = checkbox_add_to_top.state
-    -- local group_index = dropdown_group.selected_index
-
-    -- -- Make task parameters
-    -- local task_params = {
-    --     title = title,
-    --     group_id = group_index,
-    -- }
-
-    -- -- If no title display error and do not close window
-    -- if title == "" then
-    --     -- Create "flying text" with error message
-    --     player.create_local_flying_text {
-    --         text = {"new_task_window.no_title_error_message"},
-    --         create_at_cursor=true,
-    --     }
-
-    -- else -- If valid data add task
-    --     task_manager.add_task(task_params, group_index, add_to_top)
-
-    --     -- Close window
-    --     player.gui.screen[constants.jolt.new_task.window].destroy()
-
-    --     -- Refresh data
-    --     open_task_list_menu(event)
-    -- end
-end
-
 
 
 

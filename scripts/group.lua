@@ -107,9 +107,13 @@ function Group.new(params)
         end
     end
 
+    --- Update the provided task with the new parameters
+    ---@param task_id string 
+    ---@param params any
     function self.update_task(task_id, params)
         -- Get the task
         local task = tasks[task_id]
+        if task == nil then error("No task in group " .. name .. " with matching id: " .. task_id) end
 
         -- Use either the original data or the new data
         local title = params.title or task.get_title()
@@ -118,6 +122,43 @@ function Group.new(params)
         -- Update the task
         task.set_title(title)
         task.set_group_id(group_id)
+    end
+
+
+    --- Copy an existing task to this group
+    ---@param task any
+    ---@param add_to_top any
+    function self.copy_task(task, add_to_top)
+        if type(add_to_top) ~= "boolean" then
+            error("New task error: Must provide a boolean for variable [add_to_top]")
+        end
+
+        -- Add to task to hash map
+        local id = task.get_id()
+        tasks[id] = task
+
+        -- Add id to end of priorities list
+        if not add_to_top then
+            table.insert(priorities, id)
+        -- or insert at end, then swap with first value   
+        else
+            table.insert(priorities, id)
+            swap_priorities(1, #priorities)
+        end
+    end
+
+    --- Delete the provided task 
+    ---@param task_id string - task to delete
+    function self.delete_task(task_id)
+        -- delete task data 
+        tasks[task_id] = nil
+
+        -- delete task position data 
+        for index, pos_task_id in ipairs(priorities) do
+            if pos_task_id == task_id then
+                table.remove(priorities, index)
+            end
+        end
     end
 
     --- Setup metatable
