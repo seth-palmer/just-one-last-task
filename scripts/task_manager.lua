@@ -31,8 +31,10 @@ function TaskManager.new(params)
     local groups = params.groups or defaultGroups
     local players = params.players or {}
 
-    -- A list of taskIds
-    local priorities = params.priorities or {}
+
+    -- A list of taskIds and priorities
+    local task_data = params.task_data
+    local task_priorities = params.task_priorities
 
 
     --- Get the list of groups
