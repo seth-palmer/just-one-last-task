@@ -6,7 +6,7 @@ local constants = require("constants")
 require("gui")
 
 
-task_manager = TaskManager.new()
+
 local checkbox_default_state_add_to_top = false
 
 --region =======Seed Data=======
@@ -27,8 +27,10 @@ local checkbox_default_state_add_to_top = false
     --endregion
 
 
--- Make sure the intro cinematic of freeplay doesn't play egroupery time we restart
+-- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convinience, don't worry if you don't understand how this works
+-- See on_init() section in https://wiki.factorio.com/Tutorial:Scripting
+-- Only runs when a new game is created https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_init
 script.on_init(function()
     local freeplay = remote.interfaces["freeplay"]
     if freeplay then -- Disable freeplay popup-message
@@ -40,17 +42,35 @@ script.on_init(function()
         end
     end
 
+    --Default groups (store data! not objects/functions)
+    local nauvis_group = {id=1, name="Nauvis", icon="[img=space-location/nauvis]"}
+    local space_group = {id=2, name="Space", icon="[img=item/thruster]"}
+
+    local default_group_data = {}
+    default_group_data[1] = nauvis_group
+    default_group_data[2] = space_group
+
     -- store players and their info
     storage.players = storage.players or {}
 
     -- TODO 
     -- store data for groups, tasks 
-    -- IMPORTANT: Can only store data not functions. So no putting a 
+    -- IMPORTANT: Can only store data not functions. So no putting an object here
+    -- https://lua-api.factorio.com/latest/auxiliary/storage.html
     storage.task_data = storage.task_data or {
-        players = {},
-        groups = {},
+        tasks = {},
+        groups = default_group_data,
         priorities = {},
     }
+    task_manager = TaskManager.new()
+end)
+
+-- Runs when a saved game is loaded
+-- https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_load
+script.on_load(function ()
+    -- Since on_init() only runs for new games re-declare it here 
+    -- so we can use it for saved games
+    task_manager = TaskManager.new()
 end)
 
 --- Watch for clicks on the task shortcut icon to open and close
@@ -116,8 +136,8 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Open the new task window with pre-filled data 
         local params = {
-            title = task.get_title(),
-            group_id = task.get_group_id(),
+            title = task.title,
+            group_id = task.group_id,
             task_id = task_id,
         }
         open_new_task_window(event, params, true)
@@ -197,15 +217,16 @@ function open_task_list_menu(event)
         name=constants.jolt.task_list.group_tabs_pane,
     }
 
+    -- TODO code to work with getting tasks
     -- Get the groups, add tabs for each one and their tasks
     for _, group in ipairs(task_manager.get_groups()) do
         -- Add the tab and set the title
-        local tab_title = group.get_icon_path() .. " " .. group.get_name()
+        local tab_title = group.icon .. " " .. group.name
         local new_tab = tabbed_pane.add{type="tab", caption=tab_title}
 
         -- Add tasks for each group inside its tab
         local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
-        for _, task in pairs(group.get_tasks()) do
+        for _, task in pairs(task_manager.get_tasks(group.id)) do
             new_gui_task(tab_content, task, task_id)
         end
 
@@ -373,7 +394,6 @@ function add_new_task(event, is_edit_task)
     local task_params = {
         title = title,
         group_id = group_index,
-        add_to_top = add_to_top,
     }
 
     -- If no title display error and do not close window
@@ -390,7 +410,7 @@ function add_new_task(event, is_edit_task)
             task_manager.update_task(task_params, task_id)
         else
             debug_print(event, "new task...")
-            task_manager.add_task(task_params, group_index, add_to_top)
+            task_manager.add_task(task_params, add_to_top)
         end
 
         -- Close window

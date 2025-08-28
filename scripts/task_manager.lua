@@ -1,14 +1,4 @@
-require "group"
-require "task"
-
---Default groups
-local nauvis_group = Group.new({group_id=1, name="Nauvis", icon="[img=space-location/nauvis]"})
-local space_group = Group.new({group_id=2, name="Space", icon="[img=item/thruster]"})
-
-local defaultGroups = {}
-defaultGroups[1] = nauvis_group
-defaultGroups[2] = space_group
-
+require "utils"
 
 
 TaskManager = {}
@@ -28,13 +18,13 @@ function TaskManager.new(params)
 
 
     -- Store group, player, and task data
-    local groups = params.groups or defaultGroups
-    local players = params.players or {}
+    local groups = storage.task_data.groups
+    local players = storage.players
 
 
     -- A list of taskIds and priorities
-    local task_data = params.task_data
-    local task_priorities = params.task_priorities
+    local tasks = storage.task_data.tasks
+    local task_priorities = storage.task_data.priorities
 
 
     --- Get the list of groups
@@ -42,48 +32,101 @@ function TaskManager.new(params)
         return groups
     end
 
+    --- Returns the table of tasks for a group ordered by priority
+    --- @return table
+    function self.get_tasks(group_id)
+        -- TODO 
+        -- search through task list an return only those in 
+        -- the provided group 
+        -- Save tasks in new table
+        local ordered_tasks = {}
+
+        -- Go through the priority table (with task ids)
+        -- Add to the ordered tasks so they are returned in the proper order
+        for _, task_id in pairs(task_priorities) do
+            local task = tasks[task_id]
+            if task.group_id == group_id then
+                table.insert(ordered_tasks, tasks[task_id])
+            end
+        end
+        return ordered_tasks
+    end
+
     --- Get a list with all group names
     function self.get_group_names()
         local names = {}
         for _, g in pairs(groups) do
             -- Get the icon and name to display
-            local name = g.get_icon_path() .. " " .. g.get_name()
+            local name = g.icon .. " " .. g.name
             table.insert(names, name)
         end
         return names
     end
 
+    --- Swap the position of priorities 
+    --- Important: local functions must be put above where they are used!
+    local function swap_priorities(index1, index2)
+        local temp = task_priorities[index1]
+        task_priorities[index1] = task_priorities[index2]
+        task_priorities[index2] = temp
+    end
+
 
     --- Add a task using provided parameters
     ---@param task_params any
-    ---@param group_id any
-    ---@param insert_at_end any
-    function self.add_task(task_params, group_id, insert_at_end)
-        groups[group_id].add_task(task_params, insert_at_end)
+    function self.add_task(task_params, add_to_top)
+        if type(add_to_top) ~= "boolean" then
+            error("New task error: Must provide a boolean for variable [add_to_top]")
+        end
+
+        -- Create Make a new id for the task
+        local id = uuid()
+
+        -- Make a new task
+        local newTask = {id=id, group_id=task_params.group_id, title=task_params.title }
+        tasks[id] = newTask
+
+        -- Add id to end of priorities list
+        if not add_to_top then
+            table.insert(task_priorities, id)
+        -- or insert at end, then swap with first value   
+        else
+            table.insert(task_priorities, id)
+            swap_priorities(1, #task_priorities)
+        end
     end
+
+    
 
     --- Update the provided task
     ---@param task_params any
     ---@param task_id string
     function self.update_task(task_params, task_id)
+        -- Get the task
+        local task = tasks[task_id]
+        if task == nil then error("No task in group " .. name .. " with matching id: " .. task_id) end
+
         -- Find the original task group 
-        local group_id = self.get_task(task_id).get_group_id()
+        -- local group_id = self.get_task(task_id).group_id
 
         -- Check if the task needs to be moved 
-        local needs_move = task_params.group_id ~= group_id
+        -- local needs_move = task_params.group_id ~= group_id
 
         -- If task is being moved 
-        if needs_move then
-            -- Get values to use
-            local to_group_id = task_params.group_id
-            local add_to_top = task_params.add_to_top
+        -- if needs_move then
+        --     -- Get values to use
+        --     local to_group_id = task_params.group_id
+        --     local add_to_top = task_params.add_to_top
 
-            -- Move the task 
-            self.move_task(task_id, to_group_id, add_to_top)
-        end
+        --     -- Move the task 
+        --     self.move_task(task_id, to_group_id, add_to_top)
+        -- end
 
         -- Update any values inside the task, use the new position
-        groups[task_params.group_id].update_task(task_id, task_params)
+        --groups[task_params.group_id].update_task(task_id, task_params)
+        
+        task.title = task_params.title
+        task.group_id = task_params.group_id
     end
 
     --- Move the task to the provided group
@@ -92,7 +135,7 @@ function TaskManager.new(params)
     function self.move_task(task_id, to_group_id, add_to_top)
         -- Get the original task group 
         local task = self.get_task(task_id)
-        local from_task_group = task.get_group_id()
+        local from_task_group = task.group_id
 
         -- Copy to new group 
         groups[to_group_id].copy_task(task, add_to_top)
@@ -104,17 +147,11 @@ function TaskManager.new(params)
 
     --- Gets the task with the provided uuid
     --- @param task_id string - uuid of the task to search for
+    ---@return Task - or nil if no matching task exists
     function self.get_task(task_id)
         local task
-        -- Search through the groups 
-        for index, group in ipairs(groups) do
-            -- Check if the task exists in the group
-            task = group.get_task(task_id)
-
-            -- Exit loop if we have found the task
-            if task ~= nil then
-                break
-            end
+        if tasks[task_id] ~= nil then
+            return tasks[task_id]
         end
         if task == nil then
             error("Task not found with id: " .. task_id)

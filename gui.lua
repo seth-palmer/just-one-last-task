@@ -193,7 +193,7 @@ function new_gui_task(parent, task)
     local checkbox_completed = container.add{
         type="checkbox",
         state=false,
-        caption=task.get_title()
+        caption=task.title
     }
     checkbox_completed.style.maximal_width = 300
     checkbox_completed.style.minimal_width = 50
@@ -209,7 +209,7 @@ function new_gui_task(parent, task)
         name = constants.jolt.task_list.edit_task_button,
         sprite="utility/rename_icon",
         tooltip={"task_list_window.tooltip_edit_task"},
-        tags = {task_id = task.get_id(), group_id=task.get_group_id()}
+        tags = {task_id = task.id, group_id=task.group_id}
     }
     sbtn_edit.style.size = {24,24}
 
