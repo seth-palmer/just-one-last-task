@@ -34,7 +34,7 @@ function TaskManager.new(params)
 
     --- Returns the table of tasks for a group ordered by priority
     --- @return table
-    function self.get_tasks(group_id)
+    function self.get_tasks(group_id, target_complete_state)
         -- TODO 
         -- search through task list an return only those in 
         -- the provided group 
@@ -45,7 +45,9 @@ function TaskManager.new(params)
         -- Add to the ordered tasks so they are returned in the proper order
         for _, task_id in pairs(task_priorities) do
             local task = tasks[task_id]
-            if task.group_id == group_id then
+            -- Only return tasks for the specific group 
+            -- and matching the target complete status
+            if task.group_id == group_id and task.is_complete == target_complete_state then
                 table.insert(ordered_tasks, tasks[task_id])
             end
         end
@@ -83,7 +85,12 @@ function TaskManager.new(params)
         local id = uuid()
 
         -- Make a new task
-        local newTask = {id=id, group_id=task_params.group_id, title=task_params.title }
+        local newTask = {
+            id=id,
+            group_id=task_params.group_id,
+            title=task_params.title,
+            is_complete = false
+        }
         tasks[id] = newTask
 
         -- Add id to end of priorities list
@@ -154,7 +161,7 @@ function TaskManager.new(params)
             return tasks[task_id]
         end
         if task == nil then
-            error("Task not found with id: " .. task_id)
+            error("Task not found with id: " .. (task_id or "[nil value]"))
         end
 
         return task

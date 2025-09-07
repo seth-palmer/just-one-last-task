@@ -189,11 +189,15 @@ function new_gui_task(parent, task)
     -- A container to put task details
     local container = parent.add{type="flow", direction="horizontal"}
 
+    -- TODO add a name and task id so this can be identified in 
+    -- an on click event
     -- A checkbox to toggle completed status 
     local checkbox_completed = container.add{
+        name = constants.jolt.task_list.task_checkbox,
         type="checkbox",
-        state=false,
-        caption=task.title
+        state=task.is_complete,
+        caption=task.title,
+        tags = {task_id = task.id}
     }
     checkbox_completed.style.maximal_width = 300
     checkbox_completed.style.minimal_width = 50

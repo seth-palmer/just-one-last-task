@@ -132,7 +132,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Get the task 
         local task = task_manager.get_task(task_id)
-        debug_print(event, event.element.tags.task_id)
+        -- debug_print(event, event.element.tags.task_id)
 
         -- Open the new task window with pre-filled data 
         local params = {
@@ -141,8 +141,21 @@ script.on_event(defines.events.on_gui_click, function(event)
             task_id = task_id,
         }
         open_new_task_window(event, params, true)
-        
+    -- Task checkbox clicked mark complete / uncomplete 
+    elseif element_name == constants.jolt.task_list.task_checkbox then
+         -- Get the stored task id from tags 
+        local task_id = event.element.tags.task_id
+
+        -- Get the task 
+        local task = task_manager.get_task(task_id)
+
+        -- Invert completed status 
+        task.is_complete = not task.is_complete
+
+        -- Refresh list of tasks (Is this inefficient?)
+        open_task_list_menu(event)
     end
+    
 
 end)
 
@@ -226,8 +239,8 @@ function open_task_list_menu(event)
 
         -- Add tasks for each group inside its tab
         local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
-        for _, task in pairs(task_manager.get_tasks(group.id)) do
-            new_gui_task(tab_content, task, task_id)
+        for _, task in pairs(task_manager.get_tasks(group.id, false)) do
+            new_gui_task(tab_content, task)
         end
 
 
@@ -406,10 +419,10 @@ function add_new_task(event, is_edit_task)
 
     else -- If valid data add task
         if is_edit_task then 
-            debug_print(event, "updating...")
+            --debug_print(event, "updating...")
             task_manager.update_task(task_params, task_id)
         else
-            debug_print(event, "new task...")
+            --debug_print(event, "new task...")
             task_manager.add_task(task_params, add_to_top)
         end
 
