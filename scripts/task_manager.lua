@@ -26,6 +26,17 @@ function TaskManager.new(params)
     local tasks = storage.task_data.tasks
     local task_priorities = storage.task_data.priorities
 
+    local settings = {
+        show_completed = false
+    }
+
+    function self.set_setting_show_completed(new_value)
+        settings.show_completed = new_value
+    end
+
+    function self.get_setting_show_completed()
+        return settings.show_completed
+    end
 
     --- Get the list of groups
     function self.get_groups()

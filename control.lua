@@ -119,12 +119,15 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
         open_new_task_window(event, {})
+
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
         add_new_task(event)
+
     -- If confirm button for edit task was clicked edit the task 
     elseif element_name == constants.jolt.edit_task.confirm_button then
         add_new_task(event, true)
+
     -- Edit task when edit button clicked 
     elseif element_name == constants.jolt.task_list.edit_task_button then
         -- Get the stored task id from tags 
@@ -141,6 +144,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             task_id = task_id,
         }
         open_new_task_window(event, params, true)
+
     -- Task checkbox clicked mark complete / uncomplete 
     elseif element_name == constants.jolt.task_list.task_checkbox then
          -- Get the stored task id from tags 
@@ -153,6 +157,15 @@ script.on_event(defines.events.on_gui_click, function(event)
         task.is_complete = not task.is_complete
 
         -- Refresh list of tasks (Is this inefficient?)
+        open_task_list_menu(event)
+
+    -- Toggle viewing completed/incomplete tasks 
+    elseif element_name == constants.jolt.task_list.show_completed_checkbox then
+        -- Invert the setting stored in task manager 
+        local show_completed = task_manager.get_setting_show_completed()
+        task_manager.set_setting_show_completed(not show_completed)
+
+        -- Refresh list of tasks
         open_task_list_menu(event)
     end
     
@@ -194,26 +207,51 @@ function open_task_list_menu(event)
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
 
-    -- Make place to put content in
-    local content_frame = main_frame.add {
-        type = "frame",
-        name = "content_frame",
-        direction = "vertical",
-        style = "ugg_content_frame"
-    }
+    
+
     --endregion
 
 
     --region =======Controls=======
 
+    -- Add row for controls 
+    local controls_container = main_frame.add {
+        type = "frame",
+        name = "jolt_controls_container",
+        direction = "horizontal",
+        style = "subheader_frame"
+    }
+
+    -- A checkbox to toggle seeing completed/incomplete tasks
+    local cb_show_completed = controls_container.add {
+        type = "checkbox",
+        name = constants.jolt.task_list.show_completed_checkbox,
+        caption = {"task_list_window.show_completed_tasks"},
+        state = task_manager.get_setting_show_completed(),
+        horizontally_stretchable = "on"
+    }
+
+    -- Empty space
+    local empty_space = controls_container.add {
+        type = "empty-widget",
+    }
+    -- Make it expand to fill the space
+    empty_space.style.minimal_width = 50
+    empty_space.style.height = 24
+    empty_space.style.horizontally_stretchable = true
+
+    
+
     -- Add task button
-    local add_task_button = main_frame.add {
+    local add_task_button = controls_container.add {
         type = "sprite-button",
         style = "confirm_button",
         sprite = "utility/add",
         name = constants.jolt.task_list.add_task_button,
         tooltip = "Add Task",
     }
+    add_task_button.style.width = 50
+    add_task_button.style.height = 30
 
 
 
@@ -223,6 +261,14 @@ function open_task_list_menu(event)
     
 
     --region =======Tabs=======
+
+    -- Make place to put content in
+    local content_frame = main_frame.add {
+        type = "frame",
+        name = "content_frame",
+        direction = "vertical",
+        style = "ugg_content_frame"
+    }
 
     -- Add a tabbed-pane for all groups
     local tabbed_pane = content_frame.add{
@@ -239,7 +285,7 @@ function open_task_list_menu(event)
 
         -- Add tasks for each group inside its tab
         local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
-        for _, task in pairs(task_manager.get_tasks(group.id, false)) do
+        for _, task in pairs(task_manager.get_tasks(group.id, task_manager.get_setting_show_completed())) do
             new_gui_task(tab_content, task)
         end
 
@@ -325,7 +371,7 @@ function open_new_task_window(event, params, is_edit_task)
     }
 
     -- TODO verify 
-    -- If editing an existing task change the confirm button
+    -- If editing an existing task change the window title
     if is_edit_task then 
         options.confirm_button_name = constants.jolt.edit_task.confirm_button
         options.window_title = {"gui.edit_task_window_title"}

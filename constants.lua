@@ -9,6 +9,7 @@ constants.colors = {
 
 --- A place to store styles both built in and custom
 --- so I can easily lookup what I might use
+--- look in "data.lua" for styles
 constants.styles = {
     frame = {
         title = "frame_title",
@@ -40,6 +41,7 @@ constants.jolt = {
         add_task_button = "jolt_add_task_button",
         edit_task_button = "jolt_edit_task_button",
         task_checkbox = "jolt_task_checkbox",
+        show_completed_checkbox = "jolt_show_completed_tasks_checkbox"
     },
     -- For new task window
     new_task = {
