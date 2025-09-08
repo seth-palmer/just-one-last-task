@@ -40,8 +40,10 @@ constants.jolt = {
         group_tabs_pane = "jolt_group_tabs_pane",
         add_task_button = "jolt_add_task_button",
         edit_task_button = "jolt_edit_task_button",
+        toggle_details_button = "jolt_toggle_details_button",
         task_checkbox = "jolt_task_checkbox",
-        show_completed_checkbox = "jolt_show_completed_tasks_checkbox"
+        show_completed_checkbox = "jolt_show_completed_tasks_checkbox",
+        add_subtask_button = "jolt_add_subtask_button",
     },
     -- For new task window
     new_task = {

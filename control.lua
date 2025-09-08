@@ -167,6 +167,28 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh list of tasks
         open_task_list_menu(event)
+
+    -- Toggle details for individual task
+    elseif element_name == constants.jolt.task_list.toggle_details_button then
+        -- Get the task 
+        local task_id = event.element.tags.task_id
+        local task = task_manager.get_task(task_id)
+
+        -- invert property to mark that details should be shown/hidden
+        task.show_details = not task.show_details
+
+        -- Refresh list of tasks
+        open_task_list_menu(event)
+    
+    -- On click of the "+ Subtask" button 
+    elseif element_name == constants.jolt.task_list.add_subtask_button then
+        -- Get the task 
+        local task_id = event.element.tags.task_id
+        local task = task_manager.get_task(task_id)
+
+        -- Open the add task window
+        open_new_task_window(event, {}, false)
+
     end
     
 
@@ -276,7 +298,6 @@ function open_task_list_menu(event)
         name=constants.jolt.task_list.group_tabs_pane,
     }
 
-    -- TODO code to work with getting tasks
     -- Get the groups, add tabs for each one and their tasks
     for _, group in ipairs(task_manager.get_groups()) do
         -- Add the tab and set the title
@@ -285,7 +306,10 @@ function open_task_list_menu(event)
 
         -- Add tasks for each group inside its tab
         local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
+        -- Get tasks, checking if the control button "Show Completed".
+        -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
         for _, task in pairs(task_manager.get_tasks(group.id, task_manager.get_setting_show_completed())) do
+            -- Display the task
             new_gui_task(tab_content, task)
         end
 
@@ -301,6 +325,7 @@ function open_task_list_menu(event)
         storage.players[event.player_index].selected_group_tab_index = storage.players[event.player_index].selected_group_tab_index or 1
     end
     
+    -- TODO maybe move the stored data into the task manager?
     -- Load the last selected tab from when the window was open before
     tabbed_pane.selected_tab_index = storage.players[event.player_index].selected_group_tab_index
 
@@ -370,7 +395,6 @@ function open_new_task_window(event, params, is_edit_task)
         confirm_button_name = constants.jolt.new_task.confirm_button
     }
 
-    -- TODO verify 
     -- If editing an existing task change the window title
     if is_edit_task then 
         options.confirm_button_name = constants.jolt.edit_task.confirm_button

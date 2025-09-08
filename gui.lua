@@ -186,29 +186,33 @@ end
 ---@param parent LuaGuiElement The gui object that the task will be added to
 ---@param task Task The task object with title, desc, etc
 function new_gui_task(parent, task)
-    -- A container to put task details
-    local container = parent.add{type="flow", direction="horizontal"}
+    -- A container to hold all tasks, controls, and subtasks 
+    local task_container = parent.add {type="flow", direction="vertical"}
+    -- A container to put task controls
 
-    -- TODO add a name and task id so this can be identified in 
+    local controls_container = task_container.add{type="flow", direction="horizontal"}
+
+    -- A container to put subtasks so they are tabbed in 
+    local subtask_container = task_container.add{type="flow", direction="vertical"}
+    
+
+    -- add a name and task id so this can be identified in 
     -- an on click event
     -- A checkbox to toggle completed status 
-    local checkbox_completed = container.add{
+    local checkbox_completed = controls_container.add{
         name = constants.jolt.task_list.task_checkbox,
         type="checkbox",
         state=task.is_complete,
         caption=task.title,
         tags = {task_id = task.id}
     }
+    -- Push other controls to the right by making the checkbox expand
     checkbox_completed.style.maximal_width = 300
     checkbox_completed.style.minimal_width = 50
     checkbox_completed.style.horizontally_stretchable = true
     
-
-    -- A label with the task title
-    -- local lbl_title = container.add{type="label", caption=task.get_title()}
-
     -- A button to edit the task
-    local sbtn_edit = container.add {
+    local sbtn_edit = controls_container.add {
         type="sprite-button",
         name = constants.jolt.task_list.edit_task_button,
         sprite="utility/rename_icon",
@@ -216,5 +220,37 @@ function new_gui_task(parent, task)
         tags = {task_id = task.id, group_id=task.group_id}
     }
     sbtn_edit.style.size = {24,24}
+
+    -- A sprite button with cheverons to mark if the details are expanded or not
+    local sbtn_details = controls_container.add {
+        type="sprite-button",
+        name = constants.jolt.task_list.toggle_details_button,
+        sprite="utility/expand",
+        tooltip={"task_list_window.tooltip_toggle_details"},
+        tags = {task_id = task.id, group_id=task.group_id}
+    }
+    sbtn_details.style.size = {24,24}
+
+    -- If details are expanded add extra controls and subtasks
+    if task.show_details then
+        -- Change icon to indicate details can be collapsed
+        sbtn_details.sprite = "utility/collapse"
+
+        -- TODO add subtasks 
+
+        -- [Add subtask] button 
+        local lbl_add_subtask = task_container.add {
+            type="label",
+            name=constants.jolt.task_list.add_subtask_button,
+            caption = {"task_list_window.label_add_subtask"},
+            tooltip={"task_list_window.tooltip_add_subtask"},
+            style = constants.styles.frame.title,
+            tags = {task_id = task.id, group_id=task.group_id}
+        }
+        
+        -- Tab in the content (can't seem to do it at the container level)
+        lbl_add_subtask.style.left_margin = 20
+    end
+
 
 end

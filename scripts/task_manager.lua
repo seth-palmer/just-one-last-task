@@ -100,7 +100,8 @@ function TaskManager.new(params)
             id=id,
             group_id=task_params.group_id,
             title=task_params.title,
-            is_complete = false
+            is_complete = false,
+            show_details = false,
         }
         tasks[id] = newTask
 
