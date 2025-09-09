@@ -185,16 +185,18 @@ end
 --- Adds a row to the parent, for a individual task displaying title  
 ---@param parent LuaGuiElement The gui object that the task will be added to
 ---@param task Task The task object with title, desc, etc
-function new_gui_task(parent, task)
+function new_gui_task(parent, task, tab_in_ammount)
+    tab_in_ammount = tab_in_ammount or 0
+    local tab_increment = 20
+
     -- A container to hold all tasks, controls, and subtasks 
     local task_container = parent.add {type="flow", direction="vertical"}
+    
     -- A container to put task controls
-
     local controls_container = task_container.add{type="flow", direction="horizontal"}
 
     -- A container to put subtasks so they are tabbed in 
     local subtask_container = task_container.add{type="flow", direction="vertical"}
-    
 
     -- add a name and task id so this can be identified in 
     -- an on click event
@@ -206,6 +208,11 @@ function new_gui_task(parent, task)
         caption=task.title,
         tags = {task_id = task.id}
     }
+    if not (task.parent_id == nil) then
+        tab_in_ammount = tab_in_ammount + tab_increment
+        checkbox_completed.style.left_margin = tab_in_ammount
+    end
+
     -- Push other controls to the right by making the checkbox expand
     checkbox_completed.style.maximal_width = 300
     checkbox_completed.style.minimal_width = 50
@@ -237,6 +244,16 @@ function new_gui_task(parent, task)
         sbtn_details.sprite = "utility/collapse"
 
         -- TODO add subtasks 
+        if task.subtasks == nil then
+            task.subtasks = {}  -- Initialize as an empty table if nil
+        end
+
+        -- need the "_" so it doens't use the index instead of the value
+        for _, subtask_id in pairs(task.subtasks) do
+            local subtask = task_manager.get_task(subtask_id)
+            
+            new_gui_task(task_container, subtask, tab_in_ammount)
+        end
 
         -- [Add subtask] button 
         local lbl_add_subtask = task_container.add {
@@ -249,7 +266,7 @@ function new_gui_task(parent, task)
         }
         
         -- Tab in the content (can't seem to do it at the container level)
-        lbl_add_subtask.style.left_margin = 20
+        lbl_add_subtask.style.left_margin = tab_in_ammount + tab_increment
     end
 
 

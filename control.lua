@@ -189,10 +189,12 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task = task_manager.get_task(task_id)
 
         -- Open the add task window
-        -- open_new_task_window(event, {}, false)
         local subtitle = "Subtask of " .. task.title
-        open_task_form_window(event, "New Subtask", subtitle, {})
-
+        local subtask = {}
+        subtask.parent_id = task.id
+        open_task_form_window(event, "New Subtask", subtitle, subtask)
+        debug_print(event, "subtask count is " .. #task.subtasks)
+        debug_print(event, "parent id " .. subtask.parent_id)
     end
     
 
@@ -449,7 +451,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         direction = "vertical",
         style = "ugg_content_frame",
         index = form_pos, -- Must set to 2 to place above the bottom row
-        tags = { task_id = task_id } -- Store task id if this is an edit task 
+        tags = { task_id = task_id, parent_id = task.parent_id } -- Store task id if this is an edit task 
     }
     
     -- Label "Title" and textbox input
@@ -509,6 +511,7 @@ function add_new_task(event, is_edit_task)
     local task_params = {
         title = title,
         group_id = group_index,
+        parent_id = form_container.tags.parent_id
     }
 
     -- If no title display error and do not close window
@@ -520,7 +523,7 @@ function add_new_task(event, is_edit_task)
         }
 
     else -- If valid data add task
-        if is_edit_task then 
+        if is_edit_task then
             --debug_print(event, "updating...")
             task_manager.update_task(task_params, task_id)
         else

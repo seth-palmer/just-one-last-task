@@ -58,7 +58,9 @@ function TaskManager.new(params)
             local task = tasks[task_id]
             -- Only return tasks for the specific group 
             -- and matching the target complete status
-            if task.group_id == group_id and task.is_complete == target_complete_state then
+            if task.group_id == group_id 
+                and task.is_complete == target_complete_state 
+                and task.parent_id == nil then
                 table.insert(ordered_tasks, tasks[task_id])
             end
         end
@@ -102,9 +104,19 @@ function TaskManager.new(params)
             title=task_params.title,
             is_complete = false,
             show_details = false,
-            parent_id = task_params.parent_id or nil
+            parent_id = task_params.parent_id or nil,
+            subtasks = {}
         }
         tasks[id] = newTask
+
+        if not (newTask.parent_id == nil) then
+            -- If this is a subtask add its id to the parent 
+            local parent_task = tasks[newTask.parent_id]
+            table.insert(parent_task.subtasks, id)
+
+            -- end early since we don't need to set task priority
+            return
+        end
 
         -- Add id to end of priorities list
         if not add_to_top then
@@ -114,6 +126,9 @@ function TaskManager.new(params)
             table.insert(task_priorities, id)
             swap_priorities(1, #task_priorities)
         end
+
+        
+        
     end
 
     
