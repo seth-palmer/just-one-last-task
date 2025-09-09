@@ -102,6 +102,7 @@ function TaskManager.new(params)
             title=task_params.title,
             is_complete = false,
             show_details = false,
+            parent_id = task_params.parent_id or nil
         }
         tasks[id] = newTask
 

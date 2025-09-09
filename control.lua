@@ -118,7 +118,8 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
-        open_new_task_window(event, {})
+        -- open_new_task_window(event, {})
+        open_task_form_window(event, "New Task", nil, {})
 
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
@@ -143,7 +144,8 @@ script.on_event(defines.events.on_gui_click, function(event)
             group_id = task.group_id,
             task_id = task_id,
         }
-        open_new_task_window(event, params, true)
+        -- open_new_task_window(event, params, true)
+        open_task_form_window(event, "Edit Task", nil, params)
 
     -- Task checkbox clicked mark complete / uncomplete 
     elseif element_name == constants.jolt.task_list.task_checkbox then
@@ -187,7 +189,9 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task = task_manager.get_task(task_id)
 
         -- Open the add task window
-        open_new_task_window(event, {}, false)
+        -- open_new_task_window(event, {}, false)
+        local subtitle = "Subtask of " .. task.title
+        open_task_form_window(event, "New Subtask", subtitle, {})
 
     end
     
@@ -368,38 +372,34 @@ function open_task_list_menu(event)
 
 end
 
---- Opens a window with the form to create a new task
----@param event any
-function open_new_task_window(event, params, is_edit_task)
-    
+--- Opens a new window with a form to create a new task/subtask 
+--- or edit an existing one
+function open_task_form_window(event, window_title, window_subtitle, task)
+    -- If data in task is there, then this must be an edit
+    local is_edit = not task == nil
+
     -- Setup the data if editing an existing task
-    params = params or {}
-    local title = params.title or ""
-    local task_id = params.task_id or ""
-    local checkbox_state_add_to_top = params.checkbox_add_to_top or checkbox_default_state_add_to_top
+    task = task or {}
+    local title = task.title or ""
+    local task_id = task.task_id or ""
+    local checkbox_state_add_to_top = task.checkbox_add_to_top or checkbox_default_state_add_to_top
     
     -- Get last selected tab index if this is a new task
     local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
 
     -- Set group id to the param if provided or the last group selected if new task
-    local group_id = params.group_id or last_group_selected_index
+    local group_id = task.group_id or last_group_selected_index
 
     local player = game.get_player(event.player_index)
 
     -- Setup options for the new window
     local options = {
         player = player,
-        window_title = {"gui.new_task_window_title"},
+        window_title = window_title,
         window_name = constants.jolt.new_task.window,
         back_button_name = constants.jolt.new_task.back_button,
         confirm_button_name = constants.jolt.new_task.confirm_button
     }
-
-    -- If editing an existing task change the window title
-    if is_edit_task then 
-        options.confirm_button_name = constants.jolt.edit_task.confirm_button
-        options.window_title = {"gui.edit_task_window_title"}
-    end
 
     -- Make the new window and set close button
     local new_task_window = new_dialog_window(options)
@@ -407,13 +407,48 @@ function open_new_task_window(event, params, is_edit_task)
     -- Add event to watch for button click to close the window
     windows_to_close[options.back_button_name] = options.window_name
 
+    -- Only add the label line if needed
+    -- need brackets because 'not' operator is applied first 
+    local need_label = not (window_subtitle == nil)
+
+    if need_label then
+        -- Add subtitle line 
+        local controls_container = new_task_window.add {
+            type = "frame",
+            name = "jolt_controls_container",
+            direction = "horizontal",
+            style = "subheader_frame",
+            index = 2, -- Must set to ?? to place above the bottom row
+        }
+
+        -- subtitle 
+        local lbl_subtitle = controls_container.add {
+            type = "label",
+            caption = window_subtitle,
+            horizontally_stretchable = "on"
+        }
+
+        -- Empty space
+        local empty_space = controls_container.add {
+            type = "empty-widget",
+        }
+        -- Make it expand to fill the space
+        empty_space.style.minimal_width = 50
+        empty_space.style.height = 24
+        empty_space.style.horizontally_stretchable = true
+    end
+    
+    -- Calculate the position of the form if the subtitle was added or not
+    local form_pos = 2
+    if need_label then form_pos = form_pos + 1 end
+
     -- Container to hold form inputs
     local new_task_form = new_task_window.add {
         type = "frame",
         name = constants.jolt.new_task.form_container,
         direction = "vertical",
         style = "ugg_content_frame",
-        index = 2, -- Must set to 2 to place above the bottom row
+        index = form_pos, -- Must set to 2 to place above the bottom row
         tags = { task_id = task_id } -- Store task id if this is an edit task 
     }
     
@@ -446,12 +481,9 @@ function open_new_task_window(event, params, is_edit_task)
         style = "dropdown",
         selected_index = group_id
     }
-
-
-
-
-    --task_title.style.rich_text_setting = defines.rich_text_setting.enabled
 end
+
+
 
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
@@ -496,7 +528,7 @@ function add_new_task(event, is_edit_task)
             task_manager.add_task(task_params, add_to_top)
         end
 
-        -- Close window
+        -- Close task form window
         player.gui.screen[constants.jolt.new_task.window].destroy()
 
         -- Refresh data
