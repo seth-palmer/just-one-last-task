@@ -5,7 +5,62 @@ local TaskManager = require("scripts.task_manager")
 local constants = require("constants")
 require("gui")
 
+local windows_to_close = {}
 
+--region =======Local Functions=======
+--- IMPORTANT put local functions before where they are used!!!
+
+--- Opens the group management window
+---@param event any
+local function open_group_management_window(event)
+    local player = game.get_player(event.player_index)
+    local title = {"jolt_group_management.window_title"}
+    local window_name = constants.jolt.group_management.window_name
+    local close_name = constants.jolt.group_management.close_button
+    local window = new_window(player, title, window_name, close_name, 400, 300)
+
+    -- Add event to watch for button click to close the window
+    windows_to_close[close_name] = window_name
+
+
+    -- Add row for controls 
+    local controls_container = window.add {
+        type = "frame",
+        name = "jolt_controls_container",
+        direction = "horizontal",
+        style = "subheader_frame"
+    }
+
+    -- Edit group button
+    local btn_edit_group = controls_container.add {
+        type = "sprite-button",
+        name = constants.jolt.group_management.edit_group,
+        style = constants.styles.frame.button,
+        sprite = constants.jolt.sprites.edit,
+        tooltip = {"jolt_group_management.tooltip_edit_group"},
+    }
+
+    -- Move groups button
+    local btn_move_groups = controls_container.add {
+        type = "sprite-button",
+        name = constants.jolt.group_management.move_groups,
+        style = constants.styles.frame.button,
+        sprite = constants.jolt.sprites.move,
+        tooltip = {"jolt_group_management.tooltip_toggle_move_groups"},
+    }
+
+    -- Empty space
+    local empty_space = controls_container.add {
+        type = "empty-widget",
+    }
+    -- Make it expand to fill the space
+    empty_space.style.minimal_width = 50
+    empty_space.style.height = 24
+    empty_space.style.horizontally_stretchable = true
+
+end
+
+--endregion
 
 local checkbox_default_state_add_to_top = false
 
@@ -93,7 +148,7 @@ function close_task_list_menu(event)
     player.gui.screen[constants.jolt.task_list.window].destroy()
 end
 
-local windows_to_close = {}
+
 
 --- Watch for clicks on gui elements for my mod (prefix "jolt_tasks") icon
 script.on_event(defines.events.on_gui_click, function(event)
@@ -190,6 +245,10 @@ script.on_event(defines.events.on_gui_click, function(event)
         local subtask = {}
         subtask.parent_id = task.id
         open_task_form_window(event, "New Subtask", subtitle, subtask)
+
+    -- Group Management button 
+    elseif element_name == constants.jolt.group_management.open_window_button then
+        open_group_management_window(event)
     end
     
 
@@ -293,20 +352,26 @@ function open_task_list_menu(event)
         style = "ugg_content_frame"
     }
 
+    local tab_controls = content_frame.add {
+        type = "frame",
+        direction = "horizontal",
+    }
+
     -- Add a tabbed-pane for all groups
-    local tabbed_pane = content_frame.add{
+    local tabbed_pane = tab_controls.add {
         type="tabbed-pane",
         name=constants.jolt.task_list.group_tabs_pane,
     }
 
     -- Edit groups button
-    local btn_edit_groups = tabbed_pane.add {
+    local btn_edit_groups = tab_controls.add {
         type = "sprite-button",
+        name = constants.jolt.group_management.open_window_button,
         style = constants.styles.frame.button,
-        sprite = constants.jolt.sprites.close,
-        name = close_button_name,
-        tooltip = {"jolt.tooltip_edit_groups_button"}
+        sprite = constants.jolt.sprites.edit,
+        tooltip = {"jolt.tooltip_edit_groups_button"},
     }
+    btn_edit_groups.style.top_margin = 12
 
     -- Get the groups, add tabs for each one and their tasks
     for _, group in ipairs(task_manager.get_groups()) do

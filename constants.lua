@@ -42,9 +42,14 @@ constants.jolt = {
         edit = "utility/rename_icon",
         expand = "utility/expand",
         collapse = "utility/collapse",
+        move = "utility/search",
     },
     group_management = {
-
+        open_window_button = "jolt_open_group_management_button",
+        window_name = "jolt_group_management_window",
+        close_button = "jolt_group_management_close_button",
+        edit_group = "jolt_edit_group_button",
+        move_groups = "jolt_move_groups_button",
     },
     -- For main task list window
     task_list = {
