@@ -73,3 +73,10 @@ styles["jolt_add_task_textfield"] = {
     type = "textbox_style",
     width = 200
 }
+
+styles["jolt_link_button"] = {
+    type = "label_style",
+    font = "default-semibold",
+    font_color = {0.501961, 0.807843, 0.941176},
+    hovered_font_color = {0.603922, 0.980392, 1},
+}

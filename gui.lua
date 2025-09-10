@@ -251,8 +251,9 @@ function new_gui_task(parent, task, tab_in_ammount)
         -- need the "_" so it doens't use the index instead of the value
         for _, subtask_id in pairs(task.subtasks) do
             local subtask = task_manager.get_task(subtask_id)
-            
-            new_gui_task(task_container, subtask, tab_in_ammount)
+            if subtask.is_complete == task_manager.get_setting_show_completed() then
+                new_gui_task(task_container, subtask, tab_in_ammount)
+            end
         end
 
         -- [Add subtask] button 
@@ -261,7 +262,7 @@ function new_gui_task(parent, task, tab_in_ammount)
             name=constants.jolt.task_list.add_subtask_button,
             caption = {"jolt-task_list_window.label_add_subtask"},
             tooltip={"jolt-task_list_window.tooltip_add_subtask"},
-            style = constants.styles.frame.title,
+            style = constants.styles.text.link,
             tags = {task_id = task.id, group_id=task.group_id}
         }
         

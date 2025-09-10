@@ -21,6 +21,9 @@ constants.styles = {
     },
     form = {
         textfield = "textbox",
+    },
+    text = {
+        link = "jolt_link_button"
     }
     
 
