@@ -118,7 +118,6 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
-        -- open_new_task_window(event, {})
         open_task_form_window(event, "New Task", nil, {})
 
     -- Add a new task confirm button clicked
@@ -136,7 +135,6 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Get the task 
         local task = task_manager.get_task(task_id)
-        -- debug_print(event, event.element.tags.task_id)
 
         -- Open the new task window with pre-filled data 
         local params = {
@@ -144,7 +142,6 @@ script.on_event(defines.events.on_gui_click, function(event)
             group_id = task.group_id,
             task_id = task_id,
         }
-        -- open_new_task_window(event, params, true)
         open_task_form_window(event, "Edit Task", nil, params)
 
     -- Task checkbox clicked mark complete / uncomplete 
@@ -193,8 +190,6 @@ script.on_event(defines.events.on_gui_click, function(event)
         local subtask = {}
         subtask.parent_id = task.id
         open_task_form_window(event, "New Subtask", subtitle, subtask)
-        debug_print(event, "subtask count is " .. #task.subtasks)
-        debug_print(event, "parent id " .. subtask.parent_id)
     end
     
 
@@ -230,7 +225,7 @@ function open_task_list_menu(event)
     -- Make new window for tasks list
     local close_button_name = constants.jolt.task_list.close_window_button
     local window_name = constants.jolt.task_list.window
-    local main_frame = new_window(player, {"gui.tasks_list_window_title"}, window_name, close_button_name, 400, 600)
+    local main_frame = new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, 400, 600)
 
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
@@ -254,7 +249,7 @@ function open_task_list_menu(event)
     local cb_show_completed = controls_container.add {
         type = "checkbox",
         name = constants.jolt.task_list.show_completed_checkbox,
-        caption = {"task_list_window.show_completed_tasks"},
+        caption = {"jolt-task_list_window.show_completed_tasks"},
         state = task_manager.get_setting_show_completed(),
         horizontally_stretchable = "on"
     }
@@ -469,7 +464,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
     local checkbox_add_to_top = new_task_form.add {
         type = "checkbox",
         name = constants.jolt.new_task.add_to_top_checkbox,
-        caption = {"new_task_window.add_to_top_checkbox_desc"},
+        caption = {"jolt-new_task_window.add_to_top_checkbox_desc"},
         state = checkbox_state_add_to_top,
     }
 
@@ -489,7 +484,7 @@ end
 
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
-function add_new_task(event, is_edit_task)
+function add_new_task(event)
     -- Go through element tree to get to the form_container
     local player = game.get_player(event.player_index)
     local screen = player.gui.screen
@@ -507,27 +502,29 @@ function add_new_task(event, is_edit_task)
     local add_to_top = checkbox_add_to_top.state
     local group_index = dropdown_group.selected_index
 
+    -- check if empty string not nil since task_id is string type
+    -- check type with debug_print(event, "type is: " .. type(task_id))
+    local is_edit_task = task_id ~= ""
+    
     -- Make task parameters
     local task_params = {
         title = title,
         group_id = group_index,
-        parent_id = form_container.tags.parent_id
+        parent_id = form_container.tags.parent_id or nil
     }
 
     -- If no title display error and do not close window
     if title == "" then
         -- Create "flying text" with error message
         player.create_local_flying_text {
-            text = {"new_task_window.no_title_error_message"},
+            text = {"jolt-new_task_window.no_title_error_message"},
             create_at_cursor=true,
         }
 
     else -- If valid data add task
         if is_edit_task then
-            --debug_print(event, "updating...")
             task_manager.update_task(task_params, task_id)
         else
-            --debug_print(event, "new task...")
             task_manager.add_task(task_params, add_to_top)
         end
 

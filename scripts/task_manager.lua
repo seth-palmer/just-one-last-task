@@ -139,44 +139,11 @@ function TaskManager.new(params)
     function self.update_task(task_params, task_id)
         -- Get the task
         local task = tasks[task_id]
-        if task == nil then error("No task in group " .. name .. " with matching id: " .. task_id) end
+        if task == nil then error("No task in with matching id: " .. tostring(task_id)) end
 
-        -- Find the original task group 
-        -- local group_id = self.get_task(task_id).group_id
-
-        -- Check if the task needs to be moved 
-        -- local needs_move = task_params.group_id ~= group_id
-
-        -- If task is being moved 
-        -- if needs_move then
-        --     -- Get values to use
-        --     local to_group_id = task_params.group_id
-        --     local add_to_top = task_params.add_to_top
-
-        --     -- Move the task 
-        --     self.move_task(task_id, to_group_id, add_to_top)
-        -- end
-
-        -- Update any values inside the task, use the new position
-        --groups[task_params.group_id].update_task(task_id, task_params)
-        
+        -- Update task values
         task.title = task_params.title
         task.group_id = task_params.group_id
-    end
-
-    --- Move the task to the provided group
-    ---@param task_id any
-    ---@param to_group_id any
-    function self.move_task(task_id, to_group_id, add_to_top)
-        -- Get the original task group 
-        local task = self.get_task(task_id)
-        local from_task_group = task.group_id
-
-        -- Copy to new group 
-        groups[to_group_id].copy_task(task, add_to_top)
-
-        -- Delete from old group 
-        groups[from_task_group].delete_task(task_id)
     end
 
 

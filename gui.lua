@@ -131,7 +131,7 @@ function new_dialog_window(options)
     -- Back button 
     local back_button = bottom_controls.add {
         type = "button",
-        caption = {"gui.back_button"},
+        caption = {"jolt.back_button"},
         style = constants.styles.frame.back_button,
         name = back_button_name
     }
@@ -150,7 +150,7 @@ function new_dialog_window(options)
     -- Confirm button
     local confirm_button = bottom_controls.add {
         type = "button",
-        caption = {"gui.confirm_button"},
+        caption = {"jolt.confirm_button"},
         style = constants.styles.frame.confirm_button,
         name = confirm_button_name
     }
@@ -223,7 +223,7 @@ function new_gui_task(parent, task, tab_in_ammount)
         type="sprite-button",
         name = constants.jolt.task_list.edit_task_button,
         sprite="utility/rename_icon",
-        tooltip={"task_list_window.tooltip_edit_task"},
+        tooltip={"jolt-task_list_window.tooltip_edit_task"},
         tags = {task_id = task.id, group_id=task.group_id}
     }
     sbtn_edit.style.size = {24,24}
@@ -233,7 +233,7 @@ function new_gui_task(parent, task, tab_in_ammount)
         type="sprite-button",
         name = constants.jolt.task_list.toggle_details_button,
         sprite="utility/expand",
-        tooltip={"task_list_window.tooltip_toggle_details"},
+        tooltip={"jolt-task_list_window.tooltip_toggle_details"},
         tags = {task_id = task.id, group_id=task.group_id}
     }
     sbtn_details.style.size = {24,24}
@@ -259,8 +259,8 @@ function new_gui_task(parent, task, tab_in_ammount)
         local lbl_add_subtask = task_container.add {
             type="label",
             name=constants.jolt.task_list.add_subtask_button,
-            caption = {"task_list_window.label_add_subtask"},
-            tooltip={"task_list_window.tooltip_add_subtask"},
+            caption = {"jolt-task_list_window.label_add_subtask"},
+            tooltip={"jolt-task_list_window.tooltip_add_subtask"},
             style = constants.styles.frame.title,
             tags = {task_id = task.id, group_id=task.group_id}
         }
