@@ -249,7 +249,7 @@ function open_task_list_menu(event)
     local cb_show_completed = controls_container.add {
         type = "checkbox",
         name = constants.jolt.task_list.show_completed_checkbox,
-        caption = {"jolt-task_list_window.show_completed_tasks"},
+        caption = {"jolt_task_list_window.show_completed_tasks"},
         state = task_manager.get_setting_show_completed(),
         horizontally_stretchable = "on"
     }
@@ -269,9 +269,9 @@ function open_task_list_menu(event)
     local add_task_button = controls_container.add {
         type = "sprite-button",
         style = "confirm_button",
-        sprite = "utility/add",
+        sprite = constants.jolt.sprites.add,
         name = constants.jolt.task_list.add_task_button,
-        tooltip = "Add Task",
+        tooltip = {"jolt.tootlip_add_task"}
     }
     add_task_button.style.width = 50
     add_task_button.style.height = 30
@@ -297,6 +297,15 @@ function open_task_list_menu(event)
     local tabbed_pane = content_frame.add{
         type="tabbed-pane",
         name=constants.jolt.task_list.group_tabs_pane,
+    }
+
+    -- Edit groups button
+    local btn_edit_groups = tabbed_pane.add {
+        type = "sprite-button",
+        style = constants.styles.frame.button,
+        sprite = constants.jolt.sprites.close,
+        name = close_button_name,
+        tooltip = {"jolt.tooltip_edit_groups_button"}
     }
 
     -- Get the groups, add tabs for each one and their tasks
@@ -464,7 +473,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
     local checkbox_add_to_top = new_task_form.add {
         type = "checkbox",
         name = constants.jolt.new_task.add_to_top_checkbox,
-        caption = {"jolt-new_task_window.add_to_top_checkbox_desc"},
+        caption = {"jolt_new_task_window.add_to_top_checkbox_desc"},
         state = checkbox_state_add_to_top,
     }
 
@@ -517,7 +526,7 @@ function add_new_task(event)
     if title == "" then
         -- Create "flying text" with error message
         player.create_local_flying_text {
-            text = {"jolt-new_task_window.no_title_error_message"},
+            text = {"jolt_new_task_window.no_title_error_message"},
             create_at_cursor=true,
         }
 

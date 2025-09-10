@@ -53,9 +53,9 @@ function new_window(player, window_title, frame_name, close_button_name, width, 
     local close_button = title_bar.add {
         type = "sprite-button",
         style = constants.styles.frame.button,
-        sprite = "utility/close",
+        sprite = constants.jolt.sprites.close,
         name = close_button_name,
-        tooltip = "Close"
+        tooltip = {"jolt.tooltip_close"}
     }
 
 
@@ -222,8 +222,8 @@ function new_gui_task(parent, task, tab_in_ammount)
     local sbtn_edit = controls_container.add {
         type="sprite-button",
         name = constants.jolt.task_list.edit_task_button,
-        sprite="utility/rename_icon",
-        tooltip={"jolt-task_list_window.tooltip_edit_task"},
+        sprite = constants.jolt.sprites.edit,
+        tooltip={"jolt.tooltip_edit_task"},
         tags = {task_id = task.id, group_id=task.group_id}
     }
     sbtn_edit.style.size = {24,24}
@@ -232,8 +232,8 @@ function new_gui_task(parent, task, tab_in_ammount)
     local sbtn_details = controls_container.add {
         type="sprite-button",
         name = constants.jolt.task_list.toggle_details_button,
-        sprite="utility/expand",
-        tooltip={"jolt-task_list_window.tooltip_toggle_details"},
+        sprite = constants.jolt.sprites.expand,
+        tooltip={"jolt.tooltip_toggle_details"},
         tags = {task_id = task.id, group_id=task.group_id}
     }
     sbtn_details.style.size = {24,24}
@@ -241,9 +241,9 @@ function new_gui_task(parent, task, tab_in_ammount)
     -- If details are expanded add extra controls and subtasks
     if task.show_details then
         -- Change icon to indicate details can be collapsed
-        sbtn_details.sprite = "utility/collapse"
+        sbtn_details.sprite = constants.jolt.sprites.collapse
 
-        -- TODO add subtasks 
+        -- add subtasks 
         if task.subtasks == nil then
             task.subtasks = {}  -- Initialize as an empty table if nil
         end
@@ -260,8 +260,8 @@ function new_gui_task(parent, task, tab_in_ammount)
         local lbl_add_subtask = task_container.add {
             type="label",
             name=constants.jolt.task_list.add_subtask_button,
-            caption = {"jolt-task_list_window.label_add_subtask"},
-            tooltip={"jolt-task_list_window.tooltip_add_subtask"},
+            caption = {"jolt_task_list_window.label_add_subtask"},
+            tooltip={"jolt_task_list_window.tooltip_add_subtask"},
             style = constants.styles.text.link,
             tags = {task_id = task.id, group_id=task.group_id}
         }

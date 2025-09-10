@@ -36,6 +36,16 @@ constants.jolt = {
     shortcuts = {
         open_task_list_window = "jolt_shortcut_open_task_list_window"
     },
+    sprites = {
+        add = "utility/add",
+        close = "utility/close",
+        edit = "utility/rename_icon",
+        expand = "utility/expand",
+        collapse = "utility/collapse",
+    },
+    group_management = {
+
+    },
     -- For main task list window
     task_list = {
         window = "jolt_task_list_window",
@@ -61,7 +71,8 @@ constants.jolt = {
     -- Edit task window 
     edit_task = {
         confirm_button = "jolt_edit_task_confirm_button",
-    }
+    },
+
 }
 
 return constants
