@@ -58,6 +58,52 @@ local function open_group_management_window(event)
     empty_space.style.height = 24
     empty_space.style.horizontally_stretchable = true
 
+    local button_frame = window.add{
+        type="frame",
+        name="button_frame",
+        direction="horizontal",
+        style="ugg_deep_frame"
+    }
+
+    local max_col_count = 5
+    local button_table = button_frame.add{
+        type="table",
+        name="button_table",
+        column_count=max_col_count,
+        style="filter_slot_table"
+    }
+    
+    -- local button_table = player.gui.screen.ugg_main_frame.content_frame.button_frame.button_table
+    button_table.clear()
+    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
+    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
+    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
+    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
+    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
+    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
+    button_table.add{type="sprite-button", sprite=constants.jolt.sprites.add, style="slot_button"}
+
+    local edit_form = window.add {
+        type = "frame",
+        name = "edit_form",
+        direction = "vertical",
+        style = "ugg_content_frame"
+    }
+    
+    -- Label "Title" and textbox input
+    local label = edit_form.add {type = "label", caption = "Title"}
+    local task_title_textbox = edit_form.add {
+        type = "textfield",
+        -- name = constants.jolt.new_task.title_textbox,
+        name = "adfs",
+        text = "",
+        style = constants.styles.form.textfield
+    }
+
+    -- Icon for group
+    local label = edit_form.add {type = "label", caption = "Icon"}
+    edit_form.add{type="sprite-button", sprite=constants.jolt.sprites.edit, style="slot_button"}
+
 end
 
 --endregion
