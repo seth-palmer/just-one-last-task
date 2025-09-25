@@ -24,6 +24,9 @@ constants.styles = {
     },
     text = {
         link = "jolt_link_button"
+    },
+    buttons = {
+        red = "tool_button_red"
     }
     
 
@@ -43,13 +46,17 @@ constants.jolt = {
         expand = "utility/expand",
         collapse = "utility/collapse",
         move = "utility/search",
+        delete = "utility/trash",
     },
     group_management = {
         open_window_button = "jolt_open_group_management_button",
         window_name = "jolt_group_management_window",
         close_button = "jolt_group_management_close_button",
-        edit_group = "jolt_edit_group_button",
-        move_groups = "jolt_move_groups_button",
+        delete_group = "jolt_delete_group_button",
+        move_group_up = "jolt_move_group_up_button",
+        move_group_down = "jolt_move_group_down_button",
+        move_group_left = "jolt_move_group_left_button",
+        move_group_right = "jolt_move_group_right_button",
     },
     -- For main task list window
     task_list = {

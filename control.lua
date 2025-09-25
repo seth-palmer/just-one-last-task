@@ -17,47 +17,13 @@ local function open_group_management_window(event)
     local title = {"jolt_group_management.window_title"}
     local window_name = constants.jolt.group_management.window_name
     local close_name = constants.jolt.group_management.close_button
-    local window = new_window(player, title, window_name, close_name, 400, 300)
+    local window = new_window(player, title, window_name, close_name, 400, 500)
 
     -- Add event to watch for button click to close the window
     windows_to_close[close_name] = window_name
 
-
-    -- Add row for controls 
-    local controls_container = window.add {
-        type = "frame",
-        name = "jolt_controls_container",
-        direction = "horizontal",
-        style = "subheader_frame"
-    }
-
-    -- Edit group button
-    local btn_edit_group = controls_container.add {
-        type = "sprite-button",
-        name = constants.jolt.group_management.edit_group,
-        style = constants.styles.frame.button,
-        sprite = constants.jolt.sprites.edit,
-        tooltip = {"jolt_group_management.tooltip_edit_group"},
-    }
-
-    -- Move groups button
-    local btn_move_groups = controls_container.add {
-        type = "sprite-button",
-        name = constants.jolt.group_management.move_groups,
-        style = constants.styles.frame.button,
-        sprite = constants.jolt.sprites.move,
-        tooltip = {"jolt_group_management.tooltip_toggle_move_groups"},
-    }
-
-    -- Empty space
-    local empty_space = controls_container.add {
-        type = "empty-widget",
-    }
-    -- Make it expand to fill the space
-    empty_space.style.minimal_width = 50
-    empty_space.style.height = 24
-    empty_space.style.horizontally_stretchable = true
-
+    
+    -- Display icon for each group
     local button_frame = window.add{
         type="frame",
         name="button_frame",
@@ -83,26 +49,99 @@ local function open_group_management_window(event)
     button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
     button_table.add{type="sprite-button", sprite=constants.jolt.sprites.add, style="slot_button"}
 
-    local edit_form = window.add {
-        type = "frame",
-        name = "edit_form",
-        direction = "vertical",
-        style = "ugg_content_frame"
+    -- Edit form in the bottom half of the window
+    local form_table = window.add{
+        type="table",
+        column_count=2,
     }
     
     -- Label "Title" and textbox input
-    local label = edit_form.add {type = "label", caption = "Title"}
-    local task_title_textbox = edit_form.add {
+    local label = form_table.add {type = "label", caption = "Title:"}
+    local task_title_textbox = form_table.add {
         type = "textfield",
         -- name = constants.jolt.new_task.title_textbox,
-        name = "adfs",
         text = "",
         style = constants.styles.form.textfield
     }
 
     -- Icon for group
-    local label = edit_form.add {type = "label", caption = "Icon"}
-    edit_form.add{type="sprite-button", sprite=constants.jolt.sprites.edit, style="slot_button"}
+    local label = form_table.add {type = "label", caption = "Icon:"}
+    form_table.add{type="sprite-button", sprite=constants.jolt.sprites.edit, style="slot_button"}
+
+    -- Position buttons - to change group position
+    form_table.add {type = "label", caption = "Position:"}
+    form_table.add {type = "label", caption = ""}
+    form_table.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.expand,
+    }form_table.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.expand,
+    }form_table.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.expand,
+    }form_table.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.expand,
+    }
+
+
+
+
+
+    -- Add row for controls 
+    local controls_container = window.add {
+        type = "frame",
+        name = "jolt_controls_container",
+        direction = "horizontal",
+        style = "subheader_frame"
+    }
+
+    -- Cancel button
+    local btn_cancel = controls_container.add {
+        type = "button",
+        caption = "Cancel",
+        tooltip = {"jolt_group_management.tooltip_cancel"},
+    }
+
+    -- Empty space
+    local empty_space = controls_container.add {
+        type = "empty-widget",
+    }
+    -- Make it expand to fill the space
+    empty_space.style.minimal_width = 50
+    empty_space.style.height = 24
+    empty_space.style.horizontally_stretchable = true
+
+    -- Delete group button
+    local btn_delete_group = controls_container.add {
+        type = "sprite-button",
+        name = constants.jolt.group_management.delete_group,
+        style = constants.styles.buttons.red,
+        sprite = constants.jolt.sprites.delete,
+        tooltip = {"jolt_group_management.tooltip_delete_group"},
+    }
+
+    -- Empty space
+    local empty_space = controls_container.add {
+        type = "empty-widget",
+    }
+    -- Make it expand to fill the space
+    empty_space.style.minimal_width = 50
+    empty_space.style.height = 24
+    empty_space.style.horizontally_stretchable = true
+
+    -- Save button
+    local btn_save_group = controls_container.add {
+        type = "button",
+        caption = "Save",
+        tooltip = {"jolt_group_management.tooltip_save"},
+    }
+
+    
+
+    
+
 
 end
 
