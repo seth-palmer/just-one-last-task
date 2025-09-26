@@ -26,7 +26,8 @@ constants.styles = {
         link = "jolt_link_button"
     },
     buttons = {
-        red = "tool_button_red"
+        red = "tool_button_red",
+        yellow = "yellow_slot_button",
     }
     
 
@@ -57,6 +58,8 @@ constants.jolt = {
         move_group_down = "jolt_move_group_down_button",
         move_group_left = "jolt_move_group_left_button",
         move_group_right = "jolt_move_group_right_button",
+        task_title_textbox = "jolt_groups_task_title_textbox",
+        group_icon_button = "jolt_group_management_group_icon_button"
     },
     -- For main task list window
     task_list = {

@@ -23,6 +23,9 @@ local function open_group_management_window(event)
     windows_to_close[close_name] = window_name
 
     
+    -- The selected group
+    local selected_group = {title = "", icon="item/wood"}
+
     -- Display icon for each group
     local button_frame = window.add{
         type="frame",
@@ -47,7 +50,20 @@ local function open_group_management_window(event)
     -- Example: local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
 
     for index, value in ipairs(groups) do
-        button_table.add{type="sprite-button", sprite=value.icon, style="slot_button"}
+        local icon_button = button_table.add{
+            type="sprite-button",
+            sprite=value.icon,
+            style="slot_button",
+            tags={is_group_management_icon_button=true, group_id=value.id}
+        }
+        -- If this button is selected change its style to 
+        -- be yellow button background
+        if value.id == storage.players[event.player_index].selected_group_icon_id then
+            icon_button.style = constants.styles.buttons.yellow
+            selected_group = value
+        else
+        end
+        
     end
 
     button_table.add{type="sprite-button", sprite=constants.jolt.sprites.add, style="slot_button"}
@@ -62,14 +78,14 @@ local function open_group_management_window(event)
     local label = form_table.add {type = "label", caption = "Title:"}
     local task_title_textbox = form_table.add {
         type = "textfield",
-        -- name = constants.jolt.new_task.title_textbox,
-        text = "",
+        name = constants.jolt.group_management.task_title_textbox,
+        text = selected_group.name,
         style = constants.styles.form.textfield
     }
 
     -- Icon for group
     local label = form_table.add {type = "label", caption = "Icon:"}
-    form_table.add{type="sprite-button", sprite=constants.jolt.sprites.edit, style="slot_button"}
+    form_table.add{type="sprite-button", sprite=selected_group.icon, style="slot_button"}
 
     -- Position buttons - to change selected group position
     form_table.add {type = "label", caption = "Position:"}
@@ -152,11 +168,6 @@ local function open_group_management_window(event)
         tooltip = {"jolt_group_management.tooltip_save"},
     }
 
-    
-
-    
-
-
 end
 
 --endregion
@@ -186,6 +197,7 @@ local checkbox_default_state_add_to_top = false
 -- See on_init() section in https://wiki.factorio.com/Tutorial:Scripting
 -- Only runs when a new game is created https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_init
 script.on_init(function()
+    -- TODO this check seed data
     local freeplay = remote.interfaces["freeplay"]
     if freeplay then -- Disable freeplay popup-message
         if freeplay["set_skip_intro"] then
@@ -270,6 +282,13 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Clean up the mapping
         windows_to_close[element_name] = nil
 
+        -- If closing group management remove the selected icon info 
+        -- (so the window opens with nothing selected)
+        if window_name == constants.jolt.group_management.window_name then
+            storage.players[event.player_index].selected_group_icon_id = nil
+        end
+
+
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
         open_task_form_window(event, "New Task", nil, {})
@@ -347,6 +366,14 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Group Management button 
     elseif element_name == constants.jolt.group_management.open_window_button then
+        open_group_management_window(event)
+    -- If selected an group icon button in the group management window
+    elseif event.element.tags.is_group_management_icon_button then
+        -- Save selected group id 
+        local selected_group_id = event.element.tags.group_id
+        storage.players[event.player_index].selected_group_icon_id = selected_group_id
+        
+        -- refresh group management
         open_group_management_window(event)
     end
     
