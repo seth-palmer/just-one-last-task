@@ -24,7 +24,7 @@ local function open_group_management_window(event)
 
     
     -- The selected group
-    local selected_group = {title = "", icon="item/wood"}
+    local selected_group = {title = "", icon="virtual/signal-question-mark"}
 
     -- Display icon for each group
     local button_frame = window.add{
@@ -68,6 +68,9 @@ local function open_group_management_window(event)
 
     button_table.add{type="sprite-button", sprite=constants.jolt.sprites.add, style="slot_button"}
 
+    -- Disable all buttons 
+    local default_btn_state = selected_group.id ~= nil
+
     -- Edit form in the bottom half of the window
     local form_table = window.add{
         type="table",
@@ -80,12 +83,28 @@ local function open_group_management_window(event)
         type = "textfield",
         name = constants.jolt.group_management.task_title_textbox,
         text = selected_group.name,
-        style = constants.styles.form.textfield
+        style = constants.styles.form.textfield,
+        enabled = default_btn_state,
     }
 
-    -- Icon for group
+    -- Icon label for group
     local label = form_table.add {type = "label", caption = "Icon:"}
-    form_table.add{type="sprite-button", sprite=selected_group.icon, style="slot_button"}
+
+    -- Show icon from group selected
+    local icon_button = form_table.add{
+        type = "choose-elem-button", -- let user choose group
+        name = constants.jolt.group_management.change_group_icon_button,
+        elem_type = "signal",  -- or "fluid", "recipe", "technology", "entity", etc.
+        enabled = default_btn_state,
+    }
+    -- Split up path e.g. "space-location/nauvis" for elem_value
+    local slash_pos = string.find(selected_group.icon, "/")
+    local icon_type = string.sub(selected_group.icon, 0, slash_pos -1)
+    local icon_name = string.sub(selected_group.icon, slash_pos+1, -1)
+
+    -- MUST set elem_value after icon button
+    -- (can't set property inside of it)
+    icon_button.elem_value = {type = icon_type, name = icon_name}
 
     -- Position buttons - to change selected group position
     form_table.add {type = "label", caption = "Position:"}
@@ -95,29 +114,31 @@ local function open_group_management_window(event)
         sprite = constants.jolt.sprites.expand,
         name = constants.jolt.group_management.move_group_up,
         tooltip = {"jolt_group_management.tooltip_move_group_up"},
+        enabled = default_btn_state,
     }
     form_table.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.collapse,
         name = constants.jolt.group_management.move_group_right,
         tooltip = {"jolt_group_management.tooltip_move_group_right"},
+        enabled = default_btn_state,
     }
     form_table.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.expand,
         name = constants.jolt.group_management.move_group_down,
         tooltip = {"jolt_group_management.tooltip_move_group_down"},
+        enabled = default_btn_state,
     }
     form_table.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.collapse,
         name = constants.jolt.group_management.move_group_left,
         tooltip = {"jolt_group_management.tooltip_move_group_left"},
+        enabled = default_btn_state,
     }
 
-
-
-
+    
 
     -- Add row for controls 
     local controls_container = window.add {
@@ -125,13 +146,6 @@ local function open_group_management_window(event)
         name = "jolt_controls_container",
         direction = "horizontal",
         style = "subheader_frame"
-    }
-
-    -- Cancel button
-    local btn_cancel = controls_container.add {
-        type = "button",
-        caption = "Cancel",
-        tooltip = {"jolt_group_management.tooltip_cancel"},
     }
 
     -- Empty space
@@ -150,6 +164,7 @@ local function open_group_management_window(event)
         style = constants.styles.buttons.red,
         sprite = constants.jolt.sprites.delete,
         tooltip = {"jolt_group_management.tooltip_delete_group"},
+        enabled = default_btn_state,
     }
 
     -- Empty space
@@ -166,6 +181,7 @@ local function open_group_management_window(event)
         type = "button",
         caption = "Save",
         tooltip = {"jolt_group_management.tooltip_save"},
+        enabled = default_btn_state,
     }
 
 end
@@ -252,6 +268,7 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
     end
 
 end) -- end on_lua_shortcut
+
 
 --- Close the task list menu
 function close_task_list_menu(event)
@@ -373,6 +390,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         local selected_group_id = event.element.tags.group_id
         storage.players[event.player_index].selected_group_icon_id = selected_group_id
         
+        -- Enable group management form buttons
+
         -- refresh group management
         open_group_management_window(event)
     end
@@ -747,11 +766,27 @@ end
 
 
 
-
-
+--- Print table information
+---@param player any
+---@param t any
+local function printTable(player, t)
+    
+    for key, value in pairs(t) do
+        if type(value) == "table" then
+            player.print(key .. ":")
+            printTable(player, value)  -- Recursively print nested tables
+        else
+            player.print(key .. ": " .. tostring(value))
+        end
+    end
+end
 
 --- function to print
 function debug_print(event, message)
     local player = game.get_player(event.player_index)
-    player.print(message)
+    if type(message) == "table" then
+        printTable(player, message)
+    else
+        player.print(message)
+    end
 end
