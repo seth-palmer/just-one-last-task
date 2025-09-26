@@ -40,13 +40,16 @@ local function open_group_management_window(event)
     }
     
     -- local button_table = player.gui.screen.ugg_main_frame.content_frame.button_frame.button_table
-    button_table.clear()
-    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
-    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
-    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
-    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
-    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
-    button_table.add{type="sprite-button", sprite=("item/wood"), style="slot_button"}
+    -- button_table.clear()
+
+    -- Add each group
+    local groups = task_manager.get_groups()
+    -- Example: local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
+
+    for index, value in ipairs(groups) do
+        button_table.add{type="sprite-button", sprite=value.icon, style="slot_button"}
+    end
+
     button_table.add{type="sprite-button", sprite=constants.jolt.sprites.add, style="slot_button"}
 
     -- Edit form in the bottom half of the window
@@ -68,21 +71,32 @@ local function open_group_management_window(event)
     local label = form_table.add {type = "label", caption = "Icon:"}
     form_table.add{type="sprite-button", sprite=constants.jolt.sprites.edit, style="slot_button"}
 
-    -- Position buttons - to change group position
+    -- Position buttons - to change selected group position
     form_table.add {type = "label", caption = "Position:"}
-    form_table.add {type = "label", caption = ""}
+    form_table.add {type = "label", caption = ""} -- skip this row
     form_table.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.expand,
-    }form_table.add {
+        name = constants.jolt.group_management.move_group_up,
+        tooltip = {"jolt_group_management.tooltip_move_group_up"},
+    }
+    form_table.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.collapse,
+        name = constants.jolt.group_management.move_group_right,
+        tooltip = {"jolt_group_management.tooltip_move_group_right"},
+    }
+    form_table.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.expand,
-    }form_table.add {
+        name = constants.jolt.group_management.move_group_down,
+        tooltip = {"jolt_group_management.tooltip_move_group_down"},
+    }
+    form_table.add {
         type = "sprite-button",
-        sprite = constants.jolt.sprites.expand,
-    }form_table.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.expand,
+        sprite = constants.jolt.sprites.collapse,
+        name = constants.jolt.group_management.move_group_left,
+        tooltip = {"jolt_group_management.tooltip_move_group_left"},
     }
 
 
@@ -183,8 +197,8 @@ script.on_init(function()
     end
 
     --Default groups (store data! not objects/functions)
-    local nauvis_group = {id=1, name="Nauvis", icon="[img=space-location/nauvis]"}
-    local space_group = {id=2, name="Space", icon="[img=item/thruster]"}
+    local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
+    local space_group = {id=2, name="Space", icon="item/thruster"}
 
     local default_group_data = {}
     default_group_data[1] = nauvis_group
@@ -461,7 +475,8 @@ function open_task_list_menu(event)
     -- Get the groups, add tabs for each one and their tasks
     for _, group in ipairs(task_manager.get_groups()) do
         -- Add the tab and set the title
-        local tab_title = group.icon .. " " .. group.name
+        -- Display icon from group icon path
+        local tab_title = "[img=" .. group.icon .. "] " .. group.name
         local new_tab = tabbed_pane.add{type="tab", caption=tab_title}
 
         -- Add tasks for each group inside its tab

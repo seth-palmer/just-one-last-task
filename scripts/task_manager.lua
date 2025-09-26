@@ -72,7 +72,7 @@ function TaskManager.new(params)
         local names = {}
         for _, g in pairs(groups) do
             -- Get the icon and name to display
-            local name = g.icon .. " " .. g.name
+            local name = "[img=" .. g.icon .. "] " .. g.name
             table.insert(names, name)
         end
         return names
