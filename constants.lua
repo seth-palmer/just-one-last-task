@@ -52,6 +52,7 @@ constants.jolt = {
     group_management = {
         open_window_button = "jolt_open_group_management_button",
         window_name = "jolt_group_management_window",
+        form_container = "jolt_group_management_form_container",
         close_button = "jolt_group_management_close_button",
         delete_group = "jolt_delete_group_button",
         move_group_up = "jolt_move_group_up_button",
@@ -61,6 +62,7 @@ constants.jolt = {
         task_title_textbox = "jolt_groups_task_title_textbox",
         group_icon_button = "jolt_group_management_group_icon_button",
         change_group_icon_button = "jolt_group_management_change_group_icon_button",
+        btn_save_group = "jolt_save_group_details_btn"
     },
     -- For main task list window
     task_list = {

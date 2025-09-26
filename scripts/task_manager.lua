@@ -46,7 +46,6 @@ function TaskManager.new(params)
     --- Returns the table of tasks for a group ordered by priority
     --- @return table
     function self.get_tasks(group_id, target_complete_state)
-        -- TODO 
         -- search through task list an return only those in 
         -- the provided group 
         -- Save tasks in new table
@@ -144,6 +143,19 @@ function TaskManager.new(params)
         -- Update task values
         task.title = task_params.title
         task.group_id = task_params.group_id
+    end
+
+    --- Update the provided group
+    ---@param group_params any
+    ---@param group_id string
+    function self.update_group(group_params, group_id)
+        -- Get the group
+        local group = groups[group_id]
+        if group == nil then error("No group in with matching id: " .. tostring(group_id)) end
+
+        -- Update group values
+        group.name = group_params.name
+        group.icon = group_params.icon
     end
 
 

@@ -75,6 +75,7 @@ local function open_group_management_window(event)
     local form_table = window.add{
         type="table",
         column_count=2,
+        name=constants.jolt.group_management.form_container
     }
     
     -- Label "Title" and textbox input
@@ -101,6 +102,10 @@ local function open_group_management_window(event)
     local slash_pos = string.find(selected_group.icon, "/")
     local icon_type = string.sub(selected_group.icon, 0, slash_pos -1)
     local icon_name = string.sub(selected_group.icon, slash_pos+1, -1)
+
+    -- Translate back for edge case where it uses 'virtual'
+    -- in a choose elem btn, but 'virtual-signal' in a sprite
+    if icon_type == "virtual-signal" then icon_type = "virtual" end
 
     -- MUST set elem_value after icon button
     -- (can't set property inside of it)
@@ -182,6 +187,7 @@ local function open_group_management_window(event)
         caption = "Save",
         tooltip = {"jolt_group_management.tooltip_save"},
         enabled = default_btn_state,
+        name = constants.jolt.group_management.btn_save_group
     }
 
 end
@@ -282,7 +288,7 @@ end
 script.on_event(defines.events.on_gui_click, function(event)
     local element_name = event.element.name
     
-    --TODO useful to debug naming issues
+    --TODO: uncomment below to debug naming issues
     -- debug_print(event, "elementName = " .. element_name)
 
     -- Close my windows looking in dictionary to check if
@@ -389,10 +395,56 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Save selected group id 
         local selected_group_id = event.element.tags.group_id
         storage.players[event.player_index].selected_group_icon_id = selected_group_id
-        
-        -- Enable group management form buttons
 
         -- refresh group management
+        open_group_management_window(event)
+
+    -- Save group button 
+    elseif element_name == constants.jolt.group_management.btn_save_group then
+        -- Get new name values
+        
+        -- Go through element tree to get to the form_container
+        local player = game.get_player(event.player_index)
+        local screen = player.gui.screen
+        local window = screen[constants.jolt.group_management.window_name]
+        local form_container = window[constants.jolt.group_management.form_container]
+
+        -- Get form elements
+        local textbox_title = form_container[constants.jolt.group_management.task_title_textbox]
+        local icon_button = form_container[constants.jolt.group_management.change_group_icon_button]
+
+        -- Get Values
+        local new_name = textbox_title.text
+        local elem = icon_button.elem_value
+
+        -- Calculate the type because there are some edge cases :(
+        local type
+
+        -- If no 'type' then make it the default of 'item'
+        -- (Required for the icon to show up)
+        if elem.type == nil then 
+            type = "item"
+        -- Translate for edge case where it uses 'virtual'
+        -- in a choose elem button, but 'virtual-signal' in a sprite
+        elseif elem.type == "virtual" then
+            type = "virtual-signal"
+        else
+            type = elem.type
+        end
+        -- Combine to make the path
+        local new_icon = type .. "/" .. elem.name
+
+        -- Get selected group id
+        local group_id = storage.players[event.player_index].selected_group_icon_id
+        
+        -- Params to send to update group function
+        local params = {name=new_name, icon=new_icon}
+
+        -- Update group with new values 
+        task_manager.update_group(params, group_id)
+
+        -- Refresh windows
+        open_task_list_menu(event)
         open_group_management_window(event)
     end
     
