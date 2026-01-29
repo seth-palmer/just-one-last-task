@@ -17,7 +17,7 @@ local function open_group_management_window(event)
     local title = {"jolt_group_management.window_title"}
     local window_name = constants.jolt.group_management.window_name
     local close_name = constants.jolt.group_management.close_button
-    local window = new_window(player, title, window_name, close_name, 400, 500)
+    local window = new_window(player, title, window_name, close_name, 320, 500)
 
     -- Add event to watch for button click to close the window
     windows_to_close[close_name] = window_name
@@ -62,7 +62,7 @@ local function open_group_management_window(event)
         style="ugg_deep_frame"
     }
 
-    local max_col_count = 5
+    local max_col_count = 7
     local button_table = button_frame.add{
         type="table",
         name="button_table",
@@ -428,7 +428,6 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- If selected an tab group icon button change the tasks
     elseif event.element.tags.is_group_change_button then
-        debug_print(event, "changing tabs...")
         -- Save selected group id
         local selected_group_id = event.element.tags.group_id
         storage.players[event.player_index].selected_group_tab_id = selected_group_id
@@ -535,6 +534,7 @@ end)
 --- Open the task list menu
 function open_task_list_menu(event)
     -- Initialize data if needed
+    -- !! Note: index 1 is the start not 0 in lua !!
     storage.players[event.player_index] = storage.players[event.player_index] or {}
     if not storage.players[event.player_index].selected_group_tab_index then
         storage.players[event.player_index].selected_group_tab_index = storage.players[event.player_index].selected_group_tab_index or 1
@@ -558,7 +558,6 @@ function open_task_list_menu(event)
 
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
-
 
     --endregion
 
@@ -621,6 +620,7 @@ function open_task_list_menu(event)
         style = "ugg_content_frame"
     }
 
+
     -- Add label for current group name
     local lbl_current_group_name = content_frame.add {
             type = "label",
@@ -628,14 +628,35 @@ function open_task_list_menu(event)
             horizontally_stretchable = "on"
     }
 
+    -- Frame for groups and group edit button
+    local group_content = content_frame.add {
+        type = "frame",
+        direction = "horizontal",
+        horizontally_stretchable = "on"
+    }
+    group_content.style.top_padding = 12
+    group_content.style.bottom_padding = 12
+    group_content.style.left_margin = 0
+
     -- Add section for tab icons
-    local max_col_count = 5
-    local button_table = content_frame.add{
+    local max_col_count = 7
+    local button_table = group_content.add{
         type="table",
         name="button_table",
         column_count=max_col_count,
         style="filter_slot_table"
     }
+
+    -- Edit groups button
+    local btn_edit_groups = group_content.add {
+        type = "sprite-button",
+        name = constants.jolt.group_management.open_window_button,
+        style = constants.styles.frame.button,
+        sprite = constants.jolt.sprites.edit,
+        tooltip = {"jolt.tooltip_edit_groups_button"},
+    }
+    btn_edit_groups.style.top_margin = 12
+    btn_edit_groups.style.left_margin = 24
 
     -- Save current group id
     local current_group_id = storage.players[event.player_index].selected_group_tab_id
@@ -670,44 +691,18 @@ function open_task_list_menu(event)
         end
     end
 
-    -- Empty space to push edit groups button to far right
-    local empty_space = button_table.add {
-        type = "empty-widget",
-    }
-    -- Make it expand to fill the space
-    empty_space.style.minimal_width = 50
-    empty_space.style.height = 24
-    empty_space.style.horizontally_stretchable = true
-
-    -- Edit groups button
-    local btn_edit_groups = button_table.add {
-        type = "sprite-button",
-        name = constants.jolt.group_management.open_window_button,
-        style = constants.styles.frame.button,
-        sprite = constants.jolt.sprites.edit,
-        tooltip = {"jolt.tooltip_edit_groups_button"},
-    }
-    btn_edit_groups.style.top_margin = 12
-    btn_edit_groups.style.left_margin = 24
-
     -- Display tasks for the currently selected group
     local tab_content = content_frame.add{type="scroll-pane", direction="vertical"}
 
     -- Get tasks, checking if the control button "Show Completed".
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
     local group_tasks = task_manager.get_tasks(current_group_id, task_manager.get_setting_show_completed())
-    debug_print(event, "tasks")
-    debug_print(event, group_tasks)
     for _, task in pairs(group_tasks) do
         -- Display the task
         new_gui_task(tab_content, task)
     end
 
-    
-    
     --endregion
-
-
 
     -- local controls_flow = content_frame.add {
     --     type = "flow",
