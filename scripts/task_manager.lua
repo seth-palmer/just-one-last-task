@@ -87,15 +87,25 @@ function TaskManager.new(params)
         task_priorities[index2] = temp
     end
 
-    --- Adds the new group with data provided
-    function self.add_group(task_params)
-        -- TODO Ok problem I'm using id of `1 and 2` so far for groups and relying on that incrementing (which will break when deleting groups) so I need to switch to using a new system of actual ids and then have a table to store the order.
+    --- Returns the index of the group in the order
+    ---@param group_id the id of the group you are looking for
+    function self.get_group_position(group_id)
+        local position = 1
+        -- Search for the index that matches the group
+        for index, value in pairs(group_order) do
+            if value == group_id then
+                position = index
+            end
+        end
 
+        return position
+    end
+
+    --- Adds the new group with data provided
+    ---@param task_params table with id, name, and icon values
+    function self.add_group(task_params)
         -- Create Make a new id for the group
         local id = uuid()
-
-        -- BUG for now just use provided id + 1
---         local id = task_params.id
 
         -- Make a new group
         local new_group = {
@@ -106,9 +116,8 @@ function TaskManager.new(params)
 
         groups[id] = new_group
 
-        -- TODO: probably add its id to list of group?
+        -- add its id to list of group order
         table.insert(group_order, id)
-
     end
 
     --- Add a task using provided parameters

@@ -49,7 +49,7 @@ local function open_group_management_window(event)
         style = "confirm_button",
         sprite=constants.jolt.sprites.add,
         name=constants.jolt.group_management.add_new_group_icon_button,
-        tooltip = {"jolt.tooltip_add_group"}
+        tooltip = {"jolt_group_management.tooltip_add_group"}
     }
     add_group_button.style.width = 50
     add_group_button.style.height = 30
@@ -73,22 +73,28 @@ local function open_group_management_window(event)
     -- local button_table = player.gui.screen.ugg_main_frame.content_frame.button_frame.button_table
     -- button_table.clear()
 
-    -- Add each group
-    local groups = task_manager.get_groups()
-    -- Example: local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
+    -- Get group order
+    local group_order = task_manager.get_group_order()
 
-    for index, value in ipairs(groups) do
+    -- Add each group
+    for index, value in ipairs(group_order) do
+        -- Get the group from its id
+        -- Example: local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
+        group = task_manager.get_group(value)
+
         local icon_button = button_table.add{
             type="sprite-button",
-            sprite=value.icon,
+            sprite=group.icon,
             style="slot_button",
-            tags={is_group_management_icon_button=true, group_id=value.id}
+            -- Add tags since can't use the same name for each
+            -- but can check tag for group_mgnmt_btn and then get group_id
+            tags={is_group_management_icon_button=true, group_id=group.id}
         }
         -- If this button is selected change its style to 
         -- be yellow button background
-        if value.id == storage.players[event.player_index].selected_group_icon_id then
+        if group.id == storage.players[event.player_index].selected_group_icon_id then
             icon_button.style = constants.styles.buttons.yellow
-            selected_group = value
+            selected_group = group
         else
         end
     end
@@ -437,20 +443,13 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Group Management button 
     elseif element_name == constants.jolt.group_management.add_new_group_icon_button then
-        debug_print(event, "adding new group")
-
         -- Add group with template data and open window
         -- !! Use "virtual-signal" and not "virtual" for sprites
         group = {id=3, name="", icon="virtual-signal/signal-question-mark"}
         task_manager.add_group(group)
 
-        local g = task_manager.get_groups()
-        debug_print(event, g)
-
+        -- Reopen window to refresh
         open_group_management_window(event)
-
--- TODO: finish groups adding
-
 
     -- If selected an group icon button in the group management window
     elseif event.element.tags.is_group_management_icon_button then
@@ -458,7 +457,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         local selected_group_id = event.element.tags.group_id
         storage.players[event.player_index].selected_group_icon_id = selected_group_id
 
-        -- refresh group management
+        -- Refresh windows
+        open_task_list_menu(event)
         open_group_management_window(event)
 
     -- Save group button 
@@ -647,13 +647,15 @@ function open_task_list_menu(event)
 
     -- Add a tab for each group
     for index, value in ipairs(group_order) do
-        debug_print(event, value)
+        -- Get the group from its id
         group = task_manager.get_group(value)
 
         local icon_button = button_table.add{
             type="sprite-button",
             sprite=group.icon,
             style="slot_button",
+            -- Add tags since can't use the same name for each
+            -- but can check tag for group_mgnmt_btn and then get group_id
             tags={is_group_change_button=true, group_id=group.id}
         }
         -- If this button is selected change its style to
@@ -755,10 +757,12 @@ function open_task_form_window(event, window_title, window_subtitle, task)
     local checkbox_state_add_to_top = task.checkbox_add_to_top or checkbox_default_state_add_to_top
     
     -- Get last selected tab index if this is a new task
-    local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
+--     local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
+    -- Get id
+    local current_group_id = storage.players[event.player_index].selected_group_tab_id
 
     -- Set group id to the param if provided or the last group selected if new task
-    local group_id = task.group_id or last_group_selected_index
+    local group_id = task.group_id or current_group_id
 
     local player = game.get_player(event.player_index)
 
@@ -841,6 +845,8 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         state = checkbox_state_add_to_top,
     }
 
+    -- Get position
+    local position = task_manager.get_group_position(group_id)
     
     -- Dropdown to select which group the task is added to
     local dropdown_select_group = new_task_form.add {
@@ -849,8 +855,10 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         caption = "Group",
         items = task_manager.get_group_names(),
         style = "dropdown",
-        selected_index = group_id
+        selected_index = position
     }
+
+
 end
 
 
