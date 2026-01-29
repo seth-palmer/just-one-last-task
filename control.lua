@@ -63,7 +63,6 @@ local function open_group_management_window(event)
             selected_group = value
         else
         end
-        
     end
 
     button_table.add{type="sprite-button", sprite=constants.jolt.sprites.add, style="slot_button"}
@@ -387,6 +386,17 @@ script.on_event(defines.events.on_gui_click, function(event)
         subtask.parent_id = task.id
         open_task_form_window(event, "New Subtask", subtitle, subtask)
 
+    -- If selected an tab group icon button change the tasks
+    elseif event.element.tags.is_group_change_button then
+        debug_print(event, "changing tabs...")
+        -- Save selected group id
+        local selected_group_id = event.element.tags.group_id
+        storage.players[event.player_index].selected_group_tab_id = selected_group_id
+
+        -- Refresh list of tasks
+        open_task_list_menu(event)
+
+
     -- Group Management button 
     elseif element_name == constants.jolt.group_management.open_window_button then
         open_group_management_window(event)
@@ -486,7 +496,7 @@ function open_task_list_menu(event)
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
 
-    
+    local groups = task_manager.get_groups()
 
     --endregion
 
@@ -549,19 +559,29 @@ function open_task_list_menu(event)
         style = "ugg_content_frame"
     }
 
-    local tab_controls = content_frame.add {
-        type = "frame",
-        direction = "horizontal",
+    local max_col_count = 5
+    local button_table = content_frame.add{
+        type="table",
+        name="button_table",
+        column_count=max_col_count,
+        style="filter_slot_table"
     }
+
+--     local tab_controls = content_frame.add {
+--         type = "frame",
+--         direction = "horizontal",
+--     }
 
     -- Add a tabbed-pane for all groups
-    local tabbed_pane = tab_controls.add {
-        type="tabbed-pane",
-        name=constants.jolt.task_list.group_tabs_pane,
-    }
+--     local tabbed_pane = tab_controls.add {
+--         type="tabbed-pane",
+--         name=constants.jolt.task_list.group_tabs_pane,
+--     }
+
+    --TODO: finish making new tab structure
 
     -- Edit groups button
-    local btn_edit_groups = tab_controls.add {
+    local btn_edit_groups = button_table.add {
         type = "sprite-button",
         name = constants.jolt.group_management.open_window_button,
         style = constants.styles.frame.button,
@@ -570,27 +590,56 @@ function open_task_list_menu(event)
     }
     btn_edit_groups.style.top_margin = 12
 
-    -- Get the groups, add tabs for each one and their tasks
-    for _, group in ipairs(task_manager.get_groups()) do
-        -- Add the tab and set the title
-        -- Display icon from group icon path
-        local tab_title = "[img=" .. group.icon .. "] " .. group.name
-        local new_tab = tabbed_pane.add{type="tab", caption=tab_title}
+--     debug_print(event, "making list")
+--     debug_print(event, groups)
+    local current_group_id = storage.players[event.player_index].selected_group_tab_id
 
-        -- Add tasks for each group inside its tab
-        local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
-        -- Get tasks, checking if the control button "Show Completed".
-        -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-        for _, task in pairs(task_manager.get_tasks(group.id, task_manager.get_setting_show_completed())) do
-            -- Display the task
-            new_gui_task(tab_content, task)
+    for index, value in ipairs(groups) do
+        local icon_button = button_table.add{
+            type="sprite-button",
+            sprite=value.icon,
+            style="slot_button",
+            tags={is_group_change_button=true, group_id=value.id}
+        }
+        -- If this button is selected change its style to
+        -- be yellow button background
+        if value.id == current_group_id then
+            icon_button.style = constants.styles.buttons.yellow
+            selected_group = value
+        else
         end
-
-
-        -- Add the content to the tab 
-        -- (Can only connect one thing so which is why I use another pane to group tasks)
-        tabbed_pane.add_tab(new_tab, tab_content)
     end
+
+    -- Display tasks for the currently selected group
+    local tab_content = content_frame.add{type="scroll-pane", direction="vertical"}
+    -- Get tasks, checking if the control button "Show Completed".
+    -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
+    for _, task in pairs(task_manager.get_tasks(current_group_id, task_manager.get_setting_show_completed())) do
+        -- Display the task
+        new_gui_task(tab_content, task)
+    end
+
+    -- Get the groups, add tabs for each one and their tasks
+--     for _, group in ipairs(task_manager.get_groups()) do
+--         -- Add the tab and set the title
+--         -- Display icon from group icon path
+--         local tab_title = "[img=" .. group.icon .. "] " .. group.name
+--         local new_tab = tabbed_pane.add{type="tab", caption=tab_title}
+--
+--         -- Add tasks for each group inside its tab
+--         local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
+--         -- Get tasks, checking if the control button "Show Completed".
+--         -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
+--         for _, task in pairs(task_manager.get_tasks(group.id, task_manager.get_setting_show_completed())) do
+--             -- Display the task
+--             new_gui_task(tab_content, task)
+--         end
+--
+--
+--         -- Add the content to the tab
+--         -- (Can only connect one thing so which is why I use another pane to group tasks)
+--         tabbed_pane.add_tab(new_tab, tab_content)
+--     end
 
     -- Initialize data if needed
     storage.players[event.player_index] = storage.players[event.player_index] or {}
@@ -600,7 +649,9 @@ function open_task_list_menu(event)
     
     -- TODO maybe move the stored data into the task manager?
     -- Load the last selected tab from when the window was open before
-    tabbed_pane.selected_tab_index = storage.players[event.player_index].selected_group_tab_index
+
+    -- TODO: delete after testing
+    --tabbed_pane.selected_tab_index = storage.players[event.player_index].selected_group_tab_index
 
     --endregion
 
