@@ -68,14 +68,21 @@ function TaskManager.new(params)
         return ordered_tasks
     end
 
-    --- Get a list with all group names
+    --- Get a list with all group names and icons embedded
     function self.get_group_names()
+        -- Store names with icons embedded
         local names = {}
-        for _, g in pairs(groups) do
+
+        -- Get the groups in order
+        for i, value in pairs(group_order) do
+            -- Get the group
+            g = self.get_group(value)
+
             -- Get the icon and name to display
             local name = "[img=" .. g.icon .. "] " .. g.name
             table.insert(names, name)
         end
+
         return names
     end
 
@@ -99,6 +106,42 @@ function TaskManager.new(params)
         end
 
         return position
+    end
+
+    --- Move group left
+    function self.move_group_left(group_id)
+        -- Get position
+        local group_position = self.get_group_position(group_id)
+
+        -- If position is number 1 do nothing
+        if group_position == 1 then
+            return
+        end
+
+        self.swap_group_positions(group_position, group_position - 1)
+    end
+
+        --- Move group right
+    function self.move_group_right(group_id)
+        -- Get position
+        local group_position = self.get_group_position(group_id)
+
+        -- #group_order to get the length
+        local last_position = #group_order
+
+        -- If position is greater than end
+        if group_position >= last_position then
+            return
+        end
+
+        self.swap_group_positions(group_position, group_position + 1)
+    end
+
+    --- Swaps the two positions
+    function self.swap_group_positions(pos1, pos2)
+        local temp = group_order[pos1]
+        group_order[pos1] = group_order[pos2]
+        group_order[pos2] = temp
     end
 
     --- Adds the new group with data provided

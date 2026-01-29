@@ -150,27 +150,8 @@ local function open_group_management_window(event)
     -- Position buttons - to change selected group position
     form_table.add {type = "label", caption = "Position:"}
     form_table.add {type = "label", caption = ""} -- skip this row
-    form_table.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.expand,
-        name = constants.jolt.group_management.move_group_up,
-        tooltip = {"jolt_group_management.tooltip_move_group_up"},
-        enabled = default_btn_state,
-    }
-    form_table.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.collapse,
-        name = constants.jolt.group_management.move_group_right,
-        tooltip = {"jolt_group_management.tooltip_move_group_right"},
-        enabled = default_btn_state,
-    }
-    form_table.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.expand,
-        name = constants.jolt.group_management.move_group_down,
-        tooltip = {"jolt_group_management.tooltip_move_group_down"},
-        enabled = default_btn_state,
-    }
+
+    -- Move group left button
     form_table.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.collapse,
@@ -178,6 +159,16 @@ local function open_group_management_window(event)
         tooltip = {"jolt_group_management.tooltip_move_group_left"},
         enabled = default_btn_state,
     }
+
+    -- Move group right button
+    form_table.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.expand,
+        name = constants.jolt.group_management.move_group_right,
+        tooltip = {"jolt_group_management.tooltip_move_group_right"},
+        enabled = default_btn_state,
+    }
+
 
     
 
@@ -460,6 +451,41 @@ script.on_event(defines.events.on_gui_click, function(event)
         open_task_list_menu(event)
         open_group_management_window(event)
 
+
+
+    -- Move group left button
+    elseif element_name == constants.jolt.group_management.move_group_left then
+        debug_print(event, "left")
+        -- Get current selected group
+        local group_id = storage.players[event.player_index].selected_group_icon_id
+        debug_print(event, group_id)
+
+        -- Swap with the previous
+        task_manager.move_group_left(group_id)
+
+        -- Display error if no previous
+
+        -- Refresh windows
+        open_task_list_menu(event)
+        open_group_management_window(event)
+
+    -- Move group right button
+    elseif element_name == constants.jolt.group_management.move_group_right then
+        debug_print(event, "right")
+        -- Get current selected group
+        local group_id = storage.players[event.player_index].selected_group_icon_id
+        debug_print(event, group_id)
+
+        -- Swap with the next
+        task_manager.move_group_right(group_id)
+
+        -- Display error if no previous
+
+        -- Refresh windows
+        open_task_list_menu(event)
+        open_group_management_window(event)
+
+
     -- Save group button 
     elseif element_name == constants.jolt.group_management.btn_save_group then
         -- Get new name values
@@ -665,6 +691,11 @@ function open_task_list_menu(event)
     -- Get group order
     local group_order = task_manager.get_group_order()
     local groups = task_manager.get_groups()
+
+    debug_print(event, "start---group_order")
+    debug_print(event, group_order)
+
+    debug_print(event, "end----group_order")
 
     -- Add a tab for each group
     for index, value in ipairs(group_order) do
