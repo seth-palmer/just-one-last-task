@@ -19,6 +19,8 @@ function TaskManager.new(params)
 
     -- Store group, player, and task data
     local groups = storage.task_data.groups
+    local group_order = storage.task_data.group_order
+
     local players = storage.players
 
 
@@ -85,6 +87,29 @@ function TaskManager.new(params)
         task_priorities[index2] = temp
     end
 
+    --- Adds the new group with data provided
+    function self.add_group(task_params)
+        -- TODO Ok problem I'm using id of `1 and 2` so far for groups and relying on that incrementing (which will break when deleting groups) so I need to switch to using a new system of actual ids and then have a table to store the order.
+
+        -- Create Make a new id for the group
+        local id = uuid()
+
+        -- BUG for now just use provided id + 1
+--         local id = task_params.id
+
+        -- Make a new group
+        local new_group = {
+            id=id,
+            name=task_params.name,
+            icon=task_params.icon
+        }
+
+        groups[id] = new_group
+
+        -- TODO: probably add its id to list of group?
+        table.insert(group_order, id)
+
+    end
 
     --- Add a task using provided parameters
     ---@param task_params any
@@ -125,10 +150,9 @@ function TaskManager.new(params)
             table.insert(task_priorities, id)
             swap_priorities(1, #task_priorities)
         end
-
-        
-        
     end
+
+
 
     
 
@@ -172,6 +196,27 @@ function TaskManager.new(params)
         end
 
         return task
+    end
+
+    --- Returns the group with the provied uuid
+    --- @param id string - uuid of the group to search for
+    ---@return Group - or nil if no matching group exists
+    function self.get_group(id)
+        local group
+        if groups[id] ~= nil then
+            return groups[id]
+        end
+        if group == nil then
+            error("Group not found with id: " .. (id or "[nil value]"))
+        end
+
+        return group
+    end
+
+    --- Returns a table with the order of groups as ids
+    --TODO: fix is broken
+    function self.get_group_order()
+        return storage.task_data.group_order
     end
 
     -- For debugging

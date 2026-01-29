@@ -26,6 +26,34 @@ local function open_group_management_window(event)
     -- The selected group
     local selected_group = {title = "", icon="virtual/signal-question-mark"}
 
+    -- Controls frame
+    local controls_frame = window.add {
+        type="frame",
+        name="group_controls_frame",
+        direction="horizontal",
+        style = "subheader_frame"
+    }
+
+    -- Empty space
+    local empty_space = controls_frame.add {
+        type = "empty-widget",
+    }
+    -- Make it expand to fill the space
+    empty_space.style.minimal_width = 50
+    empty_space.style.height = 24
+    empty_space.style.horizontally_stretchable = true
+
+    -- Add new group button
+    add_group_button = controls_frame.add{
+        type="sprite-button",
+        style = "confirm_button",
+        sprite=constants.jolt.sprites.add,
+        name=constants.jolt.group_management.add_new_group_icon_button,
+        tooltip = {"jolt.tooltip_add_group"}
+    }
+    add_group_button.style.width = 50
+    add_group_button.style.height = 30
+
     -- Display icon for each group
     local button_frame = window.add{
         type="frame",
@@ -65,7 +93,10 @@ local function open_group_management_window(event)
         end
     end
 
-    button_table.add{type="sprite-button", sprite=constants.jolt.sprites.add, style="slot_button"}
+
+
+
+
 
     -- Disable all buttons 
     local default_btn_state = selected_group.id ~= nil
@@ -230,12 +261,14 @@ script.on_init(function()
     end
 
     --Default groups (store data! not objects/functions)
-    local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
-    local space_group = {id=2, name="Space", icon="item/thruster"}
+    local nauvis_group = {id="a1", name="Nauvis", icon="space-location/nauvis"}
+    local space_group = {id="b1", name="Space", icon="item/thruster"}
 
     local default_group_data = {}
-    default_group_data[1] = nauvis_group
-    default_group_data[2] = space_group
+    default_group_data[nauvis_group.id] = nauvis_group
+    default_group_data[space_group.id] = space_group
+
+    local default_group_order = {"a1", "b1"}
 
     -- store players and their info
     storage.players = storage.players or {}
@@ -248,6 +281,7 @@ script.on_init(function()
         tasks = {},
         groups = default_group_data,
         priorities = {},
+        group_order = default_group_order,
     }
     task_manager = TaskManager.new()
 end)
@@ -397,9 +431,27 @@ script.on_event(defines.events.on_gui_click, function(event)
         open_task_list_menu(event)
 
 
-    -- Group Management button 
+    -- Group Management button
     elseif element_name == constants.jolt.group_management.open_window_button then
         open_group_management_window(event)
+
+    -- Group Management button 
+    elseif element_name == constants.jolt.group_management.add_new_group_icon_button then
+        debug_print(event, "adding new group")
+
+        -- Add group with template data and open window
+        -- !! Use "virtual-signal" and not "virtual" for sprites
+        group = {id=3, name="", icon="virtual-signal/signal-question-mark"}
+        task_manager.add_group(group)
+
+        local g = task_manager.get_groups()
+        debug_print(event, g)
+
+        open_group_management_window(event)
+
+-- TODO: finish groups adding
+
+
     -- If selected an group icon button in the group management window
     elseif event.element.tags.is_group_management_icon_button then
         -- Save selected group id 
@@ -482,6 +534,17 @@ end)
 
 --- Open the task list menu
 function open_task_list_menu(event)
+    -- Initialize data if needed
+    storage.players[event.player_index] = storage.players[event.player_index] or {}
+    if not storage.players[event.player_index].selected_group_tab_index then
+        storage.players[event.player_index].selected_group_tab_index = storage.players[event.player_index].selected_group_tab_index or 1
+    end
+
+    if not storage.players[event.player_index].selected_group_tab_id then
+        storage.players[event.player_index].selected_group_tab_id =
+        storage.players[event.player_index].selected_group_tab_id or
+        storage.task_data.group_order[1]
+    end
 
     --region =======Task List=======
 
@@ -496,7 +559,6 @@ function open_task_list_menu(event)
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
 
-    local groups = task_manager.get_groups()
 
     --endregion
 
@@ -559,6 +621,14 @@ function open_task_list_menu(event)
         style = "ugg_content_frame"
     }
 
+    -- Add label for current group name
+    local lbl_current_group_name = content_frame.add {
+            type = "label",
+            caption = "",
+            horizontally_stretchable = "on"
+    }
+
+    -- Add section for tab icons
     local max_col_count = 5
     local button_table = content_frame.add{
         type="table",
@@ -567,18 +637,45 @@ function open_task_list_menu(event)
         style="filter_slot_table"
     }
 
---     local tab_controls = content_frame.add {
---         type = "frame",
---         direction = "horizontal",
---     }
+    -- Save current group id
+    local current_group_id = storage.players[event.player_index].selected_group_tab_id
+    local current_group = task_manager.get_group(current_group_id)
 
-    -- Add a tabbed-pane for all groups
---     local tabbed_pane = tab_controls.add {
---         type="tabbed-pane",
---         name=constants.jolt.task_list.group_tabs_pane,
---     }
+    -- Get group order
+    local group_order = task_manager.get_group_order()
+    local groups = task_manager.get_groups()
 
-    --TODO: finish making new tab structure
+    -- Add a tab for each group
+    for index, value in ipairs(group_order) do
+        debug_print(event, value)
+        group = task_manager.get_group(value)
+
+        local icon_button = button_table.add{
+            type="sprite-button",
+            sprite=group.icon,
+            style="slot_button",
+            tags={is_group_change_button=true, group_id=group.id}
+        }
+        -- If this button is selected change its style to
+        -- be yellow button background to show it is the active group
+        if group.id == current_group_id then
+            icon_button.style = constants.styles.buttons.yellow
+            selected_group = group
+
+            -- Update current group name
+            lbl_current_group_name.caption = current_group.name
+        else
+        end
+    end
+
+    -- Empty space to push edit groups button to far right
+    local empty_space = button_table.add {
+        type = "empty-widget",
+    }
+    -- Make it expand to fill the space
+    empty_space.style.minimal_width = 50
+    empty_space.style.height = 24
+    empty_space.style.horizontally_stretchable = true
 
     -- Edit groups button
     local btn_edit_groups = button_table.add {
@@ -589,70 +686,23 @@ function open_task_list_menu(event)
         tooltip = {"jolt.tooltip_edit_groups_button"},
     }
     btn_edit_groups.style.top_margin = 12
-
---     debug_print(event, "making list")
---     debug_print(event, groups)
-    local current_group_id = storage.players[event.player_index].selected_group_tab_id
-
-    for index, value in ipairs(groups) do
-        local icon_button = button_table.add{
-            type="sprite-button",
-            sprite=value.icon,
-            style="slot_button",
-            tags={is_group_change_button=true, group_id=value.id}
-        }
-        -- If this button is selected change its style to
-        -- be yellow button background
-        if value.id == current_group_id then
-            icon_button.style = constants.styles.buttons.yellow
-            selected_group = value
-        else
-        end
-    end
+    btn_edit_groups.style.left_margin = 24
 
     -- Display tasks for the currently selected group
     local tab_content = content_frame.add{type="scroll-pane", direction="vertical"}
+
     -- Get tasks, checking if the control button "Show Completed".
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-    for _, task in pairs(task_manager.get_tasks(current_group_id, task_manager.get_setting_show_completed())) do
+    local group_tasks = task_manager.get_tasks(current_group_id, task_manager.get_setting_show_completed())
+    debug_print(event, "tasks")
+    debug_print(event, group_tasks)
+    for _, task in pairs(group_tasks) do
         -- Display the task
         new_gui_task(tab_content, task)
     end
 
-    -- Get the groups, add tabs for each one and their tasks
---     for _, group in ipairs(task_manager.get_groups()) do
---         -- Add the tab and set the title
---         -- Display icon from group icon path
---         local tab_title = "[img=" .. group.icon .. "] " .. group.name
---         local new_tab = tabbed_pane.add{type="tab", caption=tab_title}
---
---         -- Add tasks for each group inside its tab
---         local tab_content = tabbed_pane.add{type="scroll-pane", direction="vertical"}
---         -- Get tasks, checking if the control button "Show Completed".
---         -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
---         for _, task in pairs(task_manager.get_tasks(group.id, task_manager.get_setting_show_completed())) do
---             -- Display the task
---             new_gui_task(tab_content, task)
---         end
---
---
---         -- Add the content to the tab
---         -- (Can only connect one thing so which is why I use another pane to group tasks)
---         tabbed_pane.add_tab(new_tab, tab_content)
---     end
-
-    -- Initialize data if needed
-    storage.players[event.player_index] = storage.players[event.player_index] or {}
-    if not storage.players[event.player_index].selected_group_tab_index then
-        storage.players[event.player_index].selected_group_tab_index = storage.players[event.player_index].selected_group_tab_index or 1
-    end
     
-    -- TODO maybe move the stored data into the task manager?
-    -- Load the last selected tab from when the window was open before
-
-    -- TODO: delete after testing
-    --tabbed_pane.selected_tab_index = storage.players[event.player_index].selected_group_tab_index
-
+    
     --endregion
 
 
@@ -824,6 +874,8 @@ function add_new_task(event)
     local title = textbox_title.text
     local add_to_top = checkbox_add_to_top.state
     local group_index = dropdown_group.selected_index
+    -- Get the actual group id
+    local group_id = task_manager.get_group_order()[group_index]
 
     -- check if empty string not nil since task_id is string type
     -- check type with debug_print(event, "type is: " .. type(task_id))
@@ -832,7 +884,7 @@ function add_new_task(event)
     -- Make task parameters
     local task_params = {
         title = title,
-        group_id = group_index,
+        group_id = group_id,
         parent_id = form_container.tags.parent_id or nil
     }
 
