@@ -435,10 +435,14 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif element_name == constants.jolt.group_management.add_new_group_icon_button then
         -- Add group with template data and open window
         -- !! Use "virtual-signal" and not "virtual" for sprites
-        group = {id=3, name="", icon="virtual-signal/signal-question-mark"}
-        task_manager.add_group(group)
+        group = {name="", icon="virtual-signal/signal-question-mark"}
+        local new_group_id = task_manager.add_group(group)
 
-        -- Reopen window to refresh
+        -- Make it the currently selected group
+        storage.players[event.player_index].selected_group_icon_id = new_group_id
+
+        -- Refresh windows
+        open_task_list_menu(event)
         open_group_management_window(event)
 
     -- If selected an group icon button in the group management window
@@ -451,11 +455,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         open_task_list_menu(event)
         open_group_management_window(event)
 
-
-
     -- Move group left button
     elseif element_name == constants.jolt.group_management.move_group_left then
-        debug_print(event, "left")
         -- Get current selected group
         local group_id = storage.players[event.player_index].selected_group_icon_id
         debug_print(event, group_id)
@@ -463,15 +464,12 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Swap with the previous
         task_manager.move_group_left(group_id)
 
-        -- Display error if no previous
-
         -- Refresh windows
         open_task_list_menu(event)
         open_group_management_window(event)
 
     -- Move group right button
     elseif element_name == constants.jolt.group_management.move_group_right then
-        debug_print(event, "right")
         -- Get current selected group
         local group_id = storage.players[event.player_index].selected_group_icon_id
         debug_print(event, group_id)
@@ -479,12 +477,9 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Swap with the next
         task_manager.move_group_right(group_id)
 
-        -- Display error if no previous
-
         -- Refresh windows
         open_task_list_menu(event)
         open_group_management_window(event)
-
 
     -- Save group button 
     elseif element_name == constants.jolt.group_management.btn_save_group then
@@ -691,11 +686,6 @@ function open_task_list_menu(event)
     -- Get group order
     local group_order = task_manager.get_group_order()
     local groups = task_manager.get_groups()
-
-    debug_print(event, "start---group_order")
-    debug_print(event, group_order)
-
-    debug_print(event, "end----group_order")
 
     -- Add a tab for each group
     for index, value in ipairs(group_order) do

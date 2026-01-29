@@ -146,6 +146,7 @@ function TaskManager.new(params)
 
     --- Adds the new group with data provided
     ---@param task_params table with id, name, and icon values
+    ---@return id returns the new group id
     function self.add_group(task_params)
         -- Create Make a new id for the group
         local id = uuid()
@@ -161,6 +162,8 @@ function TaskManager.new(params)
 
         -- add its id to list of group order
         table.insert(group_order, id)
+
+        return id
     end
 
     --- Add a task using provided parameters
