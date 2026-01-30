@@ -526,7 +526,6 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif element_name == constants.jolt.group_management.move_group_left then
         -- Get current selected group
         local group_id = storage.players[event.player_index].selected_group_icon_id
-        debug_print(event, group_id)
 
         -- Swap with the previous
         task_manager.move_group_left(group_id)
@@ -539,7 +538,6 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif element_name == constants.jolt.group_management.move_group_right then
         -- Get current selected group
         local group_id = storage.players[event.player_index].selected_group_icon_id
-        debug_print(event, group_id)
 
         -- Swap with the next
         task_manager.move_group_right(group_id)
