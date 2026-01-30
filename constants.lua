@@ -65,6 +65,12 @@ constants.jolt = {
         btn_save_group = "jolt_save_group_details_btn",
         add_new_group_icon_button = "jolt_group_management_add_group_icon_button"
     },
+    delete_group = {
+        confirm_button = "jolt_delete_group_confirm_button",
+        back_button = "jolt_delete_group_back_button",
+        window_name = "jolt_delete_group_window_name",
+        confirm_button = "jolt_delete_group_",
+    },
     -- For main task list window
     task_list = {
         window = "jolt_task_list_window",

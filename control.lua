@@ -317,7 +317,7 @@ end
 --- Watch for clicks on gui elements for my mod (prefix "jolt_tasks") icon
 script.on_event(defines.events.on_gui_click, function(event)
     local element_name = event.element.name
-    
+    local player = game.get_player(event.player_index)
     --TODO: uncomment below to debug naming issues
     -- debug_print(event, "elementName = " .. element_name)
 
@@ -325,7 +325,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- it is one of my windows
     local window_name = windows_to_close[element_name]
     if window_name ~= nil then
-        local player = game.get_player(event.player_index)
+
 
         -- Check if the frame still exists before destroying
         if player.gui.screen[window_name] and player.gui.screen[window_name].valid then
@@ -444,6 +444,73 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Refresh windows
         open_task_list_menu(event)
         open_group_management_window(event)
+
+
+
+    -- Delete selected group
+    elseif element_name ==  constants.jolt.group_management.delete_group then
+        -- Get group id
+        local group_id = storage.players[event.player_index].selected_group_icon_id
+
+        -- If tasks in group show warning
+        local task_count = task_manager.count_tasks_for_group(group_id)
+
+        if task_count > 0 then
+            -- Make the new window and set close button
+            -- Setup options for the new window
+            local options = {
+                width = 300,
+                height = 180,
+                player = player,
+                window_name = constants.jolt.delete_group.window_name,
+                window_title = {"jolt_group_management.confirm_delete_window_title"},
+                back_button_name = constants.jolt.delete_group.back_button,
+                confirm_button_name = constants.jolt.delete_group.confirm_button
+            }
+            -- Open new confirmation dialog window
+            local confirm_delete_window = new_dialog_window(options)
+
+            -- Add event to watch for button click to close the window
+            windows_to_close[options.back_button_name] = options.window_name
+
+            local confirm_delete_frame = confirm_delete_window.add {
+                type = "frame",
+                direction = "vertical",
+                index = 2,
+                style = "ugg_content_frame"
+            }
+
+            -- Get from en.cfg for translation reasons
+            local message = {"jolt_group_management.confirm_delete_group_warning_message", task_count, task_count > 1}
+
+            -- Label to hold warning message
+            local confirm_delete_label = new_label(confirm_delete_frame, message)
+
+            -- Force onto multiple lines
+            confirm_delete_label.style.single_line = false
+        else
+            -- Delete group
+            task_manager.delete_group(group_id)
+
+            -- Refresh windows
+            open_task_list_menu(event)
+            open_group_management_window(event)
+        end
+
+    -- If the button is
+    elseif element_name ==  constants.jolt.delete_group.confirm_button then
+        -- Get group id
+        local group_id = storage.players[event.player_index].selected_group_icon_id
+
+        -- Delete group
+        task_manager.delete_group(group_id)
+
+        -- Refresh windows
+        open_task_list_menu(event)
+        open_group_management_window(event)
+
+        -- Close confirmation window
+        player.gui.screen[constants.jolt.delete_group.window_name].destroy()
 
     -- If selected an group icon button in the group management window
     elseif event.element.tags.is_group_management_icon_button then

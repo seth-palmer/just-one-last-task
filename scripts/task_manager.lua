@@ -45,6 +45,25 @@ function TaskManager.new(params)
         return groups
     end
 
+    --- Count the number of tasks in a group
+    --- @params the group to search for
+    --- @return the total number of tasks
+    function self.count_tasks_for_group(group_id)
+        local task_count = 0
+
+        -- Go through the priority table (with task ids)
+        for _, task_id in pairs(task_priorities) do
+            local task = tasks[task_id]
+
+            -- Only count tasks for the specific group
+            if task.group_id == group_id then
+                task_count = task_count + 1
+            end
+        end
+
+        return task_count
+    end
+
     --- Returns the table of tasks for a group ordered by priority
     --- @return table
     function self.get_tasks(group_id, target_complete_state)
@@ -164,6 +183,24 @@ function TaskManager.new(params)
         table.insert(group_order, id)
 
         return id
+    end
+
+    --- Deletes the provided group matching the id
+    ---@param group_id to delete
+    ---@returns True if successful, false otherwise
+    function self.delete_group(group_id)
+        -- Check that group exists
+        if groups[group_id] ~= nil then
+
+            -- Delete group data
+            groups[group_id] = {}
+
+            -- Get position and delete (all elements shifted down)
+            local group_pos = self.get_group_position(group_id)
+            table.remove(group_order, group_pos)
+            return True
+        end
+        return False
     end
 
     --- Add a task using provided parameters
