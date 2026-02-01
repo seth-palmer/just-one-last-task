@@ -2,26 +2,35 @@
 --- A file to store premade graphical elements
 local constants = require("constants")
 
-function new_window(player, window_title, frame_name, close_button_name, width, height)
+--- Makes a new window for the player
+function new_window(player, window_title, window_name, close_button_name, width, height)
     local drag_bar_height = 24
     local close_button_size = 24
     
     local screen_element = player.gui.screen
 
     -- Check if window already exists and destroy it
-    if player.gui.screen[frame_name] then
-        player.gui.screen[frame_name].destroy()
+    if player.gui.screen[window_name] then
+        player.gui.screen[window_name].destroy()
     end
 
     local window = screen_element.add {
         type = "frame",
-        name = frame_name,
+        name = window_name,
         direction = "vertical"
     }
     window.style.size = {width, height}
 
-    -- center the window in the screen (not its contents)
-    window.auto_center = true
+    -- Move the window to the saved location if it exists 
+    local saved_location = task_manager.get_saved_window_position(player, window_name)
+    if saved_location then
+        window.location = saved_location
+
+    -- Otherwise center it in the screen
+    else
+        -- center the window in the screen (not its contents)
+        window.auto_center = true
+    end
 
     -- Title Bar
     local title_bar = window.add {
@@ -77,6 +86,7 @@ function new_dialog_window(options)
     local confirm_button_name = options.confirm_button_name
     local width = options.width or default_width
     local height = options.height or default_height
+    local auto_center = options.auto_center
     
     -- Get screen to display to
     local screen_element = player.gui.screen
@@ -93,8 +103,14 @@ function new_dialog_window(options)
     }
     window.style.size = {width, height}
 
-    -- center the window in the screen (not its contents)
-    window.auto_center = true
+    -- Move the window to the saved location if it exists 
+    local saved_location = task_manager.get_saved_window_position(player, window_name)
+    if auto_center and saved_location then
+        window.location = saved_location
+    else
+        -- center the window in the screen (not its contents)
+        window.auto_center = true
+    end
 
     -- Title Bar
     local title_bar = window.add {
@@ -190,7 +206,10 @@ function new_gui_task(parent, task, tab_in_ammount)
     local tab_increment = 20
 
     -- A container to hold all tasks, controls, and subtasks 
-    local task_container = parent.add {type="flow", direction="vertical"}
+    local task_container = parent.add {
+        type="flow",
+        direction="vertical",
+    }
     
     -- A container to put task controls
     local controls_container = task_container.add{type="flow", direction="horizontal"}
@@ -279,5 +298,5 @@ function new_gui_task(parent, task, tab_in_ammount)
         lbl_add_subtask.style.left_margin = tab_in_ammount + tab_increment
     end
 
-
+    return task_container
 end

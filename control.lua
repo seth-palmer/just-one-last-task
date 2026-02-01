@@ -270,6 +270,7 @@ script.on_init(function()
     -- store players and their info
     storage.players = storage.players or {}
 
+
     -- TODO 
     -- store data for groups, tasks 
     -- IMPORTANT: Can only store data not functions. So no putting an object here
@@ -321,6 +322,18 @@ script.on_event(defines.events.on_gui_click, function(event)
     --TODO: uncomment below to debug naming issues
     -- debug_print(event, "elementName = " .. element_name)
 
+
+    -- If task interacted with save it to last interacted task
+    -- to be able to scroll to it later
+    -- separated so it doesn't block other interactions
+    if event.element.tags.task_id then 
+        debug_print(event, "saving task id" .. event.element.tags.task_id)
+        
+        -- save 
+        task_manager.save_last_interacted_task_id(player, event.element.tags.task_id)
+    end
+
+
     -- Close my windows looking in dictionary to check if
     -- it is one of my windows
     local window_name = windows_to_close[element_name]
@@ -340,7 +353,6 @@ script.on_event(defines.events.on_gui_click, function(event)
         if window_name == constants.jolt.group_management.window_name then
             storage.players[event.player_index].selected_group_icon_id = nil
         end
-
 
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
@@ -419,6 +431,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         local subtask = {}
         subtask.parent_id = task.id
         open_task_form_window(event, "New Subtask", subtitle, subtask)
+
+    
 
     -- If selected an tab group icon button change the tasks
     elseif event.element.tags.is_group_change_button then
@@ -604,19 +618,28 @@ end)
 
 --- Called when a gui tab is changed
 ---@param event any
-script.on_event(defines.events.on_gui_selected_tab_changed, function (event)
-    -- Check if it is the group tabs
-    if event.element.name == constants.jolt.task_list.group_tabs_pane then
-        -- get the index of the selected tab
-        local selected_tab_index = event.element.selected_tab_index
+-- script.on_event(defines.events.on_gui_selected_tab_changed, function (event)
+--     -- Check if it is the group tabs
+--     if event.element.name == constants.jolt.task_list.group_tabs_pane then
+--         -- get the index of the selected tab
+--         local selected_tab_index = event.element.selected_tab_index
 
-        -- initialize if needed
-        storage.players[event.player_index] = storage.players[event.player_index] or {}
+--         -- initialize if needed
+--         storage.players[event.player_index] = storage.players[event.player_index] or {}
 
-        -- save selected tab to player data
-        storage.players[event.player_index].selected_group_tab_index = selected_tab_index
-    end
+--         -- save selected tab to player data
+--         storage.players[event.player_index].selected_group_tab_index = selected_tab_index
+--     end
+-- end)
 
+--- Called when a window is moved
+script.on_event(defines.events.on_gui_location_changed, function(event)
+    local player = game.get_player(event.player_index)
+    local new_location = event.element.location
+    
+    -- Save new location to storage
+    -- storage.players[event.player_index].saved_window_locations[event.element.name] = new_location
+    task_manager.save_window_location(player, event.element.name, new_location)
 end)
 
 
@@ -644,6 +667,8 @@ function open_task_list_menu(event)
     local close_button_name = constants.jolt.task_list.close_window_button
     local window_name = constants.jolt.task_list.window
     local main_frame = new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, 400, 600)
+
+    
 
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
@@ -789,12 +814,27 @@ function open_task_list_menu(event)
     }
     -- tab_content.style.minimal_height = 300
 
+    -- Get the last interacted with task (may be nil)
+    local last_interacted_task_id = task_manager.get_last_interacted_task_id(player)
+    local last_interacted_task_element
+
     -- Get tasks, checking if the control button "Show Completed".
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
     local group_tasks = task_manager.get_tasks(current_group_id, task_manager.get_setting_show_completed())
     for _, task in pairs(group_tasks) do
         -- Display the task
-        new_gui_task(tab_content, task)
+        local gui_task = new_gui_task(tab_content, task)
+        
+        -- TODO: in future if element does not exist (like when
+        -- marking as done, go to next or prev element)
+        if last_interacted_task_id and task.id == last_interacted_task_id then
+            last_interacted_task_element = gui_task
+        end
+    end
+
+    -- Scroll to the last interacted with element element 
+    if last_interacted_task_element and last_interacted_task_element.valid then
+        tab_content.scroll_to_element(last_interacted_task_element, "in-view")
     end
 
     --endregion

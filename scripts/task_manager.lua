@@ -313,6 +313,61 @@ function TaskManager.new(params)
         return storage.task_data.group_order
     end
 
+    --- Returns the saved location of the window for the player
+    ---@param player any - with the window
+    ---@param window_name string - name of the window
+    function self.get_saved_window_position(player, window_name)
+        -- Retrieve saved location
+        local saved_location = storage.players 
+            and storage.players[player.index] 
+            and storage.players[player.index].saved_window_locations 
+            and storage.players[player.index].saved_window_locations[window_name]
+        
+        if saved_location then
+            return saved_location
+        else 
+            return nil
+        end
+    end
+
+    --- Save the window location for the player
+    ---@param player any 
+    ---@param window_name any 
+    ---@param new_location any
+    function self.save_window_location(player, window_name, new_location)
+        -- Initialize if needed
+        storage.players = storage.players or {}
+        storage.players[player.index] = storage.players[player.index] or {}
+        storage.players[player.index].saved_window_locations = storage.players[player.index].saved_window_locations or {}
+        
+        -- Save
+        storage.players[player.index].saved_window_locations[window_name] = new_location
+    end
+
+    --- Returns the last interacted with element for the player
+    ---@param player any
+    function self.get_last_interacted_task_id(player)
+        local last_interacted_task_id = storage.players
+            and storage.players[player.index]
+            and storage.players[player.index].last_interacted_task_id
+        if last_interacted_task_id then
+            return last_interacted_task_id
+        else
+            return nil
+        end
+    end
+
+    --- Save the task element last interacted with
+    ---@param player any
+    ---@param id any
+    function self.save_last_interacted_task_id(player, id)
+        -- initialize if needed 
+        storage.players[player.index].last_interacted_task_id = storage.players[player.index].last_interacted_task or {}
+
+        -- save
+        storage.players[player.index].last_interacted_task_id = id
+    end
+
     -- For debugging
     function self.stats()
         -- '#' before a list makes it return a count (won't work for dictionaries)
