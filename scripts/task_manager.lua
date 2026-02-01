@@ -218,6 +218,7 @@ function TaskManager.new(params)
             id=id,
             group_id=task_params.group_id,
             title=task_params.title,
+            description=task_params.description,
             is_complete = false,
             show_details = false,
             parent_id = task_params.parent_id or nil,
@@ -258,6 +259,7 @@ function TaskManager.new(params)
 
         -- Update task values
         task.title = task_params.title
+        task.description = task_params.description
         task.group_id = task_params.group_id
     end
 

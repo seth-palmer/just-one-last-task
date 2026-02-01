@@ -93,6 +93,7 @@ constants.jolt = {
         add_to_top_checkbox = "jolt_new_task_checkbox_add_to_top",
         group_dropdown = "jolt_new_task_group_dropdown",
         form_container = "jolt_new_task_form_container",
+        description_textbox = "jolt_new_task_description_textbox",
     },
     -- Edit task window 
     edit_task = {

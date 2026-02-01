@@ -238,10 +238,19 @@ function new_gui_task(parent, task, tab_in_ammount)
     }
     sbtn_details.style.size = {24,24}
 
+    -- TODO: store the show_details in the player table instead of the task
     -- If details are expanded add extra controls and subtasks
     if task.show_details then
         -- Change icon to indicate details can be collapsed
         sbtn_details.sprite = constants.jolt.sprites.collapse
+
+        -- Display description 
+        local description_label = new_label(task_container, task.description)
+        description_label.style.maximal_width = 260
+        -- Tab in the content (can't seem to do it at the container level)
+        description_label.style.left_margin = tab_in_ammount + tab_increment
+        -- Force onto multiple lines
+        description_label.style.single_line = false
 
         -- add subtasks 
         if task.subtasks == nil then

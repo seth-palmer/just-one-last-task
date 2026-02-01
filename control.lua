@@ -44,7 +44,7 @@ local function open_group_management_window(event)
     empty_space.style.horizontally_stretchable = true
 
     -- Add new group button
-    add_group_button = controls_frame.add{
+    local add_group_button = controls_frame.add{
         type="sprite-button",
         style = "confirm_button",
         sprite=constants.jolt.sprites.add,
@@ -352,7 +352,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- If confirm button for edit task was clicked edit the task 
     elseif element_name == constants.jolt.edit_task.confirm_button then
-        add_new_task(event, true)
+        add_new_task(event)
 
     -- Edit task when edit button clicked 
     elseif element_name == constants.jolt.task_list.edit_task_button then
@@ -363,9 +363,12 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task = task_manager.get_task(task_id)
 
         -- Open the new task window with pre-filled data 
+        -- IMPORTANT: need to use params or their is bug that a new task will be 
+        -- created when editing a task.
         local params = {
             title = task.title,
             group_id = task.group_id,
+            description = task.description,
             task_id = task_id,
         }
         open_task_form_window(event, "Edit Task", nil, params)
@@ -762,7 +765,7 @@ function open_task_list_menu(event)
             sprite=group.icon,
             style="slot_button",
             -- Add tags since can't use the same name for each
-            -- but can check tag for group_mgnmt_btn and then get group_id
+            -- but can check tag for group_management_btn and then get group_id
             tags={is_group_change_button=true, group_id=group.id}
         }
         -- If this button is selected change its style to
@@ -778,7 +781,13 @@ function open_task_list_menu(event)
     end
 
     -- Display tasks for the currently selected group
-    local tab_content = content_frame.add{type="scroll-pane", direction="vertical"}
+    local tab_content = content_frame.add{
+        type="scroll-pane", 
+        direction="vertical",
+        vertical_scroll_policy = "auto",  -- Only show scrollbar when needed
+        horizontal_scroll_policy = "never",
+    }
+    -- tab_content.style.minimal_height = 300
 
     -- Get tasks, checking if the control button "Show Completed".
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
@@ -834,6 +843,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
     -- Setup the data if editing an existing task
     task = task or {}
     local title = task.title or ""
+    local description = task.description or ""
     local task_id = task.task_id or ""
     local checkbox_state_add_to_top = task.checkbox_add_to_top or checkbox_default_state_add_to_top
     
@@ -873,7 +883,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
             name = "jolt_controls_container",
             direction = "horizontal",
             style = "subheader_frame",
-            index = 2, -- Must set to ?? to place above the bottom row
+            index = 2, -- Must set to 2 to place above the bottom row
         }
 
         -- subtitle 
@@ -899,16 +909,31 @@ function open_task_form_window(event, window_title, window_subtitle, task)
 
     -- Container to hold form inputs
     local new_task_form = new_task_window.add {
-        type = "frame",
+        type = "flow",
         name = constants.jolt.new_task.form_container,
         direction = "vertical",
-        style = "ugg_content_frame",
         index = form_pos, -- Must set to 2 to place above the bottom row
         tags = { task_id = task_id, parent_id = task.parent_id } -- Store task id if this is an edit task 
     }
+    -- Space out the elements (must use flow not frame)
+    new_task_form.style.vertical_spacing = 4
     
     -- Label "Title" and textbox input
     local task_title_label = new_label(new_task_form, "Title")
+    -- TODO: in future add button to add icon to task title
+    -- local task_title_flow = new_task_form.add {
+    --     type = "flow",
+    --     direction = "horizontal",
+    -- }
+    -- task_title_flow.style.vertical_align = "center"
+    -- task_title_flow.style.horizontal_spacing = 0
+    -- local task_title_choose_icon_button = new_task_form.add {
+    --     type = "choose-elem-button",
+    --     name = "",
+    --     elem_type = "signal",
+    -- }
+
+
     local task_title_textbox = new_task_form.add {
         type = "textfield",
         name = constants.jolt.new_task.title_textbox,
@@ -916,6 +941,11 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         style = constants.styles.form.textfield
     }
     task_title_textbox.style.horizontally_stretchable = true
+
+    -- Focus the textfield so the player can type immediately
+    task_title_textbox.focus()
+
+    
 
 
     -- Checkbox for "Add to top"
@@ -939,6 +969,20 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         selected_index = position
     }
 
+    -- https://lua-api.factorio.com/latest/concepts/GuiElementType.html
+    -- Task description
+    local task_description_label = new_label(new_task_form, "Description")
+    local task_description_textbox = new_task_form.add {
+        type = "text-box", -- A multiline textfield
+        name = constants.jolt.new_task.description_textbox,
+        text = description,
+        style = constants.styles.form.textfield,
+        
+    }
+    task_description_textbox.style.horizontally_stretchable = true
+    task_description_textbox.style.vertically_stretchable = true
+    task_description_textbox.word_wrap = true
+    task_description_textbox.style.maximal_width = 340
 
 end
 
@@ -955,12 +999,14 @@ function add_new_task(event)
 
     -- Get form elements
     local textbox_title = form_container[constants.jolt.new_task.title_textbox]
+    local textbox_description = form_container[constants.jolt.new_task.description_textbox]
     local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
     local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
 
     -- Get Values
     local task_id = form_container.tags.task_id
     local title = textbox_title.text
+    local description = textbox_description.text
     local add_to_top = checkbox_add_to_top.state
     local group_index = dropdown_group.selected_index
     -- Get the actual group id
@@ -973,6 +1019,7 @@ function add_new_task(event)
     -- Make task parameters
     local task_params = {
         title = title,
+        description = description,
         group_id = group_id,
         parent_id = form_container.tags.parent_id or nil
     }
