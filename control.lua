@@ -26,13 +26,27 @@ local function open_group_management_window(event)
     -- The selected group
     local selected_group = {title = "", icon="virtual/signal-question-mark"}
 
+
+    local main_frame = window.add {
+        type = "frame",
+        direction="vertical",
+        name=constants.jolt.group_management.main_frame,
+        style = "slot_button_deep_frame",
+    }
+    main_frame.style.padding = 0
+    main_frame.style.margin = 4
+    -- main_frame.style.vertical_spacing = 0
+    main_frame.style.horizontal_align = "center"
+
+
     -- Controls frame
-    local controls_frame = window.add {
+    local controls_frame = main_frame.add {
         type="frame",
-        name="group_controls_frame",
         direction="horizontal",
         style = "subheader_frame"
     }
+    controls_frame.style.minimal_height = 40
+    controls_frame.style.margin = 4
 
     -- Empty space
     local empty_space = controls_frame.add {
@@ -40,8 +54,11 @@ local function open_group_management_window(event)
     }
     -- Make it expand to fill the space
     empty_space.style.minimal_width = 50
-    empty_space.style.height = 24
     empty_space.style.horizontally_stretchable = true
+
+    -- Label for new group button 
+    local add_new_group_text = {"jolt_group_management.add_new_group_text"}
+    local add_group_label = new_label(controls_frame, add_new_group_text)
 
     -- Add new group button
     local add_group_button = controls_frame.add{
@@ -55,12 +72,12 @@ local function open_group_management_window(event)
     add_group_button.style.height = 30
 
     -- Display icon for each group
-    local button_frame = window.add{
+    local button_frame = main_frame.add{
         type="frame",
-        name="button_frame",
         direction="horizontal",
         style="ugg_deep_frame"
     }
+    button_frame.style.margin = 0
 
     local max_col_count = 7
     local button_table = button_frame.add{
@@ -100,19 +117,23 @@ local function open_group_management_window(event)
     end
 
 
-
-
-
-
     -- Disable all buttons 
     local default_btn_state = selected_group.id ~= nil
 
+    local form_bg_frame = main_frame.add {
+        type = "frame",
+        style = "inside_shallow_frame",
+        name=constants.jolt.group_management.form_frame,
+    }
+
     -- Edit form in the bottom half of the window
-    local form_table = window.add{
+    local form_table = form_bg_frame.add{
         type="table",
         column_count=2,
-        name=constants.jolt.group_management.form_container
+        name=constants.jolt.group_management.form_container,
+        style="table"
     }
+    form_table.style.padding = 10
     
     -- Label "Title" and textbox input
     local label = form_table.add {type = "label", caption = "Title:"}
@@ -123,6 +144,8 @@ local function open_group_management_window(event)
         style = constants.styles.form.textfield,
         enabled = default_btn_state,
     }
+    -- Focus the textbox for faster edits
+    task_title_textbox.focus()
 
     -- Icon label for group
     local label = form_table.add {type = "label", caption = "Icon:"}
@@ -169,25 +192,29 @@ local function open_group_management_window(event)
         enabled = default_btn_state,
     }
 
-
-    
+    -- A line to separate the controlls
+    local separator = window.add{
+        type = "line",
+        direction = "horizontal"
+    }
 
     -- Add row for controls 
     local controls_container = window.add {
-        type = "frame",
-        name = "jolt_controls_container",
+        type = "flow",
         direction = "horizontal",
-        style = "subheader_frame"
     }
+    controls_container.style.top_padding = 4
+    controls_container.style.left_padding = 3
+    controls_container.style.right_padding = 3
 
-    -- Empty space
-    local empty_space = controls_container.add {
-        type = "empty-widget",
-    }
-    -- Make it expand to fill the space
-    empty_space.style.minimal_width = 50
-    empty_space.style.height = 24
-    empty_space.style.horizontally_stretchable = true
+    -- -- Empty space
+    -- local empty_space = controls_container.add {
+    --     type = "empty-widget",
+    -- }
+    -- -- Make it expand to fill the space
+    -- empty_space.style.minimal_width = 50
+    -- empty_space.style.height = 24
+    -- empty_space.style.horizontally_stretchable = true
 
     -- Delete group button
     local btn_delete_group = controls_container.add {
@@ -571,7 +598,9 @@ script.on_event(defines.events.on_gui_click, function(event)
         local player = game.get_player(event.player_index)
         local screen = player.gui.screen
         local window = screen[constants.jolt.group_management.window_name]
-        local form_container = window[constants.jolt.group_management.form_container]
+        local main_frame = window[constants.jolt.group_management.main_frame]
+        local form_frame = main_frame[constants.jolt.group_management.form_frame]
+        local form_container = form_frame[constants.jolt.group_management.form_container]
 
         -- Get form elements
         local textbox_title = form_container[constants.jolt.group_management.task_title_textbox]
@@ -981,6 +1010,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         style = constants.styles.form.textfield
     }
     task_title_textbox.style.horizontally_stretchable = true
+    task_title_textbox.style.maximal_width = 300
 
     -- Focus the textfield so the player can type immediately
     task_title_textbox.focus()

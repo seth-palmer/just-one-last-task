@@ -17,9 +17,11 @@ function new_window(player, window_title, window_name, close_button_name, width,
     local window = screen_element.add {
         type = "frame",
         name = window_name,
-        direction = "vertical"
+        direction = "vertical",
     }
     window.style.size = {width, height}
+
+    
 
     -- Move the window to the saved location if it exists 
     local saved_location = task_manager.get_saved_window_position(player, window_name)

@@ -80,3 +80,9 @@ styles["jolt_link_button"] = {
     font_color = {0.501961, 0.807843, 0.941176},
     hovered_font_color = {0.603922, 0.980392, 1},
 }
+
+styles["jolt_content_frame"] = {
+    type = "frame_style",
+    parent = "inside_shallow_frame",
+    padding = 12
+}
