@@ -5,7 +5,6 @@ local TaskManager = require("scripts.task_manager")
 local constants = require("constants")
 require("gui")
 
-local windows_to_close = {}
 
 --region =======Local Functions=======
 --- IMPORTANT put local functions before where they are used!!!
@@ -20,7 +19,7 @@ local function open_group_management_window(event)
     local window = new_window(player, title, window_name, close_name, 320, 500)
 
     -- Add event to watch for button click to close the window
-    windows_to_close[close_name] = window_name
+    task_manager.bind_close_button(player, close_name, window_name)
 
     
     -- The selected group
@@ -360,7 +359,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Close my windows looking in dictionary to check if
     -- it is one of my windows
-    local window_name = windows_to_close[element_name]
+    local window_name = task_manager.pop_close_button(player, element_name)
     if window_name ~= nil then
 
 
@@ -368,9 +367,6 @@ script.on_event(defines.events.on_gui_click, function(event)
         if player.gui.screen[window_name] and player.gui.screen[window_name].valid then
             player.gui.screen[window_name].destroy()
         end
-
-        -- Clean up the mapping
-        windows_to_close[element_name] = nil
 
         -- If closing group management remove the selected icon info 
         -- (so the window opens with nothing selected)
@@ -512,7 +508,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             local confirm_delete_window = new_dialog_window(options)
 
             -- Add event to watch for button click to close the window
-            windows_to_close[options.back_button_name] = options.window_name
+            task_manager.bind_close_button(player, options.back_button_name, options.window_name)
 
             local confirm_delete_frame = confirm_delete_window.add {
                 type = "frame",
@@ -697,7 +693,7 @@ function open_task_list_menu(event)
     
 
     -- Add event to watch for button click to close the window
-    windows_to_close[close_button_name] = window_name
+    task_manager.bind_close_button(player, close_button_name, window_name)
 
     local main_frame = window.add {
         type = "frame",
@@ -971,7 +967,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
     local new_task_window = new_dialog_window(options)
     
     -- Add event to watch for button click to close the window
-    windows_to_close[options.back_button_name] = options.window_name
+    task_manager.bind_close_button(player, options.back_button_name, options.window_name)
 
     -- Only add the label line if needed
     -- need brackets because 'not' operator is applied first 

@@ -357,6 +357,31 @@ function TaskManager.new(params)
         end
     end
 
+    --- Bind a button to close the provided window
+    ---@param player any - player associated 
+    ---@param button_name any - when clicked closes the window
+    ---@param window_name any - window to close
+    function self.bind_close_button(player, button_name, window_name)
+        -- initialize if needed 
+        storage.players[player.index].close_button_registry = 
+        storage.players[player.index].close_button_registry or {}
+
+        -- bind close button to window 
+        storage.players[player.index].close_button_registry[button_name] = window_name
+    end
+
+    --- Returns and removes the window name mapping for the button, or nil if not found
+    ---@param player LuaPlayer
+    ---@param button_name string
+    ---@return string|nil window_name The name of the window to close
+    function self.pop_close_button(player, button_name)
+        local registry = storage.players[player.index].close_button_registry
+        local window_name = registry[button_name]
+        registry[button_name] = nil  -- Remove the mapping
+        return window_name
+    end
+
+
     --- Save the task element last interacted with
     ---@param player any
     ---@param id any
