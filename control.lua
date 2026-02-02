@@ -35,7 +35,6 @@ local function open_group_management_window(event)
     }
     main_frame.style.padding = 0
     main_frame.style.margin = 4
-    -- main_frame.style.vertical_spacing = 0
     main_frame.style.horizontal_align = "center"
 
 
@@ -354,9 +353,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- to be able to scroll to it later
     -- separated so it doesn't block other interactions
     if event.element.tags.task_id then 
-        debug_print(event, "saving task id" .. event.element.tags.task_id)
-        
-        -- save 
+        -- save task id
         task_manager.save_last_interacted_task_id(player, event.element.tags.task_id)
     end
 
@@ -695,12 +692,22 @@ function open_task_list_menu(event)
     -- Make new window for tasks list
     local close_button_name = constants.jolt.task_list.close_window_button
     local window_name = constants.jolt.task_list.window
-    local main_frame = new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, 400, 600)
+    local window = new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, 400, 600)
 
     
 
     -- Add event to watch for button click to close the window
     windows_to_close[close_button_name] = window_name
+
+    local main_frame = window.add {
+        type = "frame",
+        direction = "vertical",
+        style = "slot_button_deep_frame",
+    }
+
+    main_frame.style.padding = 0
+    main_frame.style.margin = 4
+    main_frame.style.horizontal_align = "center"
 
     --endregion
 
@@ -714,6 +721,8 @@ function open_task_list_menu(event)
         direction = "horizontal",
         style = "subheader_frame"
     }
+    controls_container.style.minimal_height = 40
+    controls_container.style.margin = 4
 
     -- A checkbox to toggle seeing completed/incomplete tasks
     local cb_show_completed = controls_container.add {
@@ -755,6 +764,13 @@ function open_task_list_menu(event)
 
     --region =======Tabs=======
 
+    local group_controls_frame = main_frame.add {
+        type = "frame",
+        direction = "vertical",
+    }
+    group_controls_frame.style.margin = 0
+    group_controls_frame.style.padding = 4
+
     -- Make place to put content in
     local content_frame = main_frame.add {
         type = "frame",
@@ -762,24 +778,29 @@ function open_task_list_menu(event)
         direction = "vertical",
         style = "ugg_content_frame"
     }
+    content_frame.style.margin = 0
+    content_frame.style.padding = 0
 
-
+    
     -- Add label for current group name
-    local lbl_current_group_name = content_frame.add {
+    local lbl_current_group_name = group_controls_frame.add {
             type = "label",
             caption = "",
             horizontally_stretchable = "on"
     }
-
+    lbl_current_group_name.style.bottom_margin = -15
+    lbl_current_group_name.style.font = "default-large-bold"
+    
     -- Frame for groups and group edit button
-    local group_content = content_frame.add {
-        type = "frame",
+    local group_content = group_controls_frame.add {
+        type = "flow",
         direction = "horizontal",
         horizontally_stretchable = "on"
     }
     group_content.style.top_padding = 12
     group_content.style.bottom_padding = 12
     group_content.style.left_margin = 0
+    group_content.style.minimal_width = 500 -- make it take up the full width
 
     -- Add section for tab icons
     local max_col_count = 7
@@ -841,7 +862,9 @@ function open_task_list_menu(event)
         vertical_scroll_policy = "auto",  -- Only show scrollbar when needed
         horizontal_scroll_policy = "never",
     }
-    -- tab_content.style.minimal_height = 300
+    tab_content.style.padding = 10
+    tab_content.style.minimal_height = 300
+    tab_content.style.minimal_width = 350
 
     -- Get the last interacted with task (may be nil)
     local last_interacted_task_id = task_manager.get_last_interacted_task_id(player)
@@ -859,6 +882,15 @@ function open_task_list_menu(event)
         if last_interacted_task_id and task.id == last_interacted_task_id then
             last_interacted_task_element = gui_task
         end
+    end
+
+    -- Add placeholder text if no tasks
+    if #group_tasks == 0 then
+        local placeholder = tab_content.add{
+            type = "label",
+            caption = {"jolt_task_list_window.no_tasks_info_text"}
+        }
+        placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
     end
 
     -- Scroll to the last interacted with element element 
