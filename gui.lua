@@ -247,23 +247,23 @@ function new_gui_task(parent, task, tab_in_ammount)
         tooltip={"jolt.tooltip_edit_task"},
         tags = {task_id = task.id, group_id=task.group_id}
     }
-    sbtn_edit.style.size = {24,24}
+    sbtn_edit.style.size = {26,26}
 
     -- A sprite button with cheverons to mark if the details are expanded or not
     local sbtn_details = controls_container.add {
         type="sprite-button",
         name = constants.jolt.task_list.toggle_details_button,
-        sprite = constants.jolt.sprites.expand,
+        sprite = constants.jolt.sprites.right,
         tooltip={"jolt.tooltip_toggle_details"},
         tags = {task_id = task.id, group_id=task.group_id}
     }
-    sbtn_details.style.size = {24,24}
+    sbtn_details.style.size = {26,26}
 
     -- TODO: store the show_details in the player table instead of the task
     -- If details are expanded add extra controls and subtasks
     if task.show_details then
         -- Change icon to indicate details can be collapsed
-        sbtn_details.sprite = constants.jolt.sprites.collapse
+        sbtn_details.sprite = constants.jolt.sprites.down
 
         -- Display description 
         local description_label = new_label(task_container, task.description)

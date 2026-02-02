@@ -62,11 +62,11 @@ local function open_group_management_window(event)
     local add_group_button = controls_frame.add{
         type="sprite-button",
         style = "confirm_button",
-        sprite=constants.jolt.sprites.add,
+        sprite=constants.jolt.sprites.plus_folder,
         name=constants.jolt.group_management.add_new_group_icon_button,
         tooltip = {"jolt_group_management.tooltip_add_group"}
     }
-    add_group_button.style.width = 50
+    add_group_button.style.width = 75
     add_group_button.style.height = 30
 
     -- Display icon for each group
@@ -175,7 +175,7 @@ local function open_group_management_window(event)
     -- Move group left button
     form_table.add {
         type = "sprite-button",
-        sprite = constants.jolt.sprites.collapse,
+        sprite = constants.jolt.sprites.left,
         name = constants.jolt.group_management.move_group_left,
         tooltip = {"jolt_group_management.tooltip_move_group_left"},
         enabled = default_btn_state,
@@ -184,7 +184,7 @@ local function open_group_management_window(event)
     -- Move group right button
     form_table.add {
         type = "sprite-button",
-        sprite = constants.jolt.sprites.expand,
+        sprite = constants.jolt.sprites.right,
         name = constants.jolt.group_management.move_group_right,
         tooltip = {"jolt_group_management.tooltip_move_group_right"},
         enabled = default_btn_state,
@@ -812,9 +812,10 @@ function open_task_list_menu(event)
         type = "sprite-button",
         name = constants.jolt.group_management.open_window_button,
         style = constants.styles.frame.button,
-        sprite = constants.jolt.sprites.edit,
+        sprite = constants.jolt.sprites.edit_group,
         tooltip = {"jolt.tooltip_edit_groups_button"},
     }
+    btn_edit_groups.style.size = {32, 32}
     btn_edit_groups.style.top_margin = 12
     btn_edit_groups.style.left_margin = 24
 

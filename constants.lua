@@ -41,13 +41,21 @@ constants.jolt = {
         open_task_list_window = "jolt_shortcut_open_task_list_window"
     },
     sprites = {
-        add = "utility/add",
+        -- add = "utility/add",
+        add = "jolt-icon-plus",
         close = "utility/close",
-        edit = "utility/rename_icon",
+        edit = "jolt-icon-edit",
+        edit_group = "jolt-icon-edit-group",
         expand = "utility/expand",
         collapse = "utility/collapse",
         move = "utility/search",
         delete = "utility/trash",
+        left = "jolt-icon-left",
+        right = "jolt-icon-right",
+        up = "jolt-icon-up",
+        down = "jolt-icon-down",
+        folder = "jolt-icon-folder",
+        plus_folder = "jolt-icon-plus-folder",
     },
     group_management = {
         open_window_button = "jolt_open_group_management_button",

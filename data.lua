@@ -10,20 +10,112 @@ local styles = data.raw["gui-style"].default
 
 
 data:extend({
+    -- Custom shortcut icon 
     {
-    type = "shortcut",
-    name = constants.jolt.shortcuts.open_task_list_window,
-    order = "b[blueprints]-i[deconstruction-planner]",
-    action = "lua",
-    localised_name = {"jolt.tasks-menu"},
-    associated_control_input = constants.jolt.shortcuts.open_task_list_window,
-    style = "green",
-    icon = "__base__/graphics/icons/shortcut-toolbar/mip/new-deconstruction-planner-x56.png",
-    icon_size = 56,
-    small_icon = "__base__/graphics/icons/shortcut-toolbar/mip/new-deconstruction-planner-x24.png",
-    small_icon_size = 24
-    }
+        type = "shortcut",
+        name = constants.jolt.shortcuts.open_task_list_window,
+        order = "b[blueprints]-i[deconstruction-planner]",
+        action = "lua",
+        localised_name = {"jolt.tasks-menu"},
+        associated_control_input = constants.jolt.shortcuts.open_task_list_window,
+        -- style = "blue",
+        icon = "__just-one-last-task__/graphics/icons/jolt-shortcutx64.png",
+        icon_size = 64,
+        small_icon = "__just-one-last-task__/graphics/icons/jolt-shortcutx24.png",
+        small_icon_size = 24,
+        scale = 0.5,  -- scale down to 32x32
+        flags = {"gui-icon"},
+    },
+    -- Custom icons for GUI
+    {
+        type = "sprite",
+        name = "jolt-icon-left",
+        filename = "__just-one-last-task__/graphics/icons/leftx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-right",
+        filename = "__just-one-last-task__/graphics/icons/rightx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-up",
+        filename = "__just-one-last-task__/graphics/icons/upx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-down",
+        filename = "__just-one-last-task__/graphics/icons/downx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-plus",
+        filename = "__just-one-last-task__/graphics/icons/plusx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-folder",
+        filename = "__just-one-last-task__/graphics/icons/folderx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-edit",
+        filename = "__just-one-last-task__/graphics/icons/editx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-edit-group",
+        filename = "__just-one-last-task__/graphics/icons/edit-groupx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-plus-folder",
+        filename = "__just-one-last-task__/graphics/icons/plus-folder.png",
+        priority = "extra-high-no-scale",
+        width=156,
+        height=64,
+        flags = {"gui-icon"}
+    },
+
+    -- {
+    -- type = "shortcut",
+    -- name = constants.jolt.shortcuts.open_task_list_window,
+    -- order = "b[blueprints]-i[deconstruction-planner]",
+    -- action = "lua",
+    -- localised_name = {"jolt.tasks-menu"},
+    -- associated_control_input = constants.jolt.shortcuts.open_task_list_window,
+    -- style = "green",
+    -- icon = "__base__/graphics/icons/shortcut-toolbar/mip/new-deconstruction-planner-x56.png",
+    -- icon_size = 56,
+    -- small_icon = "__base__/graphics/icons/shortcut-toolbar/mip/new-deconstruction-planner-x24.png",
+    -- small_icon_size = 24
+    -- }
 })
+
 
 
 styles["ugg_content_frame"] = {
