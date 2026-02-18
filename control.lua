@@ -103,7 +103,7 @@ local function open_group_management_window(event)
             style="slot_button",
             -- Add tags since can't use the same name for each
             -- but can check tag for group_mgnmt_btn and then get group_id
-            tags={is_group_management_icon_button=true, group_id=group.id}
+            tags = {is_jolt = true, is_group_management_icon_button=true, group_id=group.id}
         }
         -- If this button is selected change its style to 
         -- be yellow button background
@@ -338,14 +338,67 @@ function close_task_list_menu(event)
     player.gui.screen[constants.jolt.task_list.window].destroy()
 end
 
-
-
---- Watch for clicks on gui elements for my mod (prefix "jolt_tasks") icon
-script.on_event(defines.events.on_gui_click, function(event)
+--- Called when a LuaGuiElement is confirmed, for example by pressing 
+--- Enter in a textfield.
+--- https://lua-api.factorio.com/latest/events.html#on_gui_confirmed
+---@param event any
+script.on_event(defines.events.on_gui_confirmed, function(event)
+    -- Exit if invalid
+    local element = event.element
+    if not element or not element.valid then return end
     local element_name = event.element.name
+
+    -- Early exit: ignore elements that don't belong to me
+    if not element_name or not element_name:find("^jolt") then
+        --TODO: uncomment below to debug naming issues
+        -- debug_print(event, "elementName = " .. element_name)
+        return
+    end
+
+    -- Add a new task when pressing [Enter] in the title textbox
+    if element_name == constants.jolt.new_task.title_textbox then
+        add_new_task(event)
+    end
+
+end)
+
+--- Watch for clicks on gui elements for my mod (prefix "jolt") icon
+script.on_event(defines.events.on_gui_click, function(event)
+    -- Exit if invalid
+    local element = event.element
+    if not element or not element.valid then return end
+
+    local element_name = event.element.name
+
+    --[[
+    IMPORTANT: for a gui element to be detected it must either have an 
+                element name with the prefix "jolt" 
+                
+                OR have the tag "is_jolt = true"
+
+        Example: 
+
+        local icon_button = button_table.add{
+            type="sprite-button",
+            sprite=group.icon,
+            style="slot_button",
+            -- Add tags since can't use the same name for each
+            -- but can check tag for group_mgnmt_btn and then get group_id
+            tags = {is_jolt = true, is_group_management_icon_button=true, group_id=group.id}
+        }
+    ]]--
+
+    -- Early exit: ignore elements that don't belong to me
+    if event.element.tags and event.element.tags.is_jolt or element_name:find("^jolt") then
+        --TODO: uncomment below to debug naming issues
+        -- is our gui element so continue
+    else
+        -- debug_print(event, "tags is jolt = " )
+        -- debug_print(event, event.element.tags.is_jolt)
+        return
+    end
+
     local player = game.get_player(event.player_index)
-    --TODO: uncomment below to debug naming issues
-    -- debug_print(event, "elementName = " .. element_name)
 
 
     -- If task interacted with save it to last interacted task
@@ -361,7 +414,6 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- it is one of my windows
     local window_name = task_manager.pop_close_button(player, element_name)
     if window_name ~= nil then
-
 
         -- Check if the frame still exists before destroying
         if player.gui.screen[window_name] and player.gui.screen[window_name].valid then
@@ -708,53 +760,7 @@ function open_task_list_menu(event)
     --endregion
 
 
-    --region =======Controls=======
-
-    -- Add row for controls 
-    local controls_container = main_frame.add {
-        type = "frame",
-        name = "jolt_controls_container",
-        direction = "horizontal",
-        style = "subheader_frame"
-    }
-    controls_container.style.minimal_height = 40
-    controls_container.style.margin = 4
-
-    -- A checkbox to toggle seeing completed/incomplete tasks
-    local cb_show_completed = controls_container.add {
-        type = "checkbox",
-        name = constants.jolt.task_list.show_completed_checkbox,
-        caption = {"jolt_task_list_window.show_completed_tasks"},
-        state = task_manager.get_setting_show_completed(),
-        horizontally_stretchable = "on"
-    }
-
-    -- Empty space
-    local empty_space = controls_container.add {
-        type = "empty-widget",
-    }
-    -- Make it expand to fill the space
-    empty_space.style.minimal_width = 50
-    empty_space.style.height = 24
-    empty_space.style.horizontally_stretchable = true
-
     
-
-    -- Add task button
-    local add_task_button = controls_container.add {
-        type = "sprite-button",
-        style = "confirm_button",
-        sprite = constants.jolt.sprites.add,
-        name = constants.jolt.task_list.add_task_button,
-        tooltip = {"jolt.tootlip_add_task"}
-    }
-    add_task_button.style.width = 50
-    add_task_button.style.height = 30
-
-
-
-    --endregion 
-
 
     
 
@@ -827,10 +833,59 @@ function open_task_list_menu(event)
     local group_order = task_manager.get_group_order()
     local groups = task_manager.get_groups()
 
+    --region =======Controls=======
+
+    -- Add row for controls 
+    local controls_container = content_frame.add {
+        type = "frame",
+        name = "jolt_controls_container",
+        direction = "horizontal",
+        style = "subheader_frame"
+    }
+    controls_container.style.minimal_height = 40
+    controls_container.style.margin = 2
+    controls_container.style.top_margin = 0
+
+    -- A checkbox to toggle seeing completed/incomplete tasks
+    local cb_show_completed = controls_container.add {
+        type = "checkbox",
+        name = constants.jolt.task_list.show_completed_checkbox,
+        caption = {"jolt_task_list_window.show_completed_tasks"},
+        state = task_manager.get_setting_show_completed(),
+        horizontally_stretchable = "on"
+    }
+
+    -- Empty space
+    local empty_space = controls_container.add {
+        type = "empty-widget",
+    }
+    -- Make it expand to fill the space
+    empty_space.style.minimal_width = 50
+    empty_space.style.height = 24
+    empty_space.style.horizontally_stretchable = true
+
+    
+
+    -- Add task button
+    local add_task_button = controls_container.add {
+        type = "sprite-button",
+        style = "confirm_button",
+        sprite = constants.jolt.sprites.add,
+        name = constants.jolt.task_list.add_task_button,
+        tooltip = {"jolt.tootlip_add_task"}
+    }
+    add_task_button.style.width = 50
+    add_task_button.style.height = 30
+
+
+
+    --endregion 
+
+
     -- Add a tab for each group
     for index, value in ipairs(group_order) do
         -- Get the group from its id
-        group = task_manager.get_group(value)
+        local group = task_manager.get_group(value)
 
         local icon_button = button_table.add{
             type="sprite-button",
@@ -838,13 +893,13 @@ function open_task_list_menu(event)
             style="slot_button",
             -- Add tags since can't use the same name for each
             -- but can check tag for group_management_btn and then get group_id
-            tags={is_group_change_button=true, group_id=group.id}
+            tags = {is_jolt = true, is_group_change_button=true, group_id=group.id}
         }
         -- If this button is selected change its style to
         -- be yellow button background to show it is the active group
         if group.id == current_group_id then
             icon_button.style = constants.styles.buttons.yellow
-            selected_group = group
+            local selected_group = group
 
             -- Update current group name
             lbl_current_group_name.caption = current_group.name
@@ -1011,7 +1066,7 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         name = constants.jolt.new_task.form_container,
         direction = "vertical",
         index = form_pos, -- Must set to 2 to place above the bottom row
-        tags = { task_id = task_id, parent_id = task.parent_id } -- Store task id if this is an edit task 
+        tags = {is_jolt = true, task_id = task_id, parent_id = task.parent_id } -- Store task id if this is an edit task 
     }
     -- Space out the elements (must use flow not frame)
     new_task_form.style.vertical_spacing = 4

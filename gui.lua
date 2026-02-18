@@ -227,7 +227,7 @@ function new_gui_task(parent, task, tab_in_ammount)
         type="checkbox",
         state=task.is_complete,
         caption=task.title,
-        tags = {task_id = task.id}
+        tags = {is_jolt = true, task_id = task.id}
     }
     if not (task.parent_id == nil) then
         tab_in_ammount = tab_in_ammount + tab_increment
@@ -245,7 +245,7 @@ function new_gui_task(parent, task, tab_in_ammount)
         name = constants.jolt.task_list.edit_task_button,
         sprite = constants.jolt.sprites.edit,
         tooltip={"jolt.tooltip_edit_task"},
-        tags = {task_id = task.id, group_id=task.group_id}
+        tags = {is_jolt = true, task_id = task.id, group_id=task.group_id}
     }
     sbtn_edit.style.size = {26,26}
 
@@ -255,7 +255,7 @@ function new_gui_task(parent, task, tab_in_ammount)
         name = constants.jolt.task_list.toggle_details_button,
         sprite = constants.jolt.sprites.right,
         tooltip={"jolt.tooltip_toggle_details"},
-        tags = {task_id = task.id, group_id=task.group_id}
+        tags = {is_jolt = true, task_id = task.id, group_id=task.group_id}
     }
     sbtn_details.style.size = {26,26}
 
@@ -293,7 +293,7 @@ function new_gui_task(parent, task, tab_in_ammount)
             caption = {"jolt_task_list_window.label_add_subtask"},
             tooltip={"jolt_task_list_window.tooltip_add_subtask"},
             style = constants.styles.text.link,
-            tags = {task_id = task.id, group_id=task.group_id}
+            tags = {is_jolt = true, task_id = task.id, group_id=task.group_id}
         }
         
         -- Tab in the content (can't seem to do it at the container level)
