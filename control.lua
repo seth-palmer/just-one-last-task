@@ -5,6 +5,14 @@ local TaskManager = require("scripts.task_manager")
 local constants = require("constants")
 require("gui")
 
+-- Window width and height constants
+local TASK_LIST_MAX_WINDOW_HEIGHT = 600
+local AUTO_SCALE_WINDOW_HEIGHT = 0
+local TASK_LIST_WINDOW_WIDTH = 400
+local GROUP_MANAGEMENT_WINDOW_WIDTH = 320
+local GROUP_MANAGEMENT_WINDOW_HEIGHT = 500
+local WARNING_WINDOW_WIDTH = 300
+local WARNING_WINDOW_HEIGHT = 180
 
 --region =======Local Functions=======
 --- IMPORTANT put local functions before where they are used!!!
@@ -16,7 +24,9 @@ local function open_group_management_window(event)
     local title = {"jolt_group_management.window_title"}
     local window_name = constants.jolt.group_management.window_name
     local close_name = constants.jolt.group_management.close_button
-    local window = new_window(player, title, window_name, close_name, 320, 500)
+    local window_width = GROUP_MANAGEMENT_WINDOW_WIDTH
+    local window_height = GROUP_MANAGEMENT_WINDOW_HEIGHT
+    local window = new_window(player, title, window_name, close_name, window_width, window_height)
 
     -- Add event to watch for button click to close the window
     task_manager.bind_close_button(player, close_name, window_name)
@@ -95,7 +105,7 @@ local function open_group_management_window(event)
     for index, value in ipairs(group_order) do
         -- Get the group from its id
         -- Example: local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
-        group = task_manager.get_group(value)
+        local group = task_manager.get_group(value)
 
         local icon_button = button_table.add{
             type="sprite-button",
@@ -548,8 +558,8 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- Make the new window and set close button
             -- Setup options for the new window
             local options = {
-                width = 300,
-                height = 180,
+                width = WARNING_WINDOW_WIDTH,
+                height = WARNING_WINDOW_HEIGHT,
                 player = player,
                 window_name = constants.jolt.delete_group.window_name,
                 window_title = {"jolt_group_management.confirm_delete_window_title"},
@@ -737,12 +747,17 @@ function open_task_list_menu(event)
     -- get player by index
     local player = game.get_player(event.player_index)
 
-    -- Make new window for tasks list
+    -- Setup variables for tasks list window
     local close_button_name = constants.jolt.task_list.close_window_button
     local window_name = constants.jolt.task_list.window
-    local window = new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, 400, 600)
 
-    
+    local window_width = TASK_LIST_WINDOW_WIDTH
+    -- set the window height to 0 to make it auto adjust size based on the 
+    -- content, (limit by setting main_frame.style.maximal_height = MAX_WINDOW_HEIGHT)
+    -- see below
+    local window_height = AUTO_SCALE_WINDOW_HEIGHT
+    -- Make new window for tasks list
+    local window = new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, window_width, window_height)
 
     -- Add event to watch for button click to close the window
     task_manager.bind_close_button(player, close_button_name, window_name)
@@ -752,7 +767,8 @@ function open_task_list_menu(event)
         direction = "vertical",
         style = "slot_button_deep_frame",
     }
-
+    -- Limit max height
+    main_frame.style.maximal_height = TASK_LIST_MAX_WINDOW_HEIGHT
     main_frame.style.padding = 0
     main_frame.style.margin = 4
     main_frame.style.horizontal_align = "center"
@@ -915,7 +931,7 @@ function open_task_list_menu(event)
         horizontal_scroll_policy = "never",
     }
     tab_content.style.padding = 10
-    tab_content.style.minimal_height = 300
+    -- tab_content.style.minimal_height = 300
     tab_content.style.minimal_width = 350
 
     -- Get the last interacted with task (may be nil)

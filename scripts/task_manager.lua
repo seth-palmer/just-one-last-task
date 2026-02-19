@@ -95,7 +95,7 @@ function TaskManager.new(params)
         -- Get the groups in order
         for i, value in pairs(group_order) do
             -- Get the group
-            g = self.get_group(value)
+            local g = self.get_group(value)
 
             -- Get the icon and name to display
             local name = "[img=" .. g.icon .. "] " .. g.name
@@ -391,6 +391,13 @@ function TaskManager.new(params)
 
         -- save
         storage.players[player.index].last_interacted_task_id = id
+    end
+
+    --- Returns the current group id
+    ---@param player any
+    function self.get_current_group_id(player)
+        local current_group_id = storage.players[player.index].selected_group_tab_id
+        return current_group_id
     end
 
     -- For debugging
