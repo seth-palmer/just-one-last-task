@@ -10,7 +10,7 @@ local TASK_LIST_MAX_WINDOW_HEIGHT = 600
 local AUTO_SCALE_WINDOW_HEIGHT = 0
 local TASK_LIST_WINDOW_WIDTH = 400
 local GROUP_MANAGEMENT_WINDOW_WIDTH = 320
-local GROUP_MANAGEMENT_WINDOW_HEIGHT = 500
+local GROUP_MANAGEMENT_WINDOW_HEIGHT = 480
 local WARNING_WINDOW_WIDTH = 300
 local WARNING_WINDOW_HEIGHT = 180
 
@@ -258,30 +258,13 @@ end
 
 local checkbox_default_state_add_to_top = false
 
---region =======Seed Data=======
-
-    -- TODO remove seed data
-    -- Add temporary seed data (will add more on each launch of the menu)
-
-    -- local t1Params = {title="Red Science", groupId=1, description="Automate 5/sec"}
-    -- local t2Params = {title="Green Science", groupId=1, description="Automate 5/sec"}
-    -- local t3Params = {title="Millitary Science", groupId=1, description="Automate 5/sec"}
-    -- local t4Params = {title="Build Hubble Space Platform", groupId=2}
-
-    
-    -- task_manager.add_task(t1Params, 1, true)
-    -- task_manager.add_task(t2Params, 1, true)
-    -- task_manager.add_task(t3Params, 1, true)
-    -- task_manager.add_task(t4Params, 2, true)
-    --endregion
-
 
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convinience, don't worry if you don't understand how this works
 -- See on_init() section in https://wiki.factorio.com/Tutorial:Scripting
 -- Only runs when a new game is created https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_init
 script.on_init(function()
-    -- TODO this check seed data
+    -- TODO comment out before release
     local freeplay = remote.interfaces["freeplay"]
     if freeplay then -- Disable freeplay popup-message
         if freeplay["set_skip_intro"] then
@@ -306,7 +289,6 @@ script.on_init(function()
     -- store players and their info
     storage.players = storage.players or {}
 
-
     -- TODO 
     -- store data for groups, tasks 
     -- IMPORTANT: Can only store data not functions. So no putting an object here
@@ -319,6 +301,22 @@ script.on_init(function()
         settings = {show_completed=false},
     }
     task_manager = TaskManager.new()
+end)
+
+--- Called when a new player is created
+--- Initialize all needed data and set defaults
+--- https://lua-api.factorio.com/latest/events.html#on_player_created
+script.on_event(defines.events.on_player_created, function(event)
+    local player = game.get_player(event.player_index)
+
+    -- Initialize the player's data table
+    if not storage.players[player.index] then
+        storage.players[player.index] = {}
+    end
+
+    -- Set new players to have the first group selected by default
+    storage.players[player.index].selected_group_tab_id = task_manager.get_group_order()[1]
+
 end)
 
 -- Runs when a saved game is loaded
@@ -536,16 +534,23 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif element_name == constants.jolt.group_management.add_new_group_icon_button then
         -- Add group with template data and open window
         -- !! Use "virtual-signal" and not "virtual" for sprites
-        group = {name="", icon="virtual-signal/signal-question-mark"}
+        local group = {name="", icon="virtual-signal/signal-question-mark"}
         local new_group_id = task_manager.add_group(group)
 
-        -- Make it the currently selected group
-        storage.players[event.player_index].selected_group_icon_id = new_group_id
+        if not new_group_id then
+            -- If new group id is nil then display an error 
+            player.create_local_flying_text {
+                text = {"jolt_group_management.error_max_groups_reached"},
+                create_at_cursor=true,
+            }
+        else
+            -- Make it the currently selected group
+            storage.players[event.player_index].selected_group_icon_id = new_group_id
 
-        -- Refresh windows
-        open_task_list_menu(event)
-        open_group_management_window(event)
-
+            -- Refresh windows
+            open_task_list_menu(event)
+            open_group_management_window(event)
+        end
 
 
     -- Delete selected group
@@ -591,7 +596,14 @@ script.on_event(defines.events.on_gui_click, function(event)
             confirm_delete_label.style.single_line = false
         else
             -- Delete group
-            task_manager.delete_group(group_id)
+            local is_deleted = task_manager.delete_group(group_id)
+            -- Display error if it fails and returns false
+            if not is_deleted then
+                player.create_local_flying_text {
+                text = {"jolt_group_management.error_min_groups_reached"},
+                create_at_cursor=true,
+                }
+            end
 
             -- Refresh windows
             open_task_list_menu(event)
@@ -604,7 +616,14 @@ script.on_event(defines.events.on_gui_click, function(event)
         local group_id = storage.players[event.player_index].selected_group_icon_id
 
         -- Delete group
-        task_manager.delete_group(group_id)
+        local is_deleted = task_manager.delete_group(group_id)
+        -- Display error if it fails and returns false
+        if not is_deleted then
+            player.create_local_flying_text {
+            text = {"jolt_group_management.error_min_groups_reached"},
+            create_at_cursor=true,
+            }
+        end
 
         -- Refresh windows
         open_task_list_menu(event)
@@ -1182,15 +1201,6 @@ function add_new_task(event)
         open_task_list_menu(event)
     end
 end
-
-
-
-
-
-
-
-
-
 
 
 --- Print table information

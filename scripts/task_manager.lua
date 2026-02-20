@@ -2,7 +2,7 @@ require "utils"
 
 
 TaskManager = {}
-
+local MAX_GUI_GROUPS = 28
 
 --- A class to store group information and tasks for that group
 --- @class TaskManager
@@ -28,24 +28,27 @@ function TaskManager.new(params)
     local task_priorities = storage.task_data.priorities
 
     --- Set the show completed setting to the new boolean
-    ---@param . boolean
+    ---@param new_value boolean
     function self.set_setting_show_completed(new_value)
         storage.task_data.settings.show_completed = new_value
     end
 
     --- Returns the show completed setting 
+    --- @return show_completed boolean the value
     function self.get_setting_show_completed()
         return storage.task_data.settings.show_completed
     end
 
     --- Get the list of groups
+    --- (Note groups do not contain lists of tasks
+    --- use get_tasks and provide the group_id)
     function self.get_groups()
         return groups
     end
 
     --- Count the number of tasks in a group
-    --- @params group_id the group to search for
-    --- @return the total number of tasks
+    --- @param group_id string the group to search for
+    --- @return number task_count the total number of tasks
     function self.count_tasks_for_group(group_id)
         local task_count = 0
 
@@ -63,7 +66,7 @@ function TaskManager.new(params)
     end
 
     --- Returns the table of tasks for a group ordered by priority
-    --- @return table
+    --- @return table tasks with tasks for the group
     function self.get_tasks(group_id, include_completed)
         -- search through task list an return only those in 
         -- the provided group 
@@ -112,7 +115,7 @@ function TaskManager.new(params)
     end
 
     --- Returns the index of the group in the order
-    ---@param group_id the id of the group you are looking for
+    ---@param group_id string the id of the group you are looking for
     function self.get_group_position(group_id)
         local position = 1
         -- Search for the index that matches the group
@@ -126,6 +129,7 @@ function TaskManager.new(params)
     end
 
     --- Move group left
+    --- @param group_id string id of group to move
     function self.move_group_left(group_id)
         -- Get position
         local group_position = self.get_group_position(group_id)
@@ -138,7 +142,8 @@ function TaskManager.new(params)
         self.swap_group_positions(group_position, group_position - 1)
     end
 
-        --- Move group right
+    --- Move group right
+    --- @param group_id string id of group to move
     function self.move_group_right(group_id)
         -- Get position
         local group_position = self.get_group_position(group_id)
@@ -155,6 +160,8 @@ function TaskManager.new(params)
     end
 
     --- Swaps the two positions
+    --- @param pos1 string id of group to swap
+    --- @param pos2 string id of other group to swap
     function self.swap_group_positions(pos1, pos2)
         local temp = group_order[pos1]
         group_order[pos1] = group_order[pos2]
@@ -163,8 +170,13 @@ function TaskManager.new(params)
 
     --- Adds the new group with data provided
     ---@param task_params table with id, name, and icon values
-    ---@return id returns the new group id
+    ---@return string id the new group id, or nil if an error
     function self.add_group(task_params)
+        -- Check if there are too many groups 
+        if #group_order >= MAX_GUI_GROUPS then
+            return nil
+        end
+
         -- Create Make a new id for the group
         local id = uuid()
 
@@ -184,9 +196,14 @@ function TaskManager.new(params)
     end
 
     --- Deletes the provided group matching the id
-    ---@param group_id to delete
-    ---@returns True if successful, false otherwise
+    ---@param group_id string to delete
+    ---@return boolean is_deleted  true if successful, false otherwise
     function self.delete_group(group_id)
+        -- Return false if it is the only remaining group 
+        if #group_order == 1 then
+            return false
+        end
+
         -- Check that group exists
         if groups[group_id] ~= nil then
 
@@ -203,6 +220,7 @@ function TaskManager.new(params)
 
     --- Add a task using provided parameters
     ---@param task_params any
+    ---@param add_to_top boolean if the group should be added to the top of the list
     function self.add_task(task_params, add_to_top)
         if type(add_to_top) ~= "boolean" then
             error("New task error: Must provide a boolean for variable [add_to_top]")
@@ -248,8 +266,8 @@ function TaskManager.new(params)
     
 
     --- Update the provided task
-    ---@param task_params any
-    ---@param task_id string
+    ---@param task_params any with new title, description, group_id
+    ---@param task_id string of the task to update
     function self.update_task(task_params, task_id)
         -- Get the task
         local task = tasks[task_id]
@@ -262,8 +280,8 @@ function TaskManager.new(params)
     end
 
     --- Update the provided group
-    ---@param group_params any
-    ---@param group_id string
+    ---@param group_params any with new name and icon
+    ---@param group_id string of the group to update
     function self.update_group(group_params, group_id)
         -- Get the group
         local group = groups[group_id]
@@ -277,7 +295,7 @@ function TaskManager.new(params)
 
     --- Gets the task with the provided uuid
     --- @param task_id string - uuid of the task to search for
-    ---@return Task - or nil if no matching task exists
+    ---@return any - or nil if no matching task exists
     function self.get_task(task_id)
         local task
         if tasks[task_id] ~= nil then
@@ -292,7 +310,7 @@ function TaskManager.new(params)
 
     --- Returns the group with the provied uuid
     --- @param id string - uuid of the group to search for
-    ---@return Group - or nil if no matching group exists
+    ---@return any - or nil if no matching group exists
     function self.get_group(id)
         local group
         if groups[id] ~= nil then
@@ -306,14 +324,14 @@ function TaskManager.new(params)
     end
 
     --- Returns a table with the order of groups as ids
-    --TODO: fix is broken
+    --- @return table group_order indexed table, access it with group_order[1]
     function self.get_group_order()
         return storage.task_data.group_order
     end
 
     --- Returns the saved location of the window for the player
-    ---@param player any - with the window
-    ---@param window_name string - name of the window
+    ---@param player any with the window
+    ---@param window_name string name of the window
     function self.get_saved_window_position(player, window_name)
         -- Retrieve saved location
         local saved_location = storage.players 
@@ -329,9 +347,9 @@ function TaskManager.new(params)
     end
 
     --- Save the window location for the player
-    ---@param player any 
-    ---@param window_name any 
-    ---@param new_location any
+    ---@param player any to save location for 
+    ---@param window_name any name of window to save
+    ---@param new_location any coordinates to save
     function self.save_window_location(player, window_name, new_location)
         -- Initialize if needed
         storage.players = storage.players or {}
@@ -343,7 +361,8 @@ function TaskManager.new(params)
     end
 
     --- Returns the last interacted with element for the player
-    ---@param player any
+    ---@param player any player associated 
+    ---@return string|nil last_interacted_task_id or nil if an error 
     function self.get_last_interacted_task_id(player)
         local last_interacted_task_id = storage.players
             and storage.players[player.index]
@@ -356,9 +375,9 @@ function TaskManager.new(params)
     end
 
     --- Bind a button to close the provided window
-    ---@param player any - player associated 
-    ---@param button_name any - when clicked closes the window
-    ---@param window_name any - window to close
+    ---@param player any player associated 
+    ---@param button_name any when clicked closes the window
+    ---@param window_name any window to close
     function self.bind_close_button(player, button_name, window_name)
         -- initialize if needed 
         storage.players[player.index].close_button_registry = 
@@ -369,8 +388,8 @@ function TaskManager.new(params)
     end
 
     --- Returns and removes the window name mapping for the button, or nil if not found
-    ---@param player LuaPlayer
-    ---@param button_name string
+    ---@param player any player associated
+    ---@param button_name string button to remove the mapping from
     ---@return string|nil window_name The name of the window to close
     function self.pop_close_button(player, button_name)
         local registry = storage.players[player.index].close_button_registry
@@ -381,8 +400,8 @@ function TaskManager.new(params)
 
 
     --- Save the task element last interacted with
-    ---@param player any
-    ---@param id any
+    ---@param player any player associated
+    ---@param id any task_id to save
     function self.save_last_interacted_task_id(player, id)
         -- initialize if needed 
         storage.players[player.index].last_interacted_task_id = storage.players[player.index].last_interacted_task or {}
@@ -392,21 +411,29 @@ function TaskManager.new(params)
     end
 
     --- Returns the current group id
-    ---@param player any
+    ---@param player any player associated
+    ---@return string current_group_id id of the current group for the player
     function self.get_current_group_id(player)
         local current_group_id = storage.players[player.index].selected_group_tab_id
+
+        -- If no current_group_id then return the id of the first group 
+        if current_group_id == nil then
+            return group_order[1]
+        end
+
         return current_group_id
     end
 
     --- Sets the current group id
-    ---@param player any
+    ---@param player any player associated
+    ---@param new_id string new group_id to save
     function self.set_current_group_id(player, new_id)
         storage.players[player.index].selected_group_tab_id = new_id
     end
 
     --- Determines if the provided group exists or not
     ---@param group_id any id of group to check
-    ---@return boolean
+    ---@return boolean does_group_exist true if the group exists, false otherwise
     function self.does_group_exist(group_id)
         return groups[group_id] ~= nil
     end
