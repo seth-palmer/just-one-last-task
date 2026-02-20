@@ -294,13 +294,14 @@ script.on_init(function()
 
     --Default groups (store data! not objects/functions)
     local nauvis_group = {id="a1", name="Nauvis", icon="space-location/nauvis"}
-    local space_group = {id="b1", name="Space", icon="item/thruster"}
+    -- local space_group = {id="b1", name="Space", icon="item/thruster"}
 
     local default_group_data = {}
     default_group_data[nauvis_group.id] = nauvis_group
-    default_group_data[space_group.id] = space_group
+    -- default_group_data[space_group.id] = space_group
 
-    local default_group_order = {"a1", "b1"}
+    -- local default_group_order = {"a1", "b1"}
+    local default_group_order = {"a1"}
 
     -- store players and their info
     storage.players = storage.players or {}
