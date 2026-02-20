@@ -281,7 +281,11 @@ function new_gui_task(parent, task, tab_in_ammount)
         -- need the "_" so it doens't use the index instead of the value
         for _, subtask_id in pairs(task.subtasks) do
             local subtask = task_manager.get_task(subtask_id)
-            if subtask.is_complete == task_manager.get_setting_show_completed() then
+
+            -- If "show_complete" setting is checked then show all subtasks,
+            -- Otherwise show only tasks that are not completed
+            local show_completed = task_manager.get_setting_show_completed()
+            if show_completed or subtask.is_complete == false then
                 new_gui_task(task_container, subtask, tab_in_ammount)
             end
         end

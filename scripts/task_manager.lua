@@ -77,7 +77,7 @@ function TaskManager.new(params)
             -- Only return tasks for the specific group 
             -- and matching the target complete status
             if task.group_id == group_id 
-                and (include_completed or task.is_complete == false) 
+                and (include_completed or task.is_complete == false)
                 and task.parent_id == nil then
                 table.insert(ordered_tasks, tasks[task_id])
             end
@@ -191,14 +191,14 @@ function TaskManager.new(params)
         if groups[group_id] ~= nil then
 
             -- Delete group data
-            groups[group_id] = {}
+            groups[group_id] = nil
 
             -- Get position and delete (all elements shifted down)
             local group_pos = self.get_group_position(group_id)
             table.remove(group_order, group_pos)
-            return True
+            return true
         end
-        return False
+        return false
     end
 
     --- Add a task using provided parameters
@@ -396,6 +396,19 @@ function TaskManager.new(params)
     function self.get_current_group_id(player)
         local current_group_id = storage.players[player.index].selected_group_tab_id
         return current_group_id
+    end
+
+    --- Sets the current group id
+    ---@param player any
+    function self.set_current_group_id(player, new_id)
+        storage.players[player.index].selected_group_tab_id = new_id
+    end
+
+    --- Determines if the provided group exists or not
+    ---@param group_id any id of group to check
+    ---@return boolean
+    function self.does_group_exist(group_id)
+        return groups[group_id] ~= nil
     end
 
     -- For debugging

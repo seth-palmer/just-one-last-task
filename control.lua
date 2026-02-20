@@ -522,7 +522,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif event.element.tags.is_group_change_button then
         -- Save selected group id
         local selected_group_id = event.element.tags.group_id
-        storage.players[event.player_index].selected_group_tab_id = selected_group_id
+        task_manager.set_current_group_id(player, selected_group_id)
 
         -- Refresh list of tasks
         open_task_list_menu(event)
@@ -733,21 +733,21 @@ end)
 function open_task_list_menu(event)
     -- Initialize data if needed
     -- !! Note: index 1 is the start not 0 in lua !!
-    storage.players[event.player_index] = storage.players[event.player_index] or {}
-    if not storage.players[event.player_index].selected_group_tab_index then
-        storage.players[event.player_index].selected_group_tab_index = storage.players[event.player_index].selected_group_tab_index or 1
-    end
 
-    if not storage.players[event.player_index].selected_group_tab_id then
-        storage.players[event.player_index].selected_group_tab_id =
-        storage.players[event.player_index].selected_group_tab_id or
-        storage.task_data.group_order[1]
+    -- get player by index
+    local player = game.get_player(event.player_index)
+
+    -- In case a group is deleted have a fallback to the first group 
+    -- to avoid a crash
+    local current_group_id = task_manager.get_current_group_id(player)
+    if not task_manager.does_group_exist(current_group_id) then
+        local first_group_id = storage.task_data.group_order[1]
+        task_manager.set_current_group_id(player, first_group_id)
     end
 
     --region =======Task List=======
 
-    -- get player by index
-    local player = game.get_player(event.player_index)
+    
 
     -- Setup variables for tasks list window
     local close_button_name = constants.jolt.task_list.close_window_button
@@ -777,10 +777,6 @@ function open_task_list_menu(event)
 
     --endregion
 
-
-    
-
-    
 
     --region =======Tabs=======
 
@@ -844,7 +840,7 @@ function open_task_list_menu(event)
     btn_edit_groups.style.left_margin = 24
 
     -- Save current group id
-    local current_group_id = storage.players[event.player_index].selected_group_tab_id
+    local current_group_id = task_manager.get_current_group_id(player)
     local current_group = task_manager.get_group(current_group_id)
 
     -- Get group order
@@ -944,11 +940,13 @@ function open_task_list_menu(event)
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
     local group_tasks = task_manager.get_tasks(current_group_id, task_manager.get_setting_show_completed())
     for _, task in pairs(group_tasks) do
-        -- Display the task
+        -- Display the task (see new_gui_task() for getting subtasks)
         local gui_task = new_gui_task(tab_content, task)
         
         -- TODO: in future if element does not exist (like when
         -- marking as done, go to next or prev element)
+
+        -- Mark the last interacted with task (for when the scroll bar is very long)
         if last_interacted_task_id and task.id == last_interacted_task_id then
             last_interacted_task_element = gui_task
         end
@@ -963,46 +961,12 @@ function open_task_list_menu(event)
         placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
     end
 
-    -- Scroll to the last interacted with element element 
+    -- Scroll to the last interacted with element 
     if last_interacted_task_element and last_interacted_task_element.valid then
         tab_content.scroll_to_element(last_interacted_task_element, "in-view")
     end
 
     --endregion
-
-    -- local controls_flow = content_frame.add {
-    --     type = "flow",
-    --     name = "controls_flow",
-    --     direction = "horizontal",
-    --     style = "ugg_controls_flow"
-    -- }
-
-    -- controls_flow.add {
-    --     type = "button",
-    --     name = "ugg_controls_toggle",
-    --     caption = {"ugg.deactigroupate"}
-    -- }
-
-    -- -- a slider and textfield
-    -- controls_flow.add {
-    --     type = "slider",
-    --     name = "ugg_controls_slider",
-    --     groupalue = 0,
-    --     minimum_groupalue = 0,
-    --     maximum_groupalue = 10,
-    --     style = "notched_slider"
-    -- }
-
-    -- controls_flow.add {
-    --     type = "textfield",
-    --     name = "ugg_controls_textfield",
-    --     text = "0",
-    --     numeric = true,
-    --     allow_decimal = false,
-    --     allow_negatigroupe = false,
-    --     style = "ugg_controls_textfield"
-    -- }
-
 end
 
 --- Opens a new window with a form to create a new task/subtask 
@@ -1010,6 +974,9 @@ end
 function open_task_form_window(event, window_title, window_subtitle, task)
     -- If data in task is there, then this must be an edit
     local is_edit = not task == nil
+
+    -- get player by index
+    local player = game.get_player(event.player_index)
 
     -- Setup the data if editing an existing task
     task = task or {}
@@ -1019,14 +986,11 @@ function open_task_form_window(event, window_title, window_subtitle, task)
     local checkbox_state_add_to_top = task.checkbox_add_to_top or checkbox_default_state_add_to_top
     
     -- Get last selected tab index if this is a new task
---     local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
+    -- local last_group_selected_index = storage.players[event.player_index].selected_group_tab_index
     -- Get id
-    local current_group_id = storage.players[event.player_index].selected_group_tab_id
-
+    local current_group_id = task_manager.get_current_group_id(player)
     -- Set group id to the param if provided or the last group selected if new task
     local group_id = task.group_id or current_group_id
-
-    local player = game.get_player(event.player_index)
 
     -- Setup options for the new window
     local options = {
