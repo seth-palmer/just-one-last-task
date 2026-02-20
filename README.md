@@ -12,4 +12,4 @@ Constants: screeming snake case
 
 
 GUI Elements:
-- prefix with mod name (jolt_tasks)
+- prefix with mod name (jolt)
