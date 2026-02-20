@@ -23,21 +23,19 @@ function TaskManager.new(params)
 
     local players = storage.players
 
-
     -- A list of taskIds and priorities
     local tasks = storage.task_data.tasks
     local task_priorities = storage.task_data.priorities
 
-    local settings = {
-        show_completed = false
-    }
-
+    --- Set the show completed setting to the new boolean
+    ---@param . boolean
     function self.set_setting_show_completed(new_value)
-        settings.show_completed = new_value
+        storage.task_data.settings.show_completed = new_value
     end
 
+    --- Returns the show completed setting 
     function self.get_setting_show_completed()
-        return settings.show_completed
+        return storage.task_data.settings.show_completed
     end
 
     --- Get the list of groups
@@ -46,7 +44,7 @@ function TaskManager.new(params)
     end
 
     --- Count the number of tasks in a group
-    --- @params the group to search for
+    --- @params group_id the group to search for
     --- @return the total number of tasks
     function self.count_tasks_for_group(group_id)
         local task_count = 0
@@ -66,7 +64,7 @@ function TaskManager.new(params)
 
     --- Returns the table of tasks for a group ordered by priority
     --- @return table
-    function self.get_tasks(group_id, target_complete_state)
+    function self.get_tasks(group_id, include_completed)
         -- search through task list an return only those in 
         -- the provided group 
         -- Save tasks in new table
@@ -79,7 +77,7 @@ function TaskManager.new(params)
             -- Only return tasks for the specific group 
             -- and matching the target complete status
             if task.group_id == group_id 
-                and task.is_complete == target_complete_state 
+                and (include_completed or task.is_complete == false) 
                 and task.parent_id == nil then
                 table.insert(ordered_tasks, tasks[task_id])
             end

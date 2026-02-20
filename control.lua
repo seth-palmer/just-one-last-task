@@ -315,6 +315,7 @@ script.on_init(function()
         groups = default_group_data,
         priorities = {},
         group_order = default_group_order,
+        settings = {show_completed=false},
     }
     task_manager = TaskManager.new()
 end)
