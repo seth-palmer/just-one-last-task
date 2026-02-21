@@ -18,6 +18,36 @@ local WARNING_WINDOW_HEIGHT = 180
 -- If the "add to top" is selected in the new task window
 local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
 
+--region =======Debug Functions=======
+
+--- Print table information
+---@param player any - player to enter this to the chat
+---@param table table - the table to print
+local function printTable(player, table)
+    for key, value in pairs(table) do
+        if type(value) == "table" then
+            player.print(key .. ":")
+            printTable(player, value)  -- Recursively print nested tables
+        else
+            player.print(key .. ": " .. tostring(value))
+        end
+    end
+end
+
+--- Function to print provided table
+---@param event any
+---@param message table - a string or table to display in chat
+local function debug_print(event, message)
+    local player = game.get_player(event.player_index)
+    if type(message) == "table" then
+        printTable(player, message)
+    else
+        player.print(message)
+    end
+end
+
+--endregion =======Debug Functions=======
+
 --region =======Local Functions=======
 --- IMPORTANT put local functions before where they are used!!!
 
@@ -1268,32 +1298,3 @@ script.on_event(defines.events.on_gui_location_changed, function(event)
 end)
 
 
---region =======Debug Functions=======
-
---- Print table information
----@param player any - player to enter this to the chat
----@param table table - the table to print
-local function printTable(player, table)
-    for key, value in pairs(table) do
-        if type(value) == "table" then
-            player.print(key .. ":")
-            printTable(player, value)  -- Recursively print nested tables
-        else
-            player.print(key .. ": " .. tostring(value))
-        end
-    end
-end
-
---- Function to print provided table
----@param event any
----@param message table - a string or table to display in chat
-function debug_print(event, message)
-    local player = game.get_player(event.player_index)
-    if type(message) == "table" then
-        printTable(player, message)
-    else
-        player.print(message)
-    end
-end
-
---endregion =======Debug Functions=======
