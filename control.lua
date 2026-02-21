@@ -1083,6 +1083,10 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif element_name == constants.jolt.group_management.open_window_button then
         -- If the window is already open close it
         if player.gui.screen[constants.jolt.group_management.window_name] then
+            -- clear the selected group 
+            storage.players[event.player_index].selected_group_icon_id = nil
+
+            -- close the window
             player.gui.screen[constants.jolt.group_management.window_name].destroy()
         else -- otherwise open the group management window
             open_group_management_window(event)

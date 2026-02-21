@@ -449,9 +449,6 @@ function TaskManager.new(params)
             return
         end
 
-        -- For now only allow one selected task 
-        -- self.clear_selected_tasks(player)
-
         -- Initialize if needed
         if not storage.players[player.index].selected_tasks then
             storage.players[player.index].selected_tasks = {}
