@@ -2,8 +2,10 @@
 --- A file to store premade graphical elements
 local constants = require("constants")
 
+local Gui = {}
+
 --- Makes a new window for the player
-function new_window(player, window_title, window_name, close_button_name, width, height)
+function Gui.new_window(player, window_title, window_name, close_button_name, width, height)
     local drag_bar_height = 24
     local close_button_size = 24
     
@@ -24,7 +26,7 @@ function new_window(player, window_title, window_name, close_button_name, width,
     
 
     -- Move the window to the saved location if it exists 
-    local saved_location = task_manager.get_saved_window_position(player, window_name)
+    local saved_location = Task_manager.get_saved_window_position(player, window_name)
     if saved_location then
         window.location = saved_location
 
@@ -74,7 +76,7 @@ function new_window(player, window_title, window_name, close_button_name, width,
 end
 
 
-function new_dialog_window(options)
+function Gui.new_dialog_window(options)
     -- Default values if none provided
     local default_width = 300
     local default_height = 400
@@ -106,7 +108,7 @@ function new_dialog_window(options)
     window.style.size = {width, height}
 
     -- Move the window to the saved location if it exists 
-    local saved_location = task_manager.get_saved_window_position(player, window_name)
+    local saved_location = Task_manager.get_saved_window_position(player, window_name)
     if auto_center and saved_location then
         window.location = saved_location
     else
@@ -192,7 +194,7 @@ end
 --- Adds a label to the provided parent and returns the reference
 ---@param parent gui-element
 ---@param text string
-function new_label(parent, text)
+function Gui.new_label(parent, text)
     local label = parent.add {
         type = "label",
         caption = text
@@ -203,7 +205,7 @@ end
 --- Adds a row to the parent, for a individual task displaying title  
 ---@param parent LuaGuiElement The gui object that the task will be added to
 ---@param task Task The task object with title, desc, etc
-function new_gui_task(parent, task, tab_in_ammount, is_selected)
+function Gui.new_gui_task(parent, task, tab_in_ammount, is_selected)
     tab_in_ammount = tab_in_ammount or 0
     local tab_increment = 20
 
@@ -272,7 +274,7 @@ function new_gui_task(parent, task, tab_in_ammount, is_selected)
         sbtn_details.sprite = constants.jolt.sprites.down
 
         -- Display description 
-        local description_label = new_label(task_container, task.description)
+        local description_label = Gui.new_label(task_container, task.description)
         description_label.style.maximal_width = 260
         -- Tab in the content (can't seem to do it at the container level)
         description_label.style.left_margin = tab_in_ammount + tab_increment
@@ -286,13 +288,13 @@ function new_gui_task(parent, task, tab_in_ammount, is_selected)
 
         -- need the "_" so it doens't use the index instead of the value
         for _, subtask_id in pairs(task.subtasks) do
-            local subtask = task_manager.get_task(subtask_id)
+            local subtask = Task_manager.get_task(subtask_id)
 
             -- If "show_complete" setting is checked then show all subtasks,
             -- Otherwise show only tasks that are not completed
-            local show_completed = task_manager.get_setting_show_completed()
+            local show_completed = Task_manager.get_setting_show_completed()
             if show_completed or subtask.is_complete == false then
-                new_gui_task(task_container, subtask, tab_in_ammount)
+                Gui.new_gui_task(task_container, subtask, tab_in_ammount)
             end
         end
 
@@ -312,3 +314,5 @@ function new_gui_task(parent, task, tab_in_ammount, is_selected)
 
     return task_container
 end
+
+return Gui

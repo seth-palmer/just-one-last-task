@@ -1,5 +1,4 @@
-require "utils"
-
+local Utils = require("utils")
 
 TaskManager = {}
 local MAX_GUI_GROUPS = 28
@@ -180,7 +179,7 @@ function TaskManager.new(params)
         end
 
         -- Create Make a new id for the group
-        local id = uuid()
+        local id = Utils.uuid()
 
         -- Make a new group
         local new_group = {
@@ -229,7 +228,7 @@ function TaskManager.new(params)
         end
 
         -- Create Make a new id for the task
-        local id = uuid()
+        local id = Utils.uuid()
 
         -- Make a new task
         local newTask = {

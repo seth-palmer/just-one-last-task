@@ -79,7 +79,6 @@ constants.jolt = {
         confirm_button = "jolt_delete_group_confirm_button",
         back_button = "jolt_delete_group_back_button",
         window_name = "jolt_delete_group_window_name",
-        confirm_button = "jolt_delete_group_",
     },
     -- For main task list window
     task_list = {
