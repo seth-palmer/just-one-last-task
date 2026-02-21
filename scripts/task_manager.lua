@@ -1,4 +1,5 @@
 local Utils = require("utils")
+local Outcome = require("outcome")
 
 TaskManager = {}
 local MAX_GUI_GROUPS = 28
@@ -113,6 +114,18 @@ function TaskManager.new(params)
         local temp = task_priorities[index1]
         task_priorities[index1] = task_priorities[index2]
         task_priorities[index2] = temp
+    end
+
+    --- Returns the position the task is in
+    ---@param task_id any
+    function self.get_task_order_position(task_id)
+        -- Loop through the priorities list (order of tasks)
+        for index, list_task_id in ipairs(task_priorities) do
+            -- If the provided task id is found return the index
+            if task_id == list_task_id then
+                return index
+            end
+        end
     end
 
     --- Returns the index of the group in the order
@@ -262,7 +275,6 @@ function TaskManager.new(params)
     end
 
 
-
     
 
     --- Update the provided task
@@ -306,6 +318,37 @@ function TaskManager.new(params)
         end
 
         return task
+    end
+
+    --- Returns the list of subtasks for the provided parent task
+    ---@param parent_id string - id of the parent task
+    ---@return table subtasks
+    function self.get_subtasks(parent_id, include_completed)
+        -- Get the parent task 
+        local parent_task = self.get_task(parent_id)
+        local subtask_id_list = parent_task.subtasks
+
+        -- Store tasks in table 
+        local subtasks = {}
+
+        -- Loop through the list of ids and get the full subtasks
+        for index, subtask_id in ipairs(subtask_id_list) do
+            -- Get the full task info
+            local subtask = self.get_task(subtask_id)
+
+            -- use log to debug without and 'event'
+            -- check `factorio-current.log` next the the `saves` dir
+            -- log("subtask_id: " .. subtask_id)
+
+            -- Only return tasks that match the target complete status
+            if include_completed or subtask.is_complete == false then
+                -- Add to table
+                table.insert(subtasks, subtask)
+            end
+        end
+
+        -- Return the list of full subtasks
+        return subtasks
     end
 
     --- Returns the group with the provied uuid
@@ -438,6 +481,15 @@ function TaskManager.new(params)
         return groups[group_id] ~= nil
     end
 
+
+    local function tasks_are_siblings(task1_id, task2_id)
+        local task1 = tasks[task1_id]
+        local task2 = tasks[task2_id]
+        -- Both top-level (no parent)
+        -- Or both subtasks with the same parent
+        return task1.parent_id == task2.parent_id
+    end
+
     --- Save the 
     ---@param player any
     ---@param task_id any
@@ -446,16 +498,21 @@ function TaskManager.new(params)
         if self.is_task_selected(player, task_id) then
             local selected_tasks = self.get_selected_tasks(player)
             selected_tasks[task_id] = nil
-            return
+            return Outcome.success()
         end
 
-        -- Initialize if needed
-        if not storage.players[player.index].selected_tasks then
-            storage.players[player.index].selected_tasks = {}
+        -- Only allow selecting tasks on the same level
+        local selected_tasks = self.get_selected_tasks(player)
+        local first_selected_id = next(selected_tasks)
+        if first_selected_id and not tasks_are_siblings(task_id, first_selected_id) then
+            -- Return error
+            local error_message = {"jolt_task_list_window.error_cannot_select_non_sibling_tasks"}
+            return Outcome.fail(error_message)
         end
 
         -- Set the task_id to true
         storage.players[player.index].selected_tasks[task_id] = true
+        return Outcome.success()
     end
 
     --- Returns the selected tasks for the player
@@ -493,13 +550,13 @@ function TaskManager.new(params)
     --- Swap the position of tasks using their ids
     ---@param task1_id string - id of task 1
     ---@param task2_id string - id of task 2
-    function self.swap_task_positions(task1_id, task2_id)
+    local function swap_task_positions(list_order, task1_id, task2_id)
         -- Store the positions 
         local task1_pos
         local task2_pos
 
         -- Loop through first to find the indexes then swap 
-        for index, task_id in ipairs(task_priorities) do
+        for index, task_id in ipairs(list_order) do
             if task_id == task1_id then
                 task1_pos = index
             end
@@ -511,15 +568,17 @@ function TaskManager.new(params)
 
         -- If both exist swap 
         if task1_pos and task2_pos then
-            swap_priorities(task1_pos, task2_pos)
+            list_order[task1_pos] = task2_id
+            list_order[task2_pos] = task1_id
         end
     end
 
     --- Move selected tasks in the provided list up or down
-    ---@param direction table - either Direction.Up or Direction.Down
+    ---@param direction any - either Direction.Up or Direction.Down
     ---@param tasks_list table - list of tasks
+    ---@param list_order table - numbered table with the order and ids
     ---@param tasks_to_move table - selected tasks to move
-    function self.move_tasks(direction, tasks_list, tasks_to_move)
+    local function move_tasks(direction, tasks_list, list_order, tasks_to_move)
 
         -- If moving down reverse the tasks list 
         -- this prevents a task swaping problem
@@ -542,7 +601,7 @@ function TaskManager.new(params)
                 -- Ensure their is a previous task to swap with
                 if previous_task_id then
                     -- swap 
-                    self.swap_task_positions(task.id, previous_task_id)
+                    swap_task_positions(list_order, task.id, previous_task_id)
                 end
             
             -- if not one of our selected tasks save it 
@@ -552,6 +611,46 @@ function TaskManager.new(params)
             end
         end
     end
+
+    --- Move the currently selected tasks up
+    ---@param player any - for this player
+    function self.move_selected_tasks(player, direction)
+        -- Get the selected tasks
+        local selected_tasks = Task_manager.get_selected_tasks(player)
+        
+        -- Get tasks for selected group 
+        local current_group_id = Task_manager.get_current_group_id(player)
+        local include_completed = Task_manager.get_setting_show_completed()
+        local tasks_in_group
+        local list_order
+
+        local first_selected_task_id, value = next(selected_tasks)
+        local first_selected_task = Task_manager.get_task(first_selected_task_id)
+        
+        -- If selected task is a subtask fetch those as the group instead 
+        if first_selected_task.parent_id then
+            local parent_task = Task_manager.get_task(first_selected_task.parent_id)
+
+            -- Fetch list of full task details
+            local subtasks = Task_manager.get_subtasks(parent_task.id, include_completed)
+
+            -- Only swap around with other subtasks
+            tasks_in_group = subtasks
+
+            -- Use the list stored in the parent for subtask order
+            list_order = parent_task.subtasks
+
+        else -- otherwise get tasks from the top level
+            tasks_in_group = Task_manager.get_tasks(current_group_id, include_completed)
+            -- Use our global list of priorites
+            list_order = task_priorities
+        end
+
+        -- Move the selected tasks
+        move_tasks(direction, tasks_in_group, list_order, selected_tasks)
+    end
+
+
 
 
     -- For debugging

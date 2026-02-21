@@ -4,7 +4,8 @@
 local TaskManager = require("scripts.task_manager")
 local constants = require("constants")
 local Gui = require("gui")
-
+local Utils = require("scripts.utils")
+local Outcome = require("scripts.outcome")
 
 -- Window width and height constants
 local TASK_LIST_MAX_WINDOW_HEIGHT = 600
@@ -670,11 +671,12 @@ local function open_task_list_menu(event)
     local group_tasks = Task_manager.get_tasks(current_group_id, Task_manager.get_setting_show_completed())
     for _, task in pairs(group_tasks) do
         -- Check if task is selected 
+        local selected_tasks = Task_manager.get_selected_tasks(player)
         local is_selected = Task_manager.is_task_selected(player, task.id)
 
         -- Display the task (see new_gui_task() for getting subtasks)
         local tab_in_ammount = 0
-        local gui_task = Gui.new_gui_task(tab_content, task, tab_in_ammount, is_selected)
+        local gui_task = Gui.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks)
         
         -- TODO: in future if element does not exist (like when
         -- marking as done, go to next or prev element)
@@ -949,32 +951,18 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Move selected task(s) up
     elseif element_name == constants.jolt.task_list.move_task_up_button then
-        -- Get the selected tasks
-        local selected_tasks = Task_manager.get_selected_tasks(player)
 
-        -- Get tasks for selected group 
-        local current_group_id = Task_manager.get_current_group_id(player)
-        local include_completed = Task_manager.get_setting_show_completed()
-        local tasks_in_group = Task_manager.get_tasks(current_group_id, include_completed)
-        
         -- Move the selected tasks
-        Task_manager.move_tasks(Direction.Up, tasks_in_group, selected_tasks)
+        Task_manager.move_selected_tasks(player, Direction.Up)
 
         -- Refresh list of tasks
         open_task_list_menu(event)
-    
+
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.move_task_down_button then
-        -- Get the selected tasks
-        local selected_tasks = Task_manager.get_selected_tasks(player)
-
-        -- Get tasks for selected group 
-        local current_group_id = Task_manager.get_current_group_id(player)
-        local include_completed = Task_manager.get_setting_show_completed()
-        local tasks_in_group = Task_manager.get_tasks(current_group_id, include_completed)
         
         -- Move the selected tasks
-        Task_manager.move_tasks(Direction.Down, tasks_in_group, selected_tasks)
+        Task_manager.move_selected_tasks(player, Direction.Down)
 
         -- Refresh list of tasks
         open_task_list_menu(event)
@@ -1015,7 +1003,14 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- check for ctrl+click 
         if event.control then
             -- Add selected task to list
-            Task_manager.add_selected_task(player, task_id)
+            -- Note: (non sibling tasks will not be added)
+            local outcome = Task_manager.add_selected_task(player, task_id)
+
+            -- Check if it did not succeed
+            if not outcome.success then
+                -- Display error message
+                Utils.display_error(player, outcome.message)
+            end
 
             -- Refresh list of tasks
             open_task_list_menu(event)
@@ -1102,10 +1097,8 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- If new group id is nil then display an error 
         if not new_group_id then
-            player.create_local_flying_text {
-                text = {"jolt_group_management.error_max_groups_reached"},
-                create_at_cursor=true,
-            }
+            local max_groups_error_message =  {"jolt_group_management.error_max_groups_reached"}
+            Utils.display_error(player, max_groups_error_message)
         else
             -- Make it the currently selected group
             storage.players[event.player_index].selected_group_icon_id = new_group_id
@@ -1166,10 +1159,8 @@ script.on_event(defines.events.on_gui_click, function(event)
 
             -- Display error if it fails and returns false
             if not is_deleted then
-                player.create_local_flying_text {
-                text = {"jolt_group_management.error_min_groups_reached"},
-                create_at_cursor=true,
-                }
+                local min_groups_error_message = {"jolt_group_management.error_min_groups_reached"}
+                Utils.display_error(player, min_groups_error_message)
             end
 
             -- Refresh windows
@@ -1187,10 +1178,8 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Display error if it fails and returns false
         if not is_deleted then
-            player.create_local_flying_text {
-            text = {"jolt_group_management.error_min_groups_reached"},
-            create_at_cursor=true,
-            }
+            local min_groups_error_message = {"jolt_group_management.error_min_groups_reached"}
+            Utils.display_error(player, min_groups_error_message)
         end
 
         -- Refresh windows

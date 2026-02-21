@@ -205,7 +205,8 @@ end
 --- Adds a row to the parent, for a individual task displaying title  
 ---@param parent LuaGuiElement The gui object that the task will be added to
 ---@param task Task The task object with title, desc, etc
-function Gui.new_gui_task(parent, task, tab_in_ammount, is_selected)
+function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks)
+
     tab_in_ammount = tab_in_ammount or 0
     local tab_increment = 20
 
@@ -214,6 +215,7 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, is_selected)
         type="flow",
         direction="vertical",
     }
+
     
     -- A container to put task controls
     local controls_container = task_container.add{type="flow", direction="horizontal"}
@@ -231,6 +233,10 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, is_selected)
         caption=task.title,
         tags = {is_jolt = true, task_id = task.id}
     }
+
+    -- check if the task is selected 
+    local is_selected = selected_tasks[task.id] == true
+
     -- Change the style for selected tasks
     if is_selected then
         checkbox_completed.style.font = "default-bold"
@@ -294,7 +300,7 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, is_selected)
             -- Otherwise show only tasks that are not completed
             local show_completed = Task_manager.get_setting_show_completed()
             if show_completed or subtask.is_complete == false then
-                Gui.new_gui_task(task_container, subtask, tab_in_ammount)
+                Gui.new_gui_task(task_container, subtask, tab_in_ammount, selected_tasks)
             end
         end
 

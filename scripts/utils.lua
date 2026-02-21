@@ -15,4 +15,14 @@ end
 -- Enum to store Direction
 Direction = {Up = 1, Down = 2}
 
+--- Display the provided error to the player at the cursor position
+---@param player any affected player 
+---@param message string the message to display
+function Utils.display_error(player, message)
+    player.create_local_flying_text {
+        text = message,
+        create_at_cursor=true,
+    }
+end
+
 return Utils
