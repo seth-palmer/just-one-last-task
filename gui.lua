@@ -23,6 +23,9 @@ function Gui.new_window(player, window_title, window_name, close_button_name, wi
     }
     window.style.size = {width, height}
 
+    -- Set window to close
+    local is_task_list_pinned_open = Task_manager.is_task_list_pinned_open(player)
+    player.opened = window
     
 
     -- Move the window to the saved location if it exists 
@@ -62,6 +65,23 @@ function Gui.new_window(player, window_title, window_name, close_button_name, wi
     dragger.style.horizontally_stretchable = true
     dragger.drag_target = window
 
+    -- Add pin button only if main window
+    if window_name == constants.jolt.task_list.window then
+        local pin_button = title_bar.add {
+        type = "sprite-button",
+        style = constants.styles.frame.button,
+        sprite = constants.jolt.sprites.pin,
+        name = constants.jolt.task_list.keep_window_open_button,
+        tooltip = {"jolt.tooltip_pin"}
+        }
+        -- If this button is selected change its style to 
+        -- be yellow button background
+        if Task_manager.is_task_list_pinned_open(player) then
+            pin_button.style = constants.styles.buttons.yellow
+            pin_button.style.size = {24, 24}
+        end
+    end
+    
 
     local close_button = title_bar.add {
         type = "sprite-button",

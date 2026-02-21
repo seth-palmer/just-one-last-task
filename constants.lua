@@ -56,6 +56,7 @@ constants.jolt = {
         down = "jolt-icon-down",
         folder = "jolt-icon-folder",
         plus_folder = "jolt-icon-plus-folder",
+        pin = "jolt-icon-pin",
     },
     group_management = {
         open_window_button = "jolt_open_group_management_button",
@@ -84,6 +85,7 @@ constants.jolt = {
     task_list = {
         window = "jolt_task_list_window",
         close_window_button = "jolt_tasks_list_close_button",
+        keep_window_open_button = "jolt_tasks_list_keep_window_open_button",
         group_tabs_pane = "jolt_group_tabs_pane",
         add_task_button = "jolt_add_task_button",
         edit_task_button = "jolt_edit_task_button",

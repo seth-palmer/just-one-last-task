@@ -156,7 +156,6 @@ local function open_group_management_window(event)
         if group.id == storage.players[event.player_index].selected_group_icon_id then
             icon_button.style = constants.styles.buttons.yellow
             selected_group = group
-        else
         end
     end
 
@@ -821,6 +820,10 @@ script.on_event(defines.events.on_player_created, function(event)
     -- Initialize table for selected tasks
     storage.players[player.index].selected_tasks = {}
 
+    -- Store settings for my player
+    storage.players[player.index].settings = {}
+
+
     -- Set new players to have the first group selected by default
     storage.players[player.index].selected_group_tab_id = Task_manager.get_group_order()[1]
 end)
@@ -937,6 +940,15 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- clear selected tasks
         Task_manager.clear_selected_tasks(player)
+
+    -- Keep open button is pressed
+    elseif element_name == constants.jolt.task_list.keep_window_open_button then
+
+        -- toggle the keep open state
+        Task_manager.toggle_task_list_pinned_open(player)
+
+        -- Refresh window 
+        open_task_list_menu(event)
 
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
@@ -1290,4 +1302,79 @@ script.on_event(defines.events.on_gui_location_changed, function(event)
     Task_manager.save_window_location(player, event.element.name, new_location)
 end)
 
+--- Called when the player closes the GUI they have open.
+--- can set player.opened = window_name_open 
+--- this will then close the window when 'e' is pressed
+--- https://lua-api.factorio.com/latest/events.html#on_gui_closed
+---@param event any
+script.on_event(defines.events.on_gui_closed, function(event)
+    if not event.element then return end
+    local player = game.get_player(event.player_index)
+    local window_name = event.element.name
 
+    -- Do not continue if it is not a window from JOLT
+    if not Task_manager.is_jolt_window(window_name) then return end
+
+    -- Don't close if task_list window and it is pinned open 
+    if window_name == constants.jolt.task_list.window and Task_manager.is_task_list_pinned_open(player) then
+        return
+    end
+
+    -- Close the window
+    if event.element.valid then event.element.destroy() end
+    
+    -- Can run run cleanup specific to that window (see also section in on_gui_click)
+    if window_name == constants.jolt.group_management.window_name then
+    end
+    if window_name == constants.jolt.task_list.window_name then
+        Task_manager.clear_selected_tasks(player)
+    end
+end)
+
+--[[
+script.on_event(defines.events.on_gui_closed, function(event)
+    debug_print(event, "closing with e")
+    -- Exit if invalid
+    local element = event.element
+    if not element or not element.valid then return end
+    local element_name = event.element.name
+
+
+    -- Early exit: ignore elements that don't belong to me
+    if element_name:find("^jolt") then
+        --TIP: uncomment below to debug naming issues
+        -- is our gui element so continue
+    else
+        -- debug_print(event, "tags is jolt = " )
+        debug_print(event, event.element.name)
+        return
+    end
+
+    -- Get the player that is interacting with our gui
+    local player = game.get_player(event.player_index)
+
+
+    -- Check if element is a close button for one of jolt's windows
+    local window_name = Task_manager.pop_close_button(player, element_name)
+    debug_print(event, window_name)
+    debug_print(event, element_name)
+    window_name = element_name
+
+    -- If it is then attempt to close the window
+    if window_name ~= nil then
+        -- Check if the frame still exists before destroying
+        if player.gui.screen[window_name] and player.gui.screen[window_name].valid then
+            player.gui.screen[window_name].destroy()
+        end
+
+        -- When closing group management, clear the selected group 
+        -- (so the window opens with nothing selected)
+        if window_name == constants.jolt.group_management.window_name then
+            storage.players[event.player_index].selected_group_icon_id = nil
+        end
+
+        -- clear selected tasks
+        Task_manager.clear_selected_tasks(player)
+    end
+end)
+]]--

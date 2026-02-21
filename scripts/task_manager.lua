@@ -650,8 +650,24 @@ function TaskManager.new(params)
         move_tasks(direction, tasks_in_group, list_order, selected_tasks)
     end
 
+    --- Returns if it is a window from my mod "just-one-last-task" AKA JOLT
+    ---@param window_name any
+    function self.is_jolt_window(window_name)
+        return window_name:find("^jolt")
+    end
 
+    --- Returns if the task list window is pinned open for the player
+    ---@param player any - associated player
+    function self.is_task_list_pinned_open(player)
+        local is_task_list_pinned_open = storage.players[player.index].settings.is_task_list_pinned_open
+        return is_task_list_pinned_open
+    end
 
+    function self.toggle_task_list_pinned_open(player)
+        -- Invert the boolean
+        storage.players[player.index].settings.is_task_list_pinned_open = 
+        not storage.players[player.index].settings.is_task_list_pinned_open
+    end
 
     -- For debugging
     function self.stats()

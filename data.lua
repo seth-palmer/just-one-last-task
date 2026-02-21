@@ -150,6 +150,14 @@ data:extend({
     },
     {
         type = "sprite",
+        name = "jolt-icon-pin",
+        filename = "__just-one-last-task__/graphics/icons/pinx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
         name = "jolt-icon-plus-folder",
         filename = "__just-one-last-task__/graphics/icons/plus-folder.png",
         priority = "extra-high-no-scale",
