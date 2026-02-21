@@ -4,8 +4,7 @@ local constants = require "constants"
 -- https://lua-api.factorio.com/latest/classes/LuaStyle.html
 
 
--- These are some style prototypes that the tutorial uses
--- You don't need to understand how these work to follow along
+-- Style prototypes 
 local styles = data.raw["gui-style"].default
 
 
@@ -177,4 +176,21 @@ styles["jolt_content_frame"] = {
     type = "frame_style",
     parent = "inside_shallow_frame",
     padding = 12
+}
+
+
+styles["selected_task_frame"] = {
+    type = "frame_style",
+    parent = "inside_shallow_frame_with_padding",
+    background_graphical_set = {
+        position = {0, 72},
+        corner_size = 8,
+        opacity = 0.5,
+        blend_mode = "multiplicative-with-alpha"
+    }
+}
+
+styles["unselected_task_frame"] = {
+    type = "frame_style",
+    parent = "inside_shallow_frame_with_padding",
 }

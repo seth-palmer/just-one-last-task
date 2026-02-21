@@ -66,6 +66,8 @@ function TaskManager.new(params)
     end
 
     --- Returns the table of tasks for a group ordered by priority
+    --- @param group_id string id of the group to fetch tasks from
+    ---@param include_completed boolean if completed tasks should be included
     --- @return table tasks with tasks for the group
     function self.get_tasks(group_id, include_completed)
         -- search through task list an return only those in 
@@ -106,7 +108,7 @@ function TaskManager.new(params)
         return names
     end
 
-    --- Swap the position of priorities 
+    --- Swap the position of task priorities 
     --- Important: local functions must be put above where they are used!
     local function swap_priorities(index1, index2)
         local temp = task_priorities[index1]
@@ -254,10 +256,9 @@ function TaskManager.new(params)
         -- Add id to end of priorities list
         if not add_to_top then
             table.insert(task_priorities, id)
-        -- or insert at end, then swap with first value   
+        -- or insert top shifing everything else down   
         else
-            table.insert(task_priorities, id)
-            swap_priorities(1, #task_priorities)
+            table.insert(task_priorities, 1, id)
         end
     end
 
@@ -437,6 +438,125 @@ function TaskManager.new(params)
     function self.does_group_exist(group_id)
         return groups[group_id] ~= nil
     end
+
+    --- Save the 
+    ---@param player any
+    ---@param task_id any
+    function self.add_selected_task(player, task_id)
+        -- If task was already selected deselect it 
+        if self.is_task_selected(player, task_id) then
+            local selected_tasks = self.get_selected_tasks(player)
+            selected_tasks[task_id] = nil
+            return
+        end
+
+        -- For now only allow one selected task 
+        -- self.clear_selected_tasks(player)
+
+        -- Initialize if needed
+        if not storage.players[player.index].selected_tasks then
+            storage.players[player.index].selected_tasks = {}
+        end
+
+        -- Set the task_id to true
+        storage.players[player.index].selected_tasks[task_id] = true
+    end
+
+    --- Returns the selected tasks for the player
+    ---@param player any player associated
+    ---@return table selected_tasks tasks for the player 
+    function self.get_selected_tasks(player)
+        return storage.players[player.index].selected_tasks
+    end
+
+    function self.is_any_task_selected(player)
+        -- Returns nil if the table is empty
+        return next(self.get_selected_tasks(player)) ~= nil
+    end
+
+    --- Clears all selected tasks for the player
+    ---@param player any player associated
+    function self.clear_selected_tasks(player)
+        storage.players[player.index].selected_tasks = {}
+    end
+
+    --- Returns if the task is selected by the player
+    ---@param player any player associated
+    ---@param task_id any id of the task 
+    ---@return boolean is_selected true if selected, false otherwise
+    function self.is_task_selected(player, task_id)
+        local selected_tasks = self.get_selected_tasks(player)
+        if not selected_tasks then
+            return false
+        end
+        -- Return if the task is currently selected
+        return selected_tasks[task_id] == true
+    end
+
+
+    --- Swap the position of tasks using their ids
+    ---@param task1_id string - id of task 1
+    ---@param task2_id string - id of task 2
+    function self.swap_task_positions(task1_id, task2_id)
+        -- Store the positions 
+        local task1_pos
+        local task2_pos
+
+        -- Loop through first to find the indexes then swap 
+        for index, task_id in ipairs(task_priorities) do
+            if task_id == task1_id then
+                task1_pos = index
+            end
+
+            if task_id == task2_id then
+                task2_pos = index
+            end
+        end
+
+        -- If both exist swap 
+        if task1_pos and task2_pos then
+            swap_priorities(task1_pos, task2_pos)
+        end
+    end
+
+    --- Move selected tasks in the provided list up or down
+    ---@param direction table - either Direction.Up or Direction.Down
+    ---@param tasks_list table - list of tasks
+    ---@param tasks_to_move table - selected tasks to move
+    function self.move_tasks(direction, tasks_list, tasks_to_move)
+
+        -- If moving down reverse the tasks list 
+        -- this prevents a task swaping problem
+        if direction == Direction.Down then
+            local reversed = {}
+            for i = #tasks_list, 1, -1 do
+                table.insert(reversed, tasks_list[i])
+            end
+            tasks_list = reversed
+        end
+        
+        -- Save the previous task id so we can swap with it 
+        local previous_task_id
+
+        -- Loop through the tasks 
+        for index, task in ipairs(tasks_list) do
+            
+            -- If it is one of our selected tasks swap it
+            if tasks_to_move[task.id] == true then
+                -- Ensure their is a previous task to swap with
+                if previous_task_id then
+                    -- swap 
+                    self.swap_task_positions(task.id, previous_task_id)
+                end
+            
+            -- if not one of our selected tasks save it 
+            -- as a previous task 
+            else
+                previous_task_id = task.id
+            end
+        end
+    end
+
 
     -- For debugging
     function self.stats()

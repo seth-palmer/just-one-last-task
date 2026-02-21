@@ -203,7 +203,7 @@ end
 --- Adds a row to the parent, for a individual task displaying title  
 ---@param parent LuaGuiElement The gui object that the task will be added to
 ---@param task Task The task object with title, desc, etc
-function new_gui_task(parent, task, tab_in_ammount)
+function new_gui_task(parent, task, tab_in_ammount, is_selected)
     tab_in_ammount = tab_in_ammount or 0
     local tab_increment = 20
 
@@ -229,6 +229,12 @@ function new_gui_task(parent, task, tab_in_ammount)
         caption=task.title,
         tags = {is_jolt = true, task_id = task.id}
     }
+    -- Change the style for selected tasks
+    if is_selected then
+        checkbox_completed.style.font = "default-bold"
+        checkbox_completed.style.font_color = {r=0.2, g=0.6, b=1.0}
+    end
+    
     if not (task.parent_id == nil) then
         tab_in_ammount = tab_in_ammount + tab_increment
         checkbox_completed.style.left_margin = tab_in_ammount

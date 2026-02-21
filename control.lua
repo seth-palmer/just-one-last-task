@@ -313,7 +313,7 @@ script.on_event(defines.events.on_player_created, function(event)
     if not storage.players[player.index] then
         storage.players[player.index] = {}
     end
-
+    storage.players[player.index].selected_tasks = {}
     -- Set new players to have the first group selected by default
     storage.players[player.index].selected_group_tab_id = task_manager.get_group_order()[1]
 
@@ -400,15 +400,17 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Early exit: ignore elements that don't belong to me
     if event.element.tags and event.element.tags.is_jolt or element_name:find("^jolt") then
-        --TODO: uncomment below to debug naming issues
+        --TIP: uncomment below to debug naming issues
         -- is our gui element so continue
     else
         -- debug_print(event, "tags is jolt = " )
         -- debug_print(event, event.element.tags.is_jolt)
+        
         return
     end
 
     local player = game.get_player(event.player_index)
+    
 
 
     -- If task interacted with save it to last interacted task
@@ -436,9 +438,51 @@ script.on_event(defines.events.on_gui_click, function(event)
             storage.players[event.player_index].selected_group_icon_id = nil
         end
 
+        -- clear selected tasks
+        task_manager.clear_selected_tasks(player)
+
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
+        -- clear selected tasks
+        task_manager.clear_selected_tasks(player)
+
+        -- Refresh list of tasks
+        open_task_list_menu(event)
+
         open_task_form_window(event, "New Task", nil, {})
+        
+
+    -- Move selected task up
+    elseif element_name == constants.jolt.task_list.move_task_up_button then
+        -- Get the selected tasks
+        local selected_tasks = task_manager.get_selected_tasks(player)
+
+        -- Get tasks for selected group 
+        local current_group_id = task_manager.get_current_group_id(player)
+        local include_completed = task_manager.get_setting_show_completed()
+        local tasks_in_group = task_manager.get_tasks(current_group_id, include_completed)
+        
+        -- Move the selected tasks
+        task_manager.move_tasks(Direction.Up, tasks_in_group, selected_tasks)
+
+        -- Refresh list of tasks
+        open_task_list_menu(event)
+    
+    -- Move selected task down
+    elseif element_name == constants.jolt.task_list.move_task_down_button then
+        -- Get the selected tasks
+        local selected_tasks = task_manager.get_selected_tasks(player)
+
+        -- Get tasks for selected group 
+        local current_group_id = task_manager.get_current_group_id(player)
+        local include_completed = task_manager.get_setting_show_completed()
+        local tasks_in_group = task_manager.get_tasks(current_group_id, include_completed)
+        
+        -- Move the selected tasks
+        task_manager.move_tasks(Direction.Down, tasks_in_group, selected_tasks)
+
+        -- Refresh list of tasks
+        open_task_list_menu(event)
 
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
@@ -464,22 +508,37 @@ script.on_event(defines.events.on_gui_click, function(event)
             group_id = task.group_id,
             description = task.description,
             task_id = task_id,
+            parent_id = task.parent_id,
         }
         open_task_form_window(event, "Edit Task", nil, params)
 
-    -- Task checkbox clicked mark complete / uncomplete 
+    -- Task checkbox clicked to select or mark complete / uncomplete 
     elseif element_name == constants.jolt.task_list.task_checkbox then
-         -- Get the stored task id from tags 
+        -- Get the stored task id from tags 
         local task_id = event.element.tags.task_id
 
-        -- Get the task 
-        local task = task_manager.get_task(task_id)
+        -- check for ctrl+click 
+        if event.control then
+            task_manager.add_selected_task(player, task_id)
 
-        -- Invert completed status 
-        task.is_complete = not task.is_complete
+            -- Refresh list of tasks
+            open_task_list_menu(event)
 
-        -- Refresh list of tasks (Is this inefficient?)
-        open_task_list_menu(event)
+        -- Otherwise mark mark complete / uncomplete 
+        else
+            -- clear selected tasks 
+            task_manager.clear_selected_tasks(player)
+
+            -- Get the task 
+            local task = task_manager.get_task(task_id)
+
+            -- Invert completed status 
+            task.is_complete = not task.is_complete
+
+            -- Refresh list of tasks (Is this inefficient?)
+            open_task_list_menu(event)
+        end
+
 
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
@@ -521,6 +580,9 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Save selected group id
         local selected_group_id = event.element.tags.group_id
         task_manager.set_current_group_id(player, selected_group_id)
+
+        -- Clear selected tasks 
+        task_manager.clear_selected_tasks(player)
 
         -- Refresh list of tasks
         open_task_list_menu(event)
@@ -833,8 +895,9 @@ function open_task_list_menu(event)
         horizontally_stretchable = "on"
     }
     group_content.style.top_padding = 12
-    group_content.style.bottom_padding = 12
+    group_content.style.bottom_padding = 2
     group_content.style.left_margin = 0
+    group_content.style.bottom_margin = 0
     group_content.style.minimal_width = 500 -- make it take up the full width
 
     -- Add section for tab icons
@@ -855,7 +918,7 @@ function open_task_list_menu(event)
         tooltip = {"jolt.tooltip_edit_groups_button"},
     }
     btn_edit_groups.style.size = {32, 32}
-    btn_edit_groups.style.top_margin = 12
+    btn_edit_groups.style.top_margin = 6
     btn_edit_groups.style.left_margin = 24
 
     -- Save current group id
@@ -888,6 +951,29 @@ function open_task_list_menu(event)
         horizontally_stretchable = "on"
     }
 
+    local enable_move_controls = task_manager.is_any_task_selected(player)
+    -- Move task up button 
+    local move_task_up_button = controls_container.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.up,
+        name = constants.jolt.task_list.move_task_up_button,
+        tooltip = {"jolt_task_list_window.tooltip_move_tasks_up"},
+        enabled = enable_move_controls,
+        tags = {is_jolt=true} -- seems to need a tag to be detected
+    }
+    move_task_up_button.style.size = {32, 32}
+
+    -- Move task down button 
+    local move_task_down_button = controls_container.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.down,
+        name = constants.jolt.task_list.move_task_down_button,
+        tooltip = {"jolt_task_list_window.tooltip_move_tasks_down"},
+        enabled = enable_move_controls,
+        tags = {is_jolt=true} -- seems to need a tag to be detected
+    }
+    move_task_down_button.style.size = {32, 32}
+
     -- Empty space
     local empty_space = controls_container.add {
         type = "empty-widget",
@@ -896,6 +982,7 @@ function open_task_list_menu(event)
     empty_space.style.minimal_width = 50
     empty_space.style.height = 24
     empty_space.style.horizontally_stretchable = true
+
 
     
 
@@ -959,8 +1046,12 @@ function open_task_list_menu(event)
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
     local group_tasks = task_manager.get_tasks(current_group_id, task_manager.get_setting_show_completed())
     for _, task in pairs(group_tasks) do
+        -- Check if task is selected 
+        local is_selected = task_manager.is_task_selected(player, task.id)
+
         -- Display the task (see new_gui_task() for getting subtasks)
-        local gui_task = new_gui_task(tab_content, task)
+        local tab_in_ammount = 0
+        local gui_task = new_gui_task(tab_content, task, tab_in_ammount, is_selected)
         
         -- TODO: in future if element does not exist (like when
         -- marking as done, go to next or prev element)
@@ -993,6 +1084,7 @@ end
 function open_task_form_window(event, window_title, window_subtitle, task)
     -- If data in task is there, then this must be an edit
     local is_edit = not task == nil
+    local is_subtask = task.parent_id
 
     -- get player by index
     local player = game.get_player(event.player_index)
@@ -1121,8 +1213,10 @@ function open_task_form_window(event, window_title, window_subtitle, task)
         caption = "Group",
         items = task_manager.get_group_names(),
         style = "dropdown",
-        selected_index = position
+        selected_index = position,
+        enabled = not is_subtask -- disable dropdown for group for subtasks
     }
+
 
     -- https://lua-api.factorio.com/latest/concepts/GuiElementType.html
     -- Task description

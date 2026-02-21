@@ -11,3 +11,5 @@ function uuid()
         return string.format('%x', v)
     end)
 end
+
+Direction = {Up = 1, Down = 2}

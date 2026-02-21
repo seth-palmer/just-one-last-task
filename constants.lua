@@ -93,6 +93,8 @@ constants.jolt = {
         show_completed_checkbox = "jolt_show_completed_tasks_checkbox",
         add_subtask_button = "jolt_add_subtask_button",
         tab_button = "jolt_tab_button",
+        move_task_up_button = "jolt_move_task_up_button",
+        move_task_down_button = "jolt_move_task_down_button",
     },
     -- For new task window
     new_task = {
