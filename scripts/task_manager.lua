@@ -717,6 +717,9 @@ function TaskManager.new(params)
     --- Returns if the task list window is pinned open for the player
     ---@param player any - associated player
     function self.is_task_list_pinned_open(player)
+        -- Initialize settings table if needed 
+        storage.players[player.index].settings = storage.players[player.index].settings or {}
+
         local is_task_list_pinned_open = storage.players[player.index].settings.is_task_list_pinned_open
         return is_task_list_pinned_open
     end
@@ -724,6 +727,13 @@ function TaskManager.new(params)
     --- Toggle the pinned state of the task list window
     ---@param player any - associated player
     function self.toggle_task_list_pinned_open(player)
+        -- Initialize settings table if needed 
+        storage.players[player.index].settings = storage.players[player.index].settings or {}
+
+        -- Initialize is_task_list_pinned_open if needed 
+        storage.players[player.index].settings.is_task_list_pinned_open = storage.players[player.index].settings.is_task_list_pinned_open
+            or false
+       
         -- Invert the boolean
         storage.players[player.index].settings.is_task_list_pinned_open = 
         not storage.players[player.index].settings.is_task_list_pinned_open

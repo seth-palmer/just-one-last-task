@@ -851,6 +851,9 @@ script.on_event(defines.events.on_player_created, function(event)
     -- Store settings for my player
     storage.players[player.index].settings = {}
 
+    -- Set the window to not be pinned open
+    storage.players[player.index].settings.is_task_list_pinned_open = false
+       
 
     -- Set new players to have the first group selected by default
     storage.players[player.index].selected_group_tab_id = Task_manager.get_group_order()[1]

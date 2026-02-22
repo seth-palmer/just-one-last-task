@@ -5,6 +5,6 @@
   "author": "Arcosh",
   "factorio_version": "2.0",
   "dependencies": ["base >= 2.0"],
-  "description": "A task/todo mod where you can organize tasks by group, perfect for Space Age with a group for each planet."
+  "description": "A single player task/todo mod where you can organize tasks by group, perfect for Space Age with a group for each planet."
 }
 
