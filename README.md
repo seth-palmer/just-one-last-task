@@ -1,7 +1,13 @@
 # JOLT - Just One Last Task
 
 ## Description
-A Task Mod for Factorio focused on working with Space Age having a group for each planet. 
+A single player task/todo mod where you can organize tasks by group, perfect for Space Age with a group for each planet.
+
+
+## Screenshots
+
+![](thumbnail.png?raw=true)
+
 
 
 ## Code Style Guide
