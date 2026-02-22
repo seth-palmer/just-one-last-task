@@ -226,6 +226,15 @@ function TaskManager.new(params)
             -- Delete group data
             groups[group_id] = nil
 
+            -- Delete all tasks in group
+            for task_id, task in pairs(tasks) do
+                -- Only delete tasks that have that have a matching group_id
+                if task.group_id == group_id then
+                    -- delete the task
+                    self.delete_task(task_id)
+                end
+            end
+
             -- Get position and delete (all elements shifted down)
             local group_pos = self.get_group_position(group_id)
             table.remove(group_order, group_pos)
@@ -246,7 +255,7 @@ function TaskManager.new(params)
         local id = Utils.uuid()
 
         -- Make a new task
-        local newTask = {
+        local new_task = {
             id=id,
             group_id=task_params.group_id,
             title=task_params.title,
@@ -256,11 +265,12 @@ function TaskManager.new(params)
             parent_id = task_params.parent_id or nil,
             subtasks = {}
         }
-        tasks[id] = newTask
 
-        if not (newTask.parent_id == nil) then
+        tasks[id] = new_task
+
+        if not (new_task.parent_id == nil) then
             -- If this is a subtask add its id to the parent 
-            local parent_task = tasks[newTask.parent_id]
+            local parent_task = tasks[new_task.parent_id]
             table.insert(parent_task.subtasks, id)
 
             -- end early since we don't need to set task priority
@@ -285,8 +295,6 @@ function TaskManager.new(params)
 
         -- If it has subtasks remove those first 
         if task.subtasks and #task.subtasks > 0 then
-            log("found subtasks")
-            log(serpent.block(task.subtasks ))
 
             for _, subtask_id in ipairs(task.subtasks) do
                 -- If we are recursively deleting all subtasks 
@@ -300,7 +308,6 @@ function TaskManager.new(params)
 
         -- If it is a subtask remove it from its parent's list
         -- (skip if deleting recursively since we will delete the full task anyway)
-         
         if not skip_parent_removal and task.parent_id then
 
             -- Get the parent task
@@ -315,7 +322,11 @@ function TaskManager.new(params)
                     break -- exit once it has been found
                 end
             end
-        else -- otherwise remove it from the list for root level tasks 
+        end
+
+        -- Only remove from task_priorities if it's a root-level task
+        -- (no parent) regardless of skip_parent_removal
+        if not task.parent_id then
             
             -- Get the position of the task
             local task_position = self.get_task_order_position(task_id)
@@ -326,7 +337,6 @@ function TaskManager.new(params)
 
         -- Delete the task data
         tasks[task_id] = nil
-        log("deleting: " .. task.title)
     end
 
     --- Update the provided task
@@ -387,10 +397,6 @@ function TaskManager.new(params)
         for index, subtask_id in ipairs(subtask_id_list) do
             -- Get the full task info
             local subtask = self.get_task(subtask_id)
-
-            -- use log to debug without and 'event'
-            -- check `factorio-current.log` next the the `saves` dir
-            -- log("subtask_id: " .. subtask_id)
 
             -- Only return tasks that match the target complete status
             if include_completed or subtask.is_complete == false then
@@ -728,8 +734,7 @@ function TaskManager.new(params)
     function self.delete_selected_tasks(player)
         -- Get the selected tasks
         local selected_tasks = Task_manager.get_selected_tasks(player)
-        log("selected tasks:")
-        log(serpent.block(selected_tasks))
+        
         -- Loop through deleting each one
         for task_id, _ in pairs(selected_tasks) do
             self.delete_task(task_id)

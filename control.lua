@@ -287,7 +287,7 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
 
     -- If data in task is there, then this must be an edit
     local is_edit = not task == nil
-    local is_subtask = task.parent_id
+    local is_subtask = task.parent_id ~= nil
 
     -- get player by index
     local player = game.get_player(event.player_index)
@@ -406,6 +406,7 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
     -- Get position
     local position = Task_manager.get_group_position(group_id)
     
+
     -- Dropdown to select which group the task is added to
     local dropdown_select_group = new_task_form.add {
         type = "drop-down",
@@ -414,7 +415,7 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
         items = Task_manager.get_group_names(),
         style = "dropdown",
         selected_index = position,
-        enabled = not is_subtask -- disable dropdown for group for subtasks
+        enabled = not is_subtask,
     }
 
     -- Task description
@@ -739,11 +740,23 @@ local function add_new_task(event)
     local title = textbox_title.text
     local description = textbox_description.text
     local add_to_top = checkbox_add_to_top.state
-    local group_index = dropdown_group.selected_index
 
-    -- Get the actual group id
-    local group_id = Task_manager.get_group_order()[group_index]
+    -- If it has a parent_id then it is a subtask
+    local is_subtask = form_container.tags.parent_id
+    local group_id
 
+    -- If a regular task get the group id
+    if not is_subtask then
+        -- Get the selected index in the dropdown
+        local group_index = dropdown_group.selected_index
+        -- Get the actual group id
+        group_id = Task_manager.get_group_order()[group_index]
+    
+    else -- otherwise set the group_id to nil
+        group_id = nil
+    end
+
+    
     -- check if empty string not nil since task_id is string type
     -- check type with debug_print(event, "type is: " .. type(task_id))
     local is_edit_task = task_id ~= ""
