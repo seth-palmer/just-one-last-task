@@ -35,7 +35,10 @@ What actually happened.
 If applicable, add screenshots here.
 
 **Other Mods Installed:**
-List any other mods that may be relevant, or "None".
+List any other mods that may be relevant, or "None". (Or if easier just attach your save file).
+
+**Save File:**
+If the bug is save-specific, please attach your save file (found in `Factorio/saves/`).
 
 **Logs (if applicable):**
 If you encountered a crash or error message, paste the relevant section from `factorio-current.log` here.
