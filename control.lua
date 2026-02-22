@@ -105,7 +105,7 @@ local function open_group_management_window(event)
 
     -- Label for new group button 
     local add_new_group_text = {"jolt_group_management.add_new_group_text"}
-    local add_group_label = Gui.new_label(controls_frame, add_new_group_text)
+    local add_group_label = Gui.new_label(controls_frame, add_new_group_text, player)
 
     -- Add new group button
     local add_group_button = controls_frame.add{
@@ -153,7 +153,8 @@ local function open_group_management_window(event)
         }
         -- If this button is selected change its style to 
         -- be yellow button background
-        if group.id == storage.players[event.player_index].selected_group_icon_id then
+        local selected_group_id = Task_manager.get_group_management_selected_group_id(player)
+        if group.id == selected_group_id then
             icon_button.style = constants.styles.buttons.yellow
             selected_group = group
         end
@@ -368,7 +369,7 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
     new_task_form.style.vertical_spacing = 4
     
     -- Label "Title" and textbox input
-    local task_title_label = Gui.new_label(new_task_form, "Title")
+    local task_title_label = Gui.new_label(new_task_form, "Title", player)
     -- TODO: in future add button to add icon to task title
     -- local task_title_flow = new_task_form.add {
     --     type = "flow",
@@ -420,7 +421,7 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
 
     -- Task description
     -- https://lua-api.factorio.com/latest/concepts/GuiElementType.html
-    local task_description_label = Gui.new_label(new_task_form, "Description")
+    local task_description_label = Gui.new_label(new_task_form, "Description", player)
     local task_description_textbox = new_task_form.add {
         type = "text-box", -- A multiline textfield
         name = constants.jolt.new_task.description_textbox,
@@ -449,7 +450,7 @@ local function open_task_list_menu(event)
     -- to avoid a crash
     local current_group_id = Task_manager.get_current_group_id(player)
     if not Task_manager.does_group_exist(current_group_id) then
-        local first_group_id = storage.task_data.group_order[1]
+        local first_group_id = storage.jolt.group_order[1]
         Task_manager.set_current_group_id(player, first_group_id)
     end
 
@@ -573,7 +574,7 @@ local function open_task_list_menu(event)
         type = "checkbox",
         name = constants.jolt.task_list.show_completed_checkbox,
         caption = {"jolt_task_list_window.show_completed_tasks"},
-        state = Task_manager.get_setting_show_completed(),
+        state = Task_manager.get_setting_show_completed(player),
         horizontally_stretchable = "on"
     }
     cb_show_completed.style.right_margin = 20
@@ -683,7 +684,7 @@ local function open_task_list_menu(event)
 
     -- Get tasks, checking if the control button "Show Completed".
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-    local group_tasks = Task_manager.get_tasks(current_group_id, Task_manager.get_setting_show_completed())
+    local group_tasks = Task_manager.get_tasks(current_group_id, Task_manager.get_setting_show_completed(player))
     for _, task in pairs(group_tasks) do
         -- Check if task is selected 
         local selected_tasks = Task_manager.get_selected_tasks(player)
@@ -691,7 +692,7 @@ local function open_task_list_menu(event)
 
         -- Display the task (see new_gui_task() for getting subtasks)
         local tab_in_ammount = 0
-        local gui_task = Gui.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks)
+        local gui_task = Gui.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
         
         -- TODO: in future if element does not exist (like when
         -- marking as done, go to next or prev element)
@@ -791,8 +792,38 @@ local function add_new_task(event)
         open_task_list_menu(event)
     end
 end
+
+--- Initialize data for the player
+---@param player_index any - player index to initialize
+local function initialize_player(player_index)
+    local player = game.get_player(player_index)
+
+    -- Initialize the player's data table
+    if not storage.players[player.index] then
+        storage.players[player.index] = {}
+    end
+
+    -- Initialize jolt specific data under a jolt key
+    storage.players[player.index].jolt = {
+        ui = {
+            selected_tasks = {},
+            selected_group_tab_id = Task_manager.get_group_order()[1],
+            saved_window_locations = {},
+            close_button_registry = {},
+            is_task_list_pinned_open = false,
+            selected_group_icon_id = nil,
+            last_interacted_task_id = nil,
+            show_completed_tasks = false,
+        },
+        
+    }
+end
 --endregion =======Local Functions=======
 
+
+local function initialize_storage()
+    
+end
 
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convinience, don't worry if you don't understand how this works
@@ -817,46 +848,76 @@ script.on_init(function()
     default_group_data[nauvis_group.id] = nauvis_group
     local default_group_order = {"a1"}
 
-    -- store players and their info
-    storage.players = storage.players or {}
 
     -- store data for groups, tasks 
     -- IMPORTANT: Can only store data not functions. So no putting an object here
     -- https://lua-api.factorio.com/latest/auxiliary/storage.html
-    storage.task_data = storage.task_data or {
+    storage.jolt = storage.jolt or {
         tasks = {},
         groups = default_group_data,
         priorities = {},
         group_order = default_group_order,
-        settings = {show_completed=false},
     }
+
+    -- store players and their info
+    storage.players = storage.players or {}
+
     -- setup the task manager 
     Task_manager = TaskManager.new()
+end)
+
+
+
+
+--- Runs when mod configuration changes (adding a mod or updating a mod)
+--- https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_configuration_changed
+---@param event any
+script.on_configuration_changed(function(event)
+    -- Migrate old data structure to new one
+    if storage.task_data and not storage.jolt then
+        log("jolt: migrating old data structure")
+        storage.jolt = storage.task_data
+        storage.task_data = nil
+    end
+
+    -- Migrate per-player data
+    if storage.players then
+        for _, player in pairs(game.players) do
+            local p = storage.players[player.index]
+            if p then
+                -- Migrate old flat structure to new jolt.ui namespace
+                if not p.jolt then
+                    p.jolt = {
+                        ui = {
+                            selected_tasks = p.selected_tasks or {},
+                            selected_group_tab_id = p.selected_group_tab_id or storage.jolt.group_order[1],
+                            saved_window_locations = p.settings and p.settings.saved_window_locations or {},
+                            close_button_registry = p.settings and p.settings.close_button_registry or {},
+                            is_task_list_pinned_open = p.settings and p.settings.is_task_list_pinned_open or false,
+                            selected_group_icon_id = nil,
+                            last_interacted_task_id = nil,
+                            show_completed_tasks = false,
+                        }
+                    }
+                    -- Clean up old keys
+                    p.selected_tasks = nil
+                    p.selected_group_tab_id = nil
+                    p.settings = nil
+                end
+            else
+                initialize_player(player.index)
+            end
+        end
+    end
 end)
 
 --- Called when a new player is created
 --- Initialize all needed data and set defaults
 --- https://lua-api.factorio.com/latest/events.html#on_player_created
 script.on_event(defines.events.on_player_created, function(event)
-    local player = game.get_player(event.player_index)
+    -- Initialize data for the player
+    initialize_player(event.player_index)
 
-    -- Initialize the player's data table
-    if not storage.players[player.index] then
-        storage.players[player.index] = {}
-    end
-
-    -- Initialize table for selected tasks
-    storage.players[player.index].selected_tasks = {}
-
-    -- Store settings for my player
-    storage.players[player.index].settings = {}
-
-    -- Set the window to not be pinned open
-    storage.players[player.index].settings.is_task_list_pinned_open = false
-       
-
-    -- Set new players to have the first group selected by default
-    storage.players[player.index].selected_group_tab_id = Task_manager.get_group_order()[1]
 end)
 
 -- Runs when a saved game is loaded
@@ -966,7 +1027,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- When closing group management, clear the selected group 
         -- (so the window opens with nothing selected)
         if window_name == constants.jolt.group_management.window_name then
-            storage.players[event.player_index].selected_group_icon_id = nil
+            Task_manager.clear_group_management_selected_group_id(player)
         end
 
         -- clear selected tasks
@@ -1084,8 +1145,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
         -- Invert the setting stored in task manager 
-        local show_completed = Task_manager.get_setting_show_completed()
-        Task_manager.set_setting_show_completed(not show_completed)
+        local show_completed = Task_manager.get_setting_show_completed(player)
+        Task_manager.set_setting_show_completed(player, not show_completed)
 
         -- Refresh list of tasks
         open_task_list_menu(event)
@@ -1131,7 +1192,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- If the window is already open close it
         if player.gui.screen[constants.jolt.group_management.window_name] then
             -- clear the selected group 
-            storage.players[event.player_index].selected_group_icon_id = nil
+            Task_manager.clear_group_management_selected_group_id(player)
 
             -- close the window
             player.gui.screen[constants.jolt.group_management.window_name].destroy()
@@ -1153,7 +1214,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             Utils.display_error(player, max_groups_error_message)
         else
             -- Make it the currently selected group
-            storage.players[event.player_index].selected_group_icon_id = new_group_id
+            Task_manager.set_group_management_selected_group_id(player, new_group_id)
 
             -- Refresh windows
             open_task_list_menu(event)
@@ -1164,7 +1225,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Delete selected group
     elseif element_name ==  constants.jolt.group_management.delete_group then
         -- Get group id
-        local group_id = storage.players[event.player_index].selected_group_icon_id
+        local group_id = Task_manager.get_group_management_selected_group_id(player)
 
         -- If tasks in group show warning
         local task_count = Task_manager.count_tasks_for_group(group_id)
@@ -1200,7 +1261,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             local message = {"jolt_group_management.confirm_delete_group_warning_message", task_count, task_count > 1}
 
             -- Label to hold warning message
-            local confirm_delete_label = Gui.new_label(confirm_delete_frame, message)
+            local confirm_delete_label = Gui.new_label(confirm_delete_frame, message, player)
 
             -- Force onto multiple lines
             confirm_delete_label.style.single_line = false
@@ -1223,7 +1284,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Confirm deleted group button
     elseif element_name ==  constants.jolt.delete_group.confirm_button then
         -- Get group id
-        local group_id = storage.players[event.player_index].selected_group_icon_id
+        local group_id = Task_manager.get_group_management_selected_group_id(player)
 
         -- Delete group
         local is_deleted = Task_manager.delete_group(group_id)
@@ -1245,7 +1306,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif event.element.tags.is_group_management_icon_button then
         -- Save new selected group id 
         local selected_group_id = event.element.tags.group_id
-        storage.players[event.player_index].selected_group_icon_id = selected_group_id
+        Task_manager.set_group_management_selected_group_id(player, selected_group_id)
 
         -- Refresh windows
         open_task_list_menu(event)
@@ -1254,7 +1315,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Move group left button
     elseif element_name == constants.jolt.group_management.move_group_left then
         -- Get current selected group
-        local group_id = storage.players[event.player_index].selected_group_icon_id
+        local group_id = Task_manager.get_group_management_selected_group_id(player)
 
         -- save group changes to prevent them being lost
         Task_manager.save_current_group(player)
@@ -1269,7 +1330,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Move group right button
     elseif element_name == constants.jolt.group_management.move_group_right then
         -- Get current selected group
-        local group_id = storage.players[event.player_index].selected_group_icon_id
+        local group_id = Task_manager.get_group_management_selected_group_id(player)
 
         -- save group changes to prevent them being lost
         Task_manager.save_current_group(player)
@@ -1379,7 +1440,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
         -- When closing group management, clear the selected group 
         -- (so the window opens with nothing selected)
         if window_name == constants.jolt.group_management.window_name then
-            storage.players[event.player_index].selected_group_icon_id = nil
+            Task_manager.clear_group_management_selected_group_id(player)
         end
 
         -- clear selected tasks

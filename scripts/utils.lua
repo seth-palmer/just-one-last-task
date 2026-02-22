@@ -30,5 +30,8 @@ end
 -- use log to debug without and 'event'
 -- check `factorio-current.log` next the the `saves` dir
 -- log("subtask_id: " .. subtask_id)
-
+-- Log tables
+-- log("subtask_id: " .. subtask_id)
+-- log(serpent.block(my_table))
+-- log(serpent.line(my_table))
 return Utils

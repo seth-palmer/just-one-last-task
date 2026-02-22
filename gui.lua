@@ -216,7 +216,8 @@ end
 --- Adds a label to the provided parent and returns the reference
 ---@param parent gui-element
 ---@param text string
-function Gui.new_label(parent, text)
+---@param any player - player associated
+function Gui.new_label(parent, text, player)
     local label = parent.add {
         type = "label",
         caption = text
@@ -227,7 +228,7 @@ end
 --- Adds a row to the parent, for a individual task displaying title  
 ---@param parent LuaGuiElement The gui object that the task will be added to
 ---@param task Task The task object with title, desc, etc
-function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks)
+function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
 
     tab_in_ammount = tab_in_ammount or 0
     local tab_increment = 20
@@ -320,9 +321,9 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks)
 
             -- If "show_complete" setting is checked then show all subtasks,
             -- Otherwise show only tasks that are not completed
-            local show_completed = Task_manager.get_setting_show_completed()
+            local show_completed = Task_manager.get_setting_show_completed(player)
             if show_completed or subtask.is_complete == false then
-                Gui.new_gui_task(task_container, subtask, tab_in_ammount, selected_tasks)
+                Gui.new_gui_task(task_container, subtask, tab_in_ammount, selected_tasks, player)
             end
         end
 

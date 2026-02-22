@@ -18,27 +18,31 @@ function TaskManager.new(params)
 
     local self = {}
 
+    log("jolt error")
+    log(serpent.block(storage))
 
     -- Store group, player, and task data
-    local groups = storage.task_data.groups
-    local group_order = storage.task_data.group_order
-
     local players = storage.players
 
+    local groups = (storage.jolt or storage.task_data).groups
+    local group_order = (storage.jolt or storage.task_data).group_order
+    
     -- A list of taskIds and priorities
-    local tasks = storage.task_data.tasks
-    local task_priorities = storage.task_data.priorities
+    local tasks = (storage.jolt or storage.task_data).tasks
+    local task_priorities = (storage.jolt or storage.task_data).priorities
+
+
 
     --- Set the show completed setting to the new boolean
     ---@param new_value boolean
-    function self.set_setting_show_completed(new_value)
-        storage.task_data.settings.show_completed = new_value
+    function self.set_setting_show_completed(player, new_value)
+        storage.players[player.index].jolt.ui.show_completed_tasks = new_value
     end
 
     --- Returns the show completed setting 
     --- @return show_completed boolean the value
-    function self.get_setting_show_completed()
-        return storage.task_data.settings.show_completed
+    function self.get_setting_show_completed(player)
+        return storage.players[player.index].jolt.ui.show_completed_tasks
     end
 
     --- Get the list of groups
@@ -427,7 +431,7 @@ function TaskManager.new(params)
     --- Returns a table with the order of groups as ids
     --- @return table group_order indexed table, access it with group_order[1]
     function self.get_group_order()
-        return storage.task_data.group_order
+        return storage.jolt.group_order
     end
 
     --- Returns the saved location of the window for the player
@@ -437,8 +441,8 @@ function TaskManager.new(params)
         -- Retrieve saved location
         local saved_location = storage.players 
             and storage.players[player.index] 
-            and storage.players[player.index].saved_window_locations 
-            and storage.players[player.index].saved_window_locations[window_name]
+            and storage.players[player.index].jolt.ui.saved_window_locations 
+            and storage.players[player.index].jolt.ui.saved_window_locations[window_name]
         
         if saved_location then
             return saved_location
@@ -452,13 +456,8 @@ function TaskManager.new(params)
     ---@param window_name any name of window to save
     ---@param new_location any coordinates to save
     function self.save_window_location(player, window_name, new_location)
-        -- Initialize if needed
-        storage.players = storage.players or {}
-        storage.players[player.index] = storage.players[player.index] or {}
-        storage.players[player.index].saved_window_locations = storage.players[player.index].saved_window_locations or {}
-        
         -- Save
-        storage.players[player.index].saved_window_locations[window_name] = new_location
+        storage.players[player.index].jolt.ui.saved_window_locations[window_name] = new_location
     end
 
     --- Returns the last interacted with element for the player
@@ -467,7 +466,7 @@ function TaskManager.new(params)
     function self.get_last_interacted_task_id(player)
         local last_interacted_task_id = storage.players
             and storage.players[player.index]
-            and storage.players[player.index].last_interacted_task_id
+            and storage.players[player.index].jolt.ui.last_interacted_task_id
         if last_interacted_task_id then
             return last_interacted_task_id
         else
@@ -480,12 +479,8 @@ function TaskManager.new(params)
     ---@param button_name any when clicked closes the window
     ---@param window_name any window to close
     function self.bind_close_button(player, button_name, window_name)
-        -- initialize if needed 
-        storage.players[player.index].close_button_registry = 
-        storage.players[player.index].close_button_registry or {}
-
         -- bind close button to window 
-        storage.players[player.index].close_button_registry[button_name] = window_name
+        storage.players[player.index].jolt.ui.close_button_registry[button_name] = window_name
     end
 
     --- Returns and removes the window name mapping for the button, or nil if not found
@@ -493,7 +488,7 @@ function TaskManager.new(params)
     ---@param button_name string button to remove the mapping from
     ---@return string|nil window_name The name of the window to close
     function self.pop_close_button(player, button_name)
-        local registry = storage.players[player.index].close_button_registry
+        local registry = storage.players[player.index].jolt.ui.close_button_registry
         local window_name = registry[button_name]
         registry[button_name] = nil  -- Remove the mapping
         return window_name
@@ -505,17 +500,17 @@ function TaskManager.new(params)
     ---@param id any task_id to save
     function self.save_last_interacted_task_id(player, id)
         -- initialize if needed 
-        storage.players[player.index].last_interacted_task_id = storage.players[player.index].last_interacted_task or {}
+        storage.players[player.index].jolt.ui.last_interacted_task_id = storage.players[player.index].jolt.ui.last_interacted_task or {}
 
         -- save
-        storage.players[player.index].last_interacted_task_id = id
+        storage.players[player.index].jolt.ui.last_interacted_task_id = id
     end
 
     --- Returns the current group id
     ---@param player any player associated
     ---@return string current_group_id id of the current group for the player
     function self.get_current_group_id(player)
-        local current_group_id = storage.players[player.index].selected_group_tab_id
+        local current_group_id = storage.players[player.index].jolt.ui.selected_group_tab_id
 
         -- If no current_group_id then return the id of the first group 
         if current_group_id == nil then
@@ -529,7 +524,7 @@ function TaskManager.new(params)
     ---@param player any player associated
     ---@param new_id string new group_id to save
     function self.set_current_group_id(player, new_id)
-        storage.players[player.index].selected_group_tab_id = new_id
+        storage.players[player.index].jolt.ui.selected_group_tab_id = new_id
     end
 
     --- Determines if the provided group exists or not
@@ -569,7 +564,7 @@ function TaskManager.new(params)
         end
 
         -- Set the task_id to true
-        storage.players[player.index].selected_tasks[task_id] = true
+        storage.players[player.index].jolt.ui.selected_tasks[task_id] = true
         return Outcome.success()
     end
 
@@ -577,7 +572,7 @@ function TaskManager.new(params)
     ---@param player any player associated
     ---@return table selected_tasks tasks for the player 
     function self.get_selected_tasks(player)
-        return storage.players[player.index].selected_tasks
+        return storage.players[player.index].jolt.ui.selected_tasks
     end
 
     function self.is_any_task_selected(player)
@@ -588,7 +583,7 @@ function TaskManager.new(params)
     --- Clears all selected tasks for the player
     ---@param player any player associated
     function self.clear_selected_tasks(player)
-        storage.players[player.index].selected_tasks = {}
+        storage.players[player.index].jolt.ui.selected_tasks = {}
     end
 
     --- Returns if the task is selected by the player
@@ -678,7 +673,7 @@ function TaskManager.new(params)
         
         -- Get tasks for selected group 
         local current_group_id = Task_manager.get_current_group_id(player)
-        local include_completed = Task_manager.get_setting_show_completed()
+        local include_completed = Task_manager.get_setting_show_completed(player)
         local tasks_in_group
         local list_order
 
@@ -717,26 +712,36 @@ function TaskManager.new(params)
     --- Returns if the task list window is pinned open for the player
     ---@param player any - associated player
     function self.is_task_list_pinned_open(player)
-        -- Initialize settings table if needed 
-        storage.players[player.index].settings = storage.players[player.index].settings or {}
-
-        local is_task_list_pinned_open = storage.players[player.index].settings.is_task_list_pinned_open
+        local is_task_list_pinned_open = storage.players[player.index].jolt.ui.is_task_list_pinned_open
         return is_task_list_pinned_open
     end
 
     --- Toggle the pinned state of the task list window
     ---@param player any - associated player
     function self.toggle_task_list_pinned_open(player)
-        -- Initialize settings table if needed 
-        storage.players[player.index].settings = storage.players[player.index].settings or {}
-
-        -- Initialize is_task_list_pinned_open if needed 
-        storage.players[player.index].settings.is_task_list_pinned_open = storage.players[player.index].settings.is_task_list_pinned_open
-            or false
-       
         -- Invert the boolean
-        storage.players[player.index].settings.is_task_list_pinned_open = 
-        not storage.players[player.index].settings.is_task_list_pinned_open
+        storage.players[player.index].jolt.ui.is_task_list_pinned_open = 
+        not storage.players[player.index].jolt.ui.is_task_list_pinned_open
+    end
+
+    --- Returns the selected group in the group management window
+    ---@param player any - player associated
+    function self.get_group_management_selected_group_id(player)
+        local group_id = storage.players[player.index].jolt.ui.selected_group_icon_id
+        return group_id
+    end
+
+    --- Sets the selected group in the group management window
+    ---@param player any - player associated
+    ---@param new_id string - new group_id to save
+    function self.set_group_management_selected_group_id(player, new_id)
+        storage.players[player.index].jolt.ui.selected_group_icon_id = new_id
+    end
+
+    --- Clears the selected group in the group management window
+    ---@param player any - player associated
+    function self.clear_group_management_selected_group_id(player)
+        storage.players[player.index].jolt.ui.selected_group_icon_id = nil
     end
 
     --- Delete all tasks that the player has selected
@@ -790,10 +795,16 @@ function TaskManager.new(params)
         local new_icon = type .. "/" .. elem.name
 
         -- Get selected group id
-        local group_id = storage.players[player.index].selected_group_icon_id
+        local group_id = self.get_group_management_selected_group_id(player)
+        log("selected group id")
+        log (group_id)
         
         -- Params to send to update group function
         local params = {name=new_name, icon=new_icon}
+
+        log("jolt updating group")
+        log(group_id)
+        log(serpent.block(params))
 
         -- Update group with new values 
         Task_manager.update_group(params, group_id)

@@ -1,0 +1,8 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 2026-02-22
+  Bugfixes:
+    - Fixed crash when mod was added to existing saves
+  Changes:
+    - Migrated internal data structure (existing saves will be automatically updated)
+---------------------------------------------------------------------------------------------------
