@@ -1240,6 +1240,9 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Get current selected group
         local group_id = storage.players[event.player_index].selected_group_icon_id
 
+        -- save group changes to prevent them being lost
+        Task_manager.save_current_group(player)
+
         -- Swap with the previous
         Task_manager.move_group_left(group_id)
 
@@ -1251,6 +1254,9 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif element_name == constants.jolt.group_management.move_group_right then
         -- Get current selected group
         local group_id = storage.players[event.player_index].selected_group_icon_id
+
+        -- save group changes to prevent them being lost
+        Task_manager.save_current_group(player)
 
         -- Swap with the next
         Task_manager.move_group_right(group_id)
@@ -1264,46 +1270,9 @@ script.on_event(defines.events.on_gui_click, function(event)
         
         -- Go through element tree to get to the form_container
         local player = game.get_player(event.player_index)
-        local screen = player.gui.screen
-        local window = screen[constants.jolt.group_management.window_name]
-        local main_frame = window[constants.jolt.group_management.main_frame]
-        local form_frame = main_frame[constants.jolt.group_management.form_frame]
-        local form_container = form_frame[constants.jolt.group_management.form_container]
 
-        -- Get form elements
-        local textbox_title = form_container[constants.jolt.group_management.task_title_textbox]
-        local icon_button = form_container[constants.jolt.group_management.change_group_icon_button]
-
-        -- Get Values
-        local new_name = textbox_title.text
-        local elem = icon_button.elem_value
-
-        -- Calculate the type because there are some edge cases :(
-        local type
-
-        -- If no 'type' then make it the default of 'item'
-        -- (Required for the icon to show up)
-        if elem.type == nil then 
-            type = "item"
-        -- Translate for edge case where it uses 'virtual'
-        -- in a choose elem button, but 'virtual-signal' in a sprite (why?)
-        elseif elem.type == "virtual" then
-            type = "virtual-signal"
-        else
-            type = elem.type
-        end
-
-        -- Combine to make the path
-        local new_icon = type .. "/" .. elem.name
-
-        -- Get selected group id
-        local group_id = storage.players[event.player_index].selected_group_icon_id
+        Task_manager.save_current_group(player)
         
-        -- Params to send to update group function
-        local params = {name=new_name, icon=new_icon}
-
-        -- Update group with new values 
-        Task_manager.update_group(params, group_id)
 
         -- Refresh windows
         open_task_list_menu(event)

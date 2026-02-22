@@ -1,5 +1,7 @@
 local Utils = require("utils")
 local Outcome = require("outcome")
+local constants = require("constants")
+
 
 TaskManager = {}
 local MAX_GUI_GROUPS = 28
@@ -735,6 +737,51 @@ function TaskManager.new(params)
 
         -- Clear selected tasks 
         self.clear_selected_tasks(player)
+    end
+
+    --- Save current group selected in group management window
+    ---@param player any - player with the window open
+    function self.save_current_group(player)
+        local screen = player.gui.screen
+        local window = screen[constants.jolt.group_management.window_name]
+        local main_frame = window[constants.jolt.group_management.main_frame]
+        local form_frame = main_frame[constants.jolt.group_management.form_frame]
+        local form_container = form_frame[constants.jolt.group_management.form_container]
+
+        -- Get form elements
+        local textbox_title = form_container[constants.jolt.group_management.task_title_textbox]
+        local icon_button = form_container[constants.jolt.group_management.change_group_icon_button]
+
+        -- Get Values
+        local new_name = textbox_title.text
+        local elem = icon_button.elem_value
+
+        -- Calculate the type because there are some edge cases :(
+        local type
+
+        -- If no 'type' then make it the default of 'item'
+        -- (Required for the icon to show up)
+        if elem.type == nil then 
+            type = "item"
+        -- Translate for edge case where it uses 'virtual'
+        -- in a choose elem button, but 'virtual-signal' in a sprite (why?)
+        elseif elem.type == "virtual" then
+            type = "virtual-signal"
+        else
+            type = elem.type
+        end
+
+        -- Combine to make the path
+        local new_icon = type .. "/" .. elem.name
+
+        -- Get selected group id
+        local group_id = storage.players[player.index].selected_group_icon_id
+        
+        -- Params to send to update group function
+        local params = {name=new_name, icon=new_icon}
+
+        -- Update group with new values 
+        Task_manager.update_group(params, group_id)
     end
 
     -- For debugging
