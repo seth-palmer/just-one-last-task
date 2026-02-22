@@ -15,6 +15,8 @@ assignees: ''
 
 **DLC (Space Age):** Yes / No
 
+**Single Player:** Yes / No
+
 **Description:**
 A clear description of the bug.
 
