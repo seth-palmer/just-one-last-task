@@ -268,14 +268,64 @@ function TaskManager.new(params)
         -- Add id to end of priorities list
         if not add_to_top then
             table.insert(task_priorities, id)
-        -- or insert top shifing everything else down   
-        else
+         
+        else -- or insert top shifing everything else down  
             table.insert(task_priorities, 1, id)
         end
     end
 
+    --- Deletes the task removing its data
+    ---@param task_id string - id of the task to delete
+    ---@param skip_parent_removal boolean|nil
+    function self.delete_task(task_id, skip_parent_removal)
+        -- Get the full task data
+        local task = self.get_task(task_id)
 
-    
+        -- If it has subtasks remove those first 
+        if task.subtasks and #task.subtasks > 0 then
+            log("found subtasks")
+            log(serpent.block(task.subtasks ))
+
+            for _, subtask_id in ipairs(task.subtasks) do
+                -- If we are recursively deleting all subtasks 
+                -- then skip removing them from their parent
+                -- (since the parent task data will be deleted)
+                self.delete_task(subtask_id, true)
+                -- Note: prevents a problem since we can't modify this
+                --       list we are going over or it will skip some
+            end
+        end
+
+        -- If it is a subtask remove it from its parent's list
+        -- (skip if deleting recursively since we will delete the full task anyway)
+         
+        if not skip_parent_removal and task.parent_id then
+
+            -- Get the parent task
+            local parent_task = self.get_task(task.parent_id)
+
+            -- Loop through to find the task id to remove 
+            for index, subtask_id in ipairs(parent_task.subtasks) do
+                -- Look for id of the deleting task 
+                if subtask_id == task_id then
+                    -- remove it from the list
+                    table.remove(parent_task.subtasks, index)
+                    break -- exit once it has been found
+                end
+            end
+        else -- otherwise remove it from the list for root level tasks 
+            
+            -- Get the position of the task
+            local task_position = self.get_task_order_position(task_id)
+            
+            -- Remove it from the priorities list
+            table.remove(task_priorities, task_position)
+        end
+
+        -- Delete the task data
+        tasks[task_id] = nil
+        log("deleting: " .. task.title)
+    end
 
     --- Update the provided task
     ---@param task_params any with new title, description, group_id
@@ -663,10 +713,28 @@ function TaskManager.new(params)
         return is_task_list_pinned_open
     end
 
+    --- Toggle the pinned state of the task list window
+    ---@param player any - associated player
     function self.toggle_task_list_pinned_open(player)
         -- Invert the boolean
         storage.players[player.index].settings.is_task_list_pinned_open = 
         not storage.players[player.index].settings.is_task_list_pinned_open
+    end
+
+    --- Delete all tasks that the player has selected
+    ---@param player any - player to get selected tasks from
+    function self.delete_selected_tasks(player)
+        -- Get the selected tasks
+        local selected_tasks = Task_manager.get_selected_tasks(player)
+        log("selected tasks:")
+        log(serpent.block(selected_tasks))
+        -- Loop through deleting each one
+        for task_id, _ in pairs(selected_tasks) do
+            self.delete_task(task_id)
+        end
+
+        -- Clear selected tasks 
+        self.clear_selected_tasks(player)
     end
 
     -- For debugging

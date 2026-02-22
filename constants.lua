@@ -28,6 +28,8 @@ constants.styles = {
     buttons = {
         red = "tool_button_red",
         yellow = "yellow_slot_button",
+        blue = "tool_button_blue",
+        green = "tool_button_green",
     }
     
 
@@ -57,6 +59,7 @@ constants.jolt = {
         folder = "jolt-icon-folder",
         plus_folder = "jolt-icon-plus-folder",
         pin = "jolt-icon-pin",
+        trash = "jolt-icon-trash",
     },
     group_management = {
         open_window_button = "jolt_open_group_management_button",
@@ -96,6 +99,7 @@ constants.jolt = {
         tab_button = "jolt_tab_button",
         move_task_up_button = "jolt_move_task_up_button",
         move_task_down_button = "jolt_move_task_down_button",
+        delete_tasks_button = "jolt_delete_task_button",
     },
     -- For new task window
     new_task = {

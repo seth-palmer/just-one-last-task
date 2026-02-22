@@ -575,11 +575,12 @@ local function open_task_list_menu(event)
         state = Task_manager.get_setting_show_completed(),
         horizontally_stretchable = "on"
     }
+    cb_show_completed.style.right_margin = 20
 
     -- Only enable controls if tasks are selected
     local enable_move_controls = Task_manager.is_any_task_selected(player)
 
-    -- Move task up button 
+    -- Move tasks up button 
     local move_task_up_button = controls_container.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.up,
@@ -590,7 +591,7 @@ local function open_task_list_menu(event)
     }
     move_task_up_button.style.size = {32, 32}
 
-    -- Move task down button 
+    -- Move tasks down button 
     local move_task_down_button = controls_container.add {
         type = "sprite-button",
         sprite = constants.jolt.sprites.down,
@@ -600,13 +601,27 @@ local function open_task_list_menu(event)
         tags = {is_jolt=true} -- seems to need a tag to be detected
     }
     move_task_down_button.style.size = {32, 32}
+    move_task_down_button.style.right_margin = 10
+
+    -- Delete tasks down button 
+    local delete_tasks_button = controls_container.add {
+        type = "sprite-button",
+        sprite = constants.jolt.sprites.trash,
+        name = constants.jolt.task_list.delete_tasks_button,
+        tooltip = {"jolt_task_list_window.tooltip_delete_tasks"},
+        enabled = enable_move_controls,
+        style = constants.styles.buttons.red,
+        tags = {is_jolt=true} -- seems to need a tag to be detected
+    }
+    delete_tasks_button.style.size = {32, 32}
+
 
     -- Empty space
     local empty_space = controls_container.add {
         type = "empty-widget",
     }
     -- Make it expand to fill the space
-    empty_space.style.minimal_width = 50
+    empty_space.style.minimal_width = 10
     empty_space.style.height = 24
     empty_space.style.horizontally_stretchable = true
 
@@ -975,6 +990,15 @@ script.on_event(defines.events.on_gui_click, function(event)
         
         -- Move the selected tasks
         Task_manager.move_selected_tasks(player, Direction.Down)
+
+        -- Refresh list of tasks
+        open_task_list_menu(event)
+
+    -- Move selected task(s) down
+    elseif element_name == constants.jolt.task_list.delete_tasks_button then
+
+        -- Delete the selected tasks (also clears the selected tasks)
+        Task_manager.delete_selected_tasks(player)
 
         -- Refresh list of tasks
         open_task_list_menu(event)

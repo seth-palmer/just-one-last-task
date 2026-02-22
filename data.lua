@@ -32,6 +32,7 @@ styles["jolt_link_button"] = {
     hovered_font_color = {0.603922, 0.980392, 1},
 }
 
+
 -- styles["jolt_controls_flow"] = {
 --     type = "horizontal_flow_style",
 --     vertical_align = "center",
@@ -152,6 +153,14 @@ data:extend({
         type = "sprite",
         name = "jolt-icon-pin",
         filename = "__just-one-last-task__/graphics/icons/pinx64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-trash",
+        filename = "__just-one-last-task__/graphics/icons/trashx64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}

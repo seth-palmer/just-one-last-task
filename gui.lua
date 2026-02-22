@@ -23,8 +23,7 @@ function Gui.new_window(player, window_title, window_name, close_button_name, wi
     }
     window.style.size = {width, height}
 
-    -- Set window to close
-    local is_task_list_pinned_open = Task_manager.is_task_list_pinned_open(player)
+    -- Set window to close when 'e' is pressed or other window opened
     player.opened = window
     
 
@@ -115,6 +114,8 @@ function Gui.new_dialog_window(options)
     -- Get screen to display to
     local screen_element = player.gui.screen
 
+    
+
     -- Check if window already exists and destroy it
     if player.gui.screen[window_name] then
         player.gui.screen[window_name].destroy()
@@ -126,6 +127,7 @@ function Gui.new_dialog_window(options)
         direction = "vertical"
     }
     window.style.size = {width, height}
+
 
     -- Move the window to the saved location if it exists 
     local saved_location = Task_manager.get_saved_window_position(player, window_name)
