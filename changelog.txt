@@ -6,3 +6,7 @@ Date: 2026-02-22
   Changes:
     - Migrated internal data structure (existing saves will be automatically updated)
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2026-02-22
+  Major Features:
+    - Initial release.
