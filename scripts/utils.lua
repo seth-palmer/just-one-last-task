@@ -26,6 +26,7 @@ function Utils.display_error(player, message)
 end
 
 
+
 -- TIP:
 -- use log to debug without and 'event'
 -- check `factorio-current.log` next the the `saves` dir

@@ -387,9 +387,14 @@ function TaskManager.new(params)
     end
 
     --- Returns the list of subtasks for the provided parent task
+    --- Defaults to not include completed
     ---@param parent_id string - id of the parent task
+    ---@param include_completed boolean|nil - if completed subtasks are included
     ---@return table subtasks
     function self.get_subtasks(parent_id, include_completed)
+        -- Defaults to not include completed
+        include_completed = include_completed or false
+
         -- Get the parent task 
         local parent_task = self.get_task(parent_id)
         local subtask_id_list = parent_task.subtasks
@@ -412,6 +417,7 @@ function TaskManager.new(params)
         -- Return the list of full subtasks
         return subtasks
     end
+
 
     --- Returns the group with the provied uuid
     --- @param id string - uuid of the group to search for

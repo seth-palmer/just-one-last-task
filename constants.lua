@@ -43,6 +43,7 @@ constants.jolt = {
         open_task_list_window = "jolt_shortcut_open_task_list_window"
     },
     sprites = {
+        -- Copy of names of sprites in `data.lua`
         -- add = "utility/add",
         add = "jolt-icon-plus",
         close = "utility/close",
@@ -60,6 +61,7 @@ constants.jolt = {
         plus_folder = "jolt-icon-plus-folder",
         pin = "jolt-icon-pin",
         trash = "jolt-icon-trash",
+        subtasks = "jolt-icon-subtasks",
     },
     group_management = {
         open_window_button = "jolt_open_group_management_button",

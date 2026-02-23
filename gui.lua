@@ -257,6 +257,34 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
         tags = {is_jolt = true, task_id = task.id}
     }
 
+    
+    -- If it has a description add blue "..." indicator 
+    if task.description ~= '' then
+        local new_caption
+        local title = checkbox_completed.caption
+
+        -- Append to the task title
+        new_caption = string.format("%s [font=default-bold][color=blue]...[/color][/font]", title)
+
+        -- Set the new caption
+        checkbox_completed.caption = new_caption
+    end
+
+    -- If it has subtasks add icon and display number of incompleted subtasks
+    if #task.subtasks > 0 then
+        local title = checkbox_completed.caption
+        local new_caption
+
+        -- Get number of imcompleted subtasks
+        local incomplete_subtasks = #Task_manager.get_subtasks(task.id)
+
+        -- Prepend to the task title
+        new_caption = string.format("[img=%s][color=blue]%s:[/color] %s", constants.jolt.sprites.subtasks, incomplete_subtasks, title)
+
+        -- Set the new caption
+        checkbox_completed.caption = new_caption
+    end
+
     -- check if the task is selected 
     local is_selected = selected_tasks[task.id] == true
 
@@ -286,6 +314,7 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
     }
     sbtn_edit.style.size = {26,26}
 
+
     -- A sprite button with cheverons to mark if the details are expanded or not
     local sbtn_details = controls_container.add {
         type="sprite-button",
@@ -295,6 +324,7 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
         tags = {is_jolt = true, task_id = task.id, group_id=task.group_id}
     }
     sbtn_details.style.size = {26,26}
+
 
     -- TODO: store the show_details in the player table instead of the task
     -- If details are expanded add extra controls and subtasks

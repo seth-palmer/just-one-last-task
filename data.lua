@@ -77,9 +77,9 @@ data:extend({
         localised_name = {"jolt.tasks-menu"},
         associated_control_input = constants.jolt.shortcuts.open_task_list_window,
         -- style = "blue",
-        icon = "__just-one-last-task__/graphics/icons/jolt-shortcutx64.png",
+        icon = "__just-one-last-task__/graphics/icons/jolt_shortcut_64x64.png",
         icon_size = 64,
-        small_icon = "__just-one-last-task__/graphics/icons/jolt-shortcutx24.png",
+        small_icon = "__just-one-last-task__/graphics/icons/jolt_shortcut_24x24.png",
         small_icon_size = 24,
         scale = 0.5,  -- scale down to 32x32
         flags = {"gui-icon"},
@@ -88,7 +88,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-left",
-        filename = "__just-one-last-task__/graphics/icons/leftx64.png",
+        filename = "__just-one-last-task__/graphics/icons/left_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -96,7 +96,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-right",
-        filename = "__just-one-last-task__/graphics/icons/rightx64.png",
+        filename = "__just-one-last-task__/graphics/icons/right_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -104,7 +104,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-up",
-        filename = "__just-one-last-task__/graphics/icons/upx64.png",
+        filename = "__just-one-last-task__/graphics/icons/up_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -112,7 +112,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-down",
-        filename = "__just-one-last-task__/graphics/icons/downx64.png",
+        filename = "__just-one-last-task__/graphics/icons/down_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -120,7 +120,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-plus",
-        filename = "__just-one-last-task__/graphics/icons/plusx64.png",
+        filename = "__just-one-last-task__/graphics/icons/plus_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -128,7 +128,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-folder",
-        filename = "__just-one-last-task__/graphics/icons/folderx64.png",
+        filename = "__just-one-last-task__/graphics/icons/folder_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -136,7 +136,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-edit",
-        filename = "__just-one-last-task__/graphics/icons/editx64.png",
+        filename = "__just-one-last-task__/graphics/icons/edit_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -144,7 +144,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-edit-group",
-        filename = "__just-one-last-task__/graphics/icons/edit-groupx64.png",
+        filename = "__just-one-last-task__/graphics/icons/edit_group_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -152,7 +152,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-pin",
-        filename = "__just-one-last-task__/graphics/icons/pinx64.png",
+        filename = "__just-one-last-task__/graphics/icons/pin_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -160,7 +160,7 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-trash",
-        filename = "__just-one-last-task__/graphics/icons/trashx64.png",
+        filename = "__just-one-last-task__/graphics/icons/trash_64x64.png",
         priority = "extra-high-no-scale",
         size = 64,
         flags = {"gui-icon"}
@@ -168,10 +168,18 @@ data:extend({
     {
         type = "sprite",
         name = "jolt-icon-plus-folder",
-        filename = "__just-one-last-task__/graphics/icons/plus-folder.png",
+        filename = "__just-one-last-task__/graphics/icons/plus_folder_156x64.png",
         priority = "extra-high-no-scale",
         width=156,
         height=64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-subtasks",
+        filename = "__just-one-last-task__/graphics/icons/subtasks_64x64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
         flags = {"gui-icon"}
     },
 })
