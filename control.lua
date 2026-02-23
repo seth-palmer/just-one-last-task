@@ -682,10 +682,23 @@ local function open_task_list_menu(event)
     local last_interacted_task_id = Task_manager.get_last_interacted_task_id(player)
     local last_interacted_task_element
 
+    local task_count = 0
+
     -- Get tasks, checking if the control button "Show Completed".
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
     local group_tasks = Task_manager.get_tasks(current_group_id, Task_manager.get_setting_show_completed(player))
     for _, task in pairs(group_tasks) do
+
+        -- Increment task counter
+        task_count = task_count + 1
+
+        -- Add a divider every 5 tasks
+        local DIVIDER_COUNT = 5
+        -- Add divider every 5 tasks
+        if task_count > 1 and (task_count - 1) % DIVIDER_COUNT == 0 then
+            tab_content.add{type="line", direction="horizontal"}
+        end
+
         -- Check if task is selected 
         local selected_tasks = Task_manager.get_selected_tasks(player)
         local is_selected = Task_manager.is_task_selected(player, task.id)
