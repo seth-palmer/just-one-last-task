@@ -187,6 +187,7 @@ local function open_group_management_window(event)
         text = selected_group.name,
         style = constants.styles.form.textfield,
         enabled = default_btn_state,
+        icon_selector = true, -- add icon selector section
     }
     -- Focus the textbox for faster edits
     task_title_textbox.focus()
@@ -370,31 +371,21 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
     
     -- Label "Title" and textbox input
     local task_title_label = Gui.new_label(new_task_form, "Title", player)
-    -- TODO: in future add button to add icon to task title
-    -- local task_title_flow = new_task_form.add {
-    --     type = "flow",
-    --     direction = "horizontal",
-    -- }
-    -- task_title_flow.style.vertical_align = "center"
-    -- task_title_flow.style.horizontal_spacing = 0
-    -- local task_title_choose_icon_button = new_task_form.add {
-    --     type = "choose-elem-button",
-    --     name = "",
-    --     elem_type = "signal",
-    -- }
 
     -- textbox for the task title
     local task_title_textbox = new_task_form.add {
         type = "textfield",
         name = constants.jolt.new_task.title_textbox,
         text = title,
-        style = constants.styles.form.textfield
+        style = constants.styles.form.textfield,
+        icon_selector = true, -- add an icon selector to insert icons
     }
     task_title_textbox.style.horizontally_stretchable = true
     task_title_textbox.style.maximal_width = 300
 
     -- Focus the textfield so the player can type immediately
     task_title_textbox.focus()
+
 
     -- Checkbox for "Add to top"
     local checkbox_add_to_top = new_task_form.add {
@@ -427,7 +418,7 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
         name = constants.jolt.new_task.description_textbox,
         text = description,
         style = constants.styles.form.textfield,
-        
+        icon_selector = true, -- add an icon selector to insert icons
     }
     task_description_textbox.style.horizontally_stretchable = true
     task_description_textbox.style.vertically_stretchable = true

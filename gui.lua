@@ -241,7 +241,23 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
 
     
     -- A container to put task controls
-    local controls_container = task_container.add{type="flow", direction="horizontal"}
+    local controls_container = task_container.add{
+        type="frame",
+        style="invisible_frame",
+        direction="horizontal",
+    }
+
+    -- check if the task is selected 
+    local is_selected = selected_tasks[task.id] == true
+    if is_selected then
+        -- Style it with the selected style
+        -- IMPORTANT! this is how to style background colors have to use sprites
+        controls_container.style = "jolt_task_selected"
+        
+    end
+    controls_container.style.padding = 0
+    controls_container.style.margin = 0
+
 
     -- A container to put subtasks so they are tabbed in 
     local subtask_container = task_container.add{type="flow", direction="vertical"}
@@ -256,15 +272,32 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
         caption=task.title,
         tags = {is_jolt = true, task_id = task.id}
     }
+    local margin = 4
+    checkbox_completed.style.margin = margin
 
     
+
+    -- check if the task is selected 
+    local is_selected = selected_tasks[task.id] == true
+
+    local selected_task_font_color = "#134ded"
+    local unselected_task_font_color = "blue"
+
+    -- Change the font color so it is more readable when the background color changes
+    local font_color 
+    if is_selected then
+        font_color = selected_task_font_color
+    else
+        font_color = unselected_task_font_color
+    end
+
     -- If it has a description add blue "..." indicator 
     if task.description ~= '' then
         local new_caption
         local title = checkbox_completed.caption
 
         -- Append to the task title
-        new_caption = string.format("%s [font=default-bold][color=blue]...[/color][/font]", title)
+        new_caption = string.format("%s [font=default-bold][color=%s]...[/color][/font]", title, font_color)
 
         -- Set the new caption
         checkbox_completed.caption = new_caption
@@ -279,19 +312,18 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
         local incomplete_subtasks = #Task_manager.get_subtasks(task.id)
 
         -- Prepend to the task title
-        new_caption = string.format("[img=%s][color=blue]%s:[/color] %s", constants.jolt.sprites.subtasks, incomplete_subtasks, title)
+        new_caption = string.format("[img=%s][color=%s]%s:[/color] %s", constants.jolt.sprites.subtasks, font_color, incomplete_subtasks, title)
 
         -- Set the new caption
         checkbox_completed.caption = new_caption
     end
 
-    -- check if the task is selected 
-    local is_selected = selected_tasks[task.id] == true
+    
 
     -- Change the style for selected tasks
     if is_selected then
         checkbox_completed.style.font = "default-bold"
-        checkbox_completed.style.font_color = {r=0.2, g=0.6, b=1.0}
+        checkbox_completed.style.font_color = {r=0, g=0, b=0}
     end
     
     if not (task.parent_id == nil) then
@@ -313,6 +345,7 @@ function Gui.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
         tags = {is_jolt = true, task_id = task.id, group_id=task.group_id}
     }
     sbtn_edit.style.size = {26,26}
+    sbtn_edit.style.right_margin = 4
 
 
     -- A sprite button with cheverons to mark if the details are expanded or not

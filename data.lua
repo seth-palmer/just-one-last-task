@@ -33,6 +33,21 @@ styles["jolt_link_button"] = {
 }
 
 
+-- A solid colored background using a pixel from Factorio's own GUI atlas
+-- https://lua-api.factorio.com/latest/types/ElementImageSetLayer.html#draw_type
+styles["jolt_task_selected"] = {
+    type = "frame_style",
+    parent = "invisible_frame",
+    graphical_set = {
+        base = {
+            position = {34, 17},
+            corner_size = 8,
+            draw_type = "outer" -- draw outside the widget so it doesn't move
+        },
+    }
+}
+
+
 -- styles["jolt_controls_flow"] = {
 --     type = "horizontal_flow_style",
 --     vertical_align = "center",
