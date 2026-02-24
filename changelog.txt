@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-02-23
+  Features:
+    - Added button to insert icons new task title and description; as well as group title textbox
+    - Added icon next to task to indicate subtasks and a number for the remaining uncompleted subtasks
+    - Added ellipsis "..." appended to task titles that have a description.
+    - Added a dividing space every five tasks to make long lists easier to scan.
+  Gui:
+    - Selected task highlighting now uses a yellow background with black text for better visibility.
+    - Styled the subtitle bar for new subtasks and added the subtask icon to it.
+  Graphics:
+    - Thumbnail image is now more zoomed in and focused on the main task list only.
+  Bugfixes:
+    - Fixed "Subtask of ..." subtitle overflowing the new subtask window.
+---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2026-02-22
   Bugfixes:
