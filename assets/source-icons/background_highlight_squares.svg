@@ -39,18 +39,31 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#ca8823;fill-opacity:0.30000001;stroke-width:1.244;stroke-linecap:round;stroke-linejoin:round"
+       style="fill:#ca8823;fill-opacity:0.5;stroke-width:1.244;stroke-linecap:round;stroke-linejoin:round"
        id="rect2"
        width="17.904139"
        height="17.904139"
        x="26.856207"
-       y="60.124035" />
+       y="60.124035"
+       inkscape:export-filename="background_yellow_1x1.png"
+       inkscape:export-xdpi="1.4186665"
+       inkscape:export-ydpi="1.4186665" />
     <rect
-       style="fill:#55a4ed;fill-opacity:0.30000001;stroke-width:1.244;stroke-linecap:round;stroke-linejoin:round"
+       style="fill:#55a4ed;fill-opacity:0.5;stroke-width:1.244;stroke-linecap:round;stroke-linejoin:round"
        id="rect3"
        width="17.904139"
        height="17.904139"
        x="65.930779"
        y="60.24501" />
+    <rect
+       style="fill:#ffae00;fill-opacity:0.80000001;stroke-width:1.244;stroke-linecap:round;stroke-linejoin:round"
+       id="rect4"
+       width="17.904139"
+       height="17.904139"
+       x="26.251337"
+       y="83.955894"
+       inkscape:export-filename="background_yellow_1x1.png"
+       inkscape:export-xdpi="1.4186665"
+       inkscape:export-ydpi="1.4186665" />
   </g>
 </svg>
