@@ -124,7 +124,7 @@ function Gui.new_dialog_window(options)
     local window = screen_element.add {
         type = "frame",
         name = window_name,
-        direction = "vertical"
+        direction = "vertical",
     }
     window.style.size = {width, height}
 

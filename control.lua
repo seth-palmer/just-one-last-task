@@ -15,6 +15,7 @@ local GROUP_MANAGEMENT_WINDOW_WIDTH = 320
 local GROUP_MANAGEMENT_WINDOW_HEIGHT = 480
 local WARNING_WINDOW_WIDTH = 300
 local WARNING_WINDOW_HEIGHT = 180
+local SUBTITLE_MAX_WIDTH = TASK_LIST_WINDOW_WIDTH - 130
 
 -- If the "add to top" is selected in the new task window
 local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
@@ -333,16 +334,25 @@ local function open_task_form_window(event, window_title, window_subtitle, task)
             type = "frame",
             name = "jolt_controls_container",
             direction = "horizontal",
-            style = "subheader_frame",
+            style = "control_settings_section_frame",
+            -- style = "repeated_subheader_frame",
+            -- style = "no_header_filler_frame",
             index = 2, -- Must set to 2 to place above the bottom row
         }
+        controls_container.style.padding = 4
+        controls_container.style.top_margin = 4
+        controls_container.style.bottom_margin = 4
 
         -- subtitle 
         local lbl_subtitle = controls_container.add {
             type = "label",
-            caption = window_subtitle,
-            horizontally_stretchable = "on"
+            -- Add the icon this way to prevent a crash with not being able to concat tables
+            caption = {"", "[img=" .. constants.jolt.sprites.subtasks .. "] ", window_subtitle},
+            horizontally_stretchable = "on",
         }
+        -- Limit the maximum width to prevent overflow for long task names
+        lbl_subtitle.style.maximal_width = SUBTITLE_MAX_WIDTH
+        lbl_subtitle.style.font = "default-bold"
 
         -- Empty space
         local empty_space = controls_container.add {
@@ -1142,6 +1152,11 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- Invert completed status 
             task.is_complete = not task.is_complete
 
+            -- Move task to the end 
+            -- if task.is_complete then
+            --     Task_manager.move_task_to_bottom(task.id)
+            -- end
+
             -- Refresh list of tasks (Is this inefficient?)
             open_task_list_menu(event)
         end
@@ -1174,7 +1189,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task = Task_manager.get_task(task_id)
 
         -- Open the add task window
-        local subtitle = "Subtask of " .. task.title
+        local subtitle = {"jolt_task_list_window.label_subtask_of", task.title}
         local subtask = {}
         subtask.parent_id = task.id
         open_task_form_window(event, "New Subtask", subtitle, subtask)

@@ -281,7 +281,7 @@ function TaskManager.new(params)
             return
         end
 
-        -- Add id to end of priorities list
+        -- Add id to bottom/end of priorities list
         if not add_to_top then
             table.insert(task_priorities, id)
          
@@ -605,8 +605,23 @@ function TaskManager.new(params)
         return selected_tasks[task_id] == true
     end
 
+    --- Moves the provided task to the bottom of the list
+    ---@param task_id string - 
+    function self.move_task_to_bottom(task_id)
+        
+        -- https://www.luadocs.com/docs/functions/table/move
+        local task_position = self.get_task_order_position(task_id)
+
+        local removed_task_id = table.remove(task_priorities, task_position)
+        -- if removed_task_id ~= task_id then
+        --     error("Move Task to End error: task id does not match position")
+        -- end
+        table.insert(task_priorities, task_id)
+    end
+
 
     --- Swap the position of tasks using their ids
+    ---@param list_order table - list of tasks to search through
     ---@param task1_id string - id of task 1
     ---@param task2_id string - id of task 2
     local function swap_task_positions(list_order, task1_id, task2_id)
