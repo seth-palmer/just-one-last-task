@@ -18,9 +18,6 @@ function TaskManager.new(params)
 
     local self = {}
 
-    log("jolt error")
-    log(serpent.block(storage))
-
     -- Store group, player, and task data
     local players = storage.players
 
@@ -245,6 +242,29 @@ function TaskManager.new(params)
             return true
         end
         return false
+    end
+
+    --- Save the task data with error handleing
+    ---@param data any - data for task
+    ---@return Outcome - outcome.success = true if succeeded
+    --- or false if failed with outcome.message that can be displayed
+    function self.save_task(data)
+
+        -- If no title do not create or edit task
+        if data.title == "" then
+            local message = {"jolt_new_task_window.no_title_error_message"}
+            return Outcome.fail(message)
+
+        else -- If valid data add task
+            if data.is_edit_task then -- if it has id, update task
+                Task_manager.update_task(data, data.id)
+                
+            else -- otherwise add new task
+                Task_manager.add_task(data, data.add_to_top)
+            end
+
+            return Outcome.success()
+        end
     end
 
     --- Add a task using provided parameters
@@ -817,15 +837,9 @@ function TaskManager.new(params)
 
         -- Get selected group id
         local group_id = self.get_group_management_selected_group_id(player)
-        log("selected group id")
-        log (group_id)
         
         -- Params to send to update group function
         local params = {name=new_name, icon=new_icon}
-
-        log("jolt updating group")
-        log(group_id)
-        log(serpent.block(params))
 
         -- Update group with new values 
         Task_manager.update_group(params, group_id)
