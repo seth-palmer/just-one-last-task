@@ -2,6 +2,7 @@
 
 --- Imports
 local TaskManager = require("scripts.task_manager")
+local PlayerState = require("scripts.player_state")
 local constants = require("constants")
 local Gui = require("gui")
 local Utils = require("scripts.utils")
@@ -85,31 +86,7 @@ local function add_new_task(event)
     end
 end
 
---- Initialize data for the player
----@param player_index any - player index to initialize
-local function initialize_player(player_index)
-    local player = game.get_player(player_index)
 
-    -- Initialize the player's data table
-    if not storage.players[player.index] then
-        storage.players[player.index] = {}
-    end
-
-    -- Initialize jolt specific data under a jolt key
-    storage.players[player.index].jolt = {
-        ui = {
-            selected_tasks = {},
-            selected_group_tab_id = Task_manager.get_group_order()[1],
-            saved_window_locations = {},
-            close_button_registry = {},
-            is_task_list_pinned_open = false,
-            selected_group_icon_id = nil,
-            last_interacted_task_id = nil,
-            show_completed_tasks = false,
-        },
-        
-    }
-end
 --endregion =======Local Functions=======
 
 
@@ -194,7 +171,7 @@ script.on_configuration_changed(function(event)
                     p.settings = nil
                 end
             else
-                initialize_player(player.index)
+                PlayerState.initialize(player.index)
             end
         end
     end
@@ -205,7 +182,7 @@ end)
 --- https://lua-api.factorio.com/latest/events.html#on_player_created
 script.on_event(defines.events.on_player_created, function(event)
     -- Initialize data for the player
-    initialize_player(event.player_index)
+    PlayerState.initialize(event.player_index)
 
 end)
 
@@ -300,11 +277,11 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- in separate "if" statement so it doesn't block other interactions
     if event.element.tags.task_id then
         -- save task id
-        Task_manager.save_last_interacted_task_id(player, event.element.tags.task_id)
+        PlayerState.save_last_interacted_task_id(player, event.element.tags.task_id)
     end
 
     -- Check if element is a close button for one of jolt's windows
-    local window_name = Task_manager.pop_close_button(player, element_name)
+    local window_name = PlayerState.pop_close_button(player, element_name)
 
     -- If it is then attempt to close the window
     if window_name ~= nil then
@@ -316,17 +293,17 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- When closing group management, clear the selected group 
         -- (so the window opens with nothing selected)
         if window_name == constants.jolt.group_management.window_name then
-            Task_manager.clear_group_management_selected_group_id(player)
+            PlayerState.clear_group_management_selected_group_id(player)
         end
 
         -- clear selected tasks
-        Task_manager.clear_selected_tasks(player)
+        PlayerState.clear_selected_tasks(player)
 
     -- Keep open button is pressed
     elseif element_name == constants.jolt.task_list.keep_window_open_button then
 
         -- toggle the keep open state
-        Task_manager.toggle_task_list_pinned_open(player)
+        PlayerState.toggle_task_list_pinned_open(player)
 
         -- Refresh window 
        TaskListWindow.open(event)
@@ -334,7 +311,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
         -- clear selected tasks
-        Task_manager.clear_selected_tasks(player)
+        PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
        TaskListWindow.open(event)
@@ -406,7 +383,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         if event.control then
             -- Add selected task to list
             -- Note: (non sibling tasks will not be added)
-            local outcome = Task_manager.add_selected_task(player, task_id)
+            local outcome = PlayerState.add_selected_task(player, task_id)
 
             -- Check if it did not succeed
             if not outcome.success then
@@ -419,7 +396,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         
         else -- Otherwise mark mark complete / uncomplete 
             -- clear selected tasks 
-            Task_manager.clear_selected_tasks(player)
+            PlayerState.clear_selected_tasks(player)
 
             -- Get the task 
             local task = Task_manager.get_task(task_id)
@@ -439,8 +416,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
         -- Invert the setting stored in task manager 
-        local show_completed = Task_manager.get_setting_show_completed(player)
-        Task_manager.set_setting_show_completed(player, not show_completed)
+        local show_completed = PlayerState.get_setting_show_completed(player)
+        PlayerState.set_setting_show_completed(player, not show_completed)
 
         -- Refresh list of tasks
        TaskListWindow.open(event)
@@ -473,10 +450,10 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif event.element.tags.is_group_change_button then
         -- Save selected group id
         local selected_group_id = event.element.tags.group_id
-        Task_manager.set_current_group_id(player, selected_group_id)
+        PlayerState.set_current_group_id(player, selected_group_id)
 
         -- Clear selected tasks 
-        Task_manager.clear_selected_tasks(player)
+        PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
        TaskListWindow.open(event)
@@ -486,7 +463,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- If the window is already open close it
         if player.gui.screen[constants.jolt.group_management.window_name] then
             -- clear the selected group 
-            Task_manager.clear_group_management_selected_group_id(player)
+            PlayerState.clear_group_management_selected_group_id(player)
 
             -- close the window
             player.gui.screen[constants.jolt.group_management.window_name].destroy()
@@ -508,7 +485,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             Utils.display_error(player, max_groups_error_message)
         else
             -- Make it the currently selected group
-            Task_manager.set_group_management_selected_group_id(player, new_group_id)
+            PlayerState.set_group_management_selected_group_id(player, new_group_id)
 
             -- Refresh windows
            TaskListWindow.open(event)
@@ -519,7 +496,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Delete selected group
     elseif element_name ==  constants.jolt.group_management.delete_group then
         -- Get group id
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- If tasks in group show warning
         local task_count = Task_manager.count_tasks_for_group(group_id)
@@ -541,7 +518,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             local confirm_delete_window = Gui.new_dialog_window(options)
 
             -- Add event to watch for button click to close the window
-            Task_manager.bind_close_button(player, options.back_button_name, options.window_name)
+            PlayerState.bind_close_button(player, options.back_button_name, options.window_name)
 
             -- Confirm delete button
             local confirm_delete_frame = confirm_delete_window.add {
@@ -578,7 +555,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Confirm deleted group button
     elseif element_name ==  constants.jolt.delete_group.confirm_button then
         -- Get group id
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- Delete group
         local is_deleted = Task_manager.delete_group(group_id)
@@ -600,7 +577,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif event.element.tags.is_group_management_icon_button then
         -- Save new selected group id 
         local selected_group_id = event.element.tags.group_id
-        Task_manager.set_group_management_selected_group_id(player, selected_group_id)
+        PlayerState.set_group_management_selected_group_id(player, selected_group_id)
 
         -- Refresh windows
        TaskListWindow.open(event)
@@ -609,7 +586,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Move group left button
     elseif element_name == constants.jolt.group_management.move_group_left then
         -- Get current selected group
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- save group changes to prevent them being lost
         Task_manager.save_current_group(player)
@@ -624,7 +601,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Move group right button
     elseif element_name == constants.jolt.group_management.move_group_right then
         -- Get current selected group
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- save group changes to prevent them being lost
         Task_manager.save_current_group(player)
@@ -663,7 +640,7 @@ script.on_event(defines.events.on_gui_location_changed, function(event)
     
     -- Save new location to storage
     -- storage.players[event.player_index].saved_window_locations[event.element.name] = new_location
-    Task_manager.save_window_location(player, event.element.name, new_location)
+    PlayerState.save_window_location(player, event.element.name, new_location)
 end)
 
 --- Called when the player closes the GUI they have open.
@@ -680,7 +657,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
     if not Task_manager.is_jolt_window(window_name) then return end
 
     -- Don't close if task_list window and it is pinned open 
-    if window_name == constants.jolt.task_list.window and Task_manager.is_task_list_pinned_open(player) then
+    if window_name == constants.jolt.task_list.window and PlayerState.is_task_list_pinned_open(player) then
         return
     end
 
@@ -691,6 +668,6 @@ script.on_event(defines.events.on_gui_closed, function(event)
     if window_name == constants.jolt.group_management.window_name then
     end
     if window_name == constants.jolt.task_list.window_name then
-        Task_manager.clear_selected_tasks(player)
+        PlayerState.clear_selected_tasks(player)
     end
 end)

@@ -6,6 +6,8 @@ local GROUP_MANAGEMENT_WINDOW_HEIGHT = 480
 local constants = require("constants")
 local Gui = require("gui")
 local TaskManager = require("scripts.task_manager")
+local PlayerState = require("scripts.player_state")
+
 
 local GroupManagerWindow = {}
 
@@ -21,7 +23,7 @@ function GroupManagerWindow.open(event)
     local window = Gui.new_window(player, title, window_name, close_name, window_width, window_height)
 
     -- Add event to watch for button click to close the window
-    Task_manager.bind_close_button(player, close_name, window_name)
+    PlayerState.bind_close_button(player, close_name, window_name)
 
     -- The selected group
     local selected_group = {title = "", icon="virtual/signal-question-mark"}
@@ -104,7 +106,7 @@ function GroupManagerWindow.open(event)
         }
         -- If this button is selected change its style to 
         -- be yellow button background
-        local selected_group_id = Task_manager.get_group_management_selected_group_id(player)
+        local selected_group_id = PlayerState.get_group_management_selected_group_id(player)
         if group.id == selected_group_id then
             icon_button.style = constants.styles.buttons.yellow
             selected_group = group

@@ -1,6 +1,7 @@
 --- gui.lua
 --- A file to store premade graphical elements
 local constants = require("constants")
+local PlayerState = require("scripts.player_state")
 
 local Gui = {}
 
@@ -28,7 +29,7 @@ function Gui.new_window(player, window_title, window_name, close_button_name, wi
     
 
     -- Move the window to the saved location if it exists 
-    local saved_location = Task_manager.get_saved_window_position(player, window_name)
+    local saved_location = PlayerState.get_saved_window_position(player, window_name)
     if saved_location then
         window.location = saved_location
 
@@ -75,7 +76,7 @@ function Gui.new_window(player, window_title, window_name, close_button_name, wi
         }
         -- If this button is selected change its style to 
         -- be yellow button background
-        if Task_manager.is_task_list_pinned_open(player) then
+        if PlayerState.is_task_list_pinned_open(player) then
             pin_button.style = constants.styles.buttons.yellow
             pin_button.style.size = {24, 24}
         end
@@ -130,7 +131,7 @@ function Gui.new_dialog_window(options)
 
 
     -- Move the window to the saved location if it exists 
-    local saved_location = Task_manager.get_saved_window_position(player, window_name)
+    local saved_location = PlayerState.get_saved_window_position(player, window_name)
     if auto_center and saved_location then
         window.location = saved_location
     else

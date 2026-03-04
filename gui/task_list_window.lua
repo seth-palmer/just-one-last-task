@@ -12,6 +12,8 @@ local TASK_LIST_WINDOW_WIDTH = 400
 local constants = require("constants")
 local Gui = require("gui")
 local TaskManager = require("scripts.task_manager")
+local PlayerState = require("scripts.player_state")
+
 
 local TaskListWindow = {}
 
@@ -174,7 +176,7 @@ function TaskListWindow.new_gui_task(parent, task, tab_in_ammount, selected_task
 
             -- If "show_complete" setting is checked then show all subtasks,
             -- Otherwise show only tasks that are not completed
-            local show_completed = Task_manager.get_setting_show_completed(player)
+            local show_completed = PlayerState.get_setting_show_completed(player)
             if show_completed or subtask.is_complete == false then
                 TaskListWindow.new_gui_task(task_container, subtask, tab_in_ammount, selected_tasks, player)
             end
@@ -207,10 +209,10 @@ function TaskListWindow.open(event)
 
     -- In case a group is deleted have a fallback to the first group 
     -- to avoid a crash
-    local current_group_id = Task_manager.get_current_group_id(player)
+    local current_group_id = PlayerState.get_current_group_id(player)
     if not Task_manager.does_group_exist(current_group_id) then
         local first_group_id = storage.jolt.group_order[1]
-        Task_manager.set_current_group_id(player, first_group_id)
+        PlayerState.set_current_group_id(player, first_group_id)
     end
 
     --region =======Task List=======
@@ -228,7 +230,7 @@ function TaskListWindow.open(event)
     local window = Gui.new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, window_width, window_height)
 
     -- Add event to watch for button click to close the window
-    Task_manager.bind_close_button(player, close_button_name, window_name)
+    PlayerState.bind_close_button(player, close_button_name, window_name)
 
     local main_frame = window.add {
         type = "frame",
@@ -308,7 +310,7 @@ function TaskListWindow.open(event)
     btn_edit_groups.style.left_margin = 24
 
     -- Save current group id
-    local current_group_id = Task_manager.get_current_group_id(player)
+    local current_group_id = PlayerState.get_current_group_id(player)
     local current_group = Task_manager.get_group(current_group_id)
 
     -- Get group order
@@ -333,13 +335,13 @@ function TaskListWindow.open(event)
         type = "checkbox",
         name = constants.jolt.task_list.show_completed_checkbox,
         caption = {"jolt_task_list_window.show_completed_tasks"},
-        state = Task_manager.get_setting_show_completed(player),
+        state = PlayerState.get_setting_show_completed(player),
         horizontally_stretchable = "on"
     }
     cb_show_completed.style.right_margin = 20
 
     -- Only enable controls if tasks are selected
-    local enable_move_controls = Task_manager.is_any_task_selected(player)
+    local enable_move_controls = PlayerState.is_any_task_selected(player)
 
     -- Move tasks up button 
     local move_task_up_button = controls_container.add {
@@ -438,14 +440,14 @@ function TaskListWindow.open(event)
     tab_content.style.minimal_width = 350
 
     -- Get the last interacted with task (may be nil)
-    local last_interacted_task_id = Task_manager.get_last_interacted_task_id(player)
+    local last_interacted_task_id = PlayerState.get_last_interacted_task_id(player)
     local last_interacted_task_element
 
     local task_count = 0
 
     -- Get tasks, checking if the control button "Show Completed".
     -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-    local group_tasks = Task_manager.get_tasks(current_group_id, Task_manager.get_setting_show_completed(player))
+    local group_tasks = Task_manager.get_tasks(current_group_id, PlayerState.get_setting_show_completed(player))
     for _, task in pairs(group_tasks) do
 
         -- Increment task counter
@@ -453,14 +455,13 @@ function TaskListWindow.open(event)
 
         -- Add a divider every 5 tasks
         local DIVIDER_COUNT = 5
-        -- Add divider every 5 tasks
         if task_count > 1 and (task_count - 1) % DIVIDER_COUNT == 0 then
             tab_content.add{type="line", direction="horizontal"}
         end
 
         -- Check if task is selected 
-        local selected_tasks = Task_manager.get_selected_tasks(player)
-        local is_selected = Task_manager.is_task_selected(player, task.id)
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        local is_selected = PlayerState.is_task_selected(player, task.id)
 
         -- Display the task (see new_gui_task() for getting subtasks)
         local tab_in_ammount = 0
@@ -486,7 +487,7 @@ function TaskListWindow.open(event)
 
     -- Scroll to the last interacted with element 
     if last_interacted_task_element and last_interacted_task_element.valid then
-        tab_content.scroll_to_element(last_interacted_task_element, "in-view")
+        tab_content.scroll_to_element(last_interacted_task_element, "top-third")
     end
 
     --endregion
@@ -497,6 +498,12 @@ function TaskListWindow.close(event)
     local player = game.get_player(event.player_index)
     player.gui.screen[constants.jolt.task_list.window].destroy()
 
+end
+
+--- Refreshes the window for the player
+---@param player any - player associated
+function TaskListWindow.refresh(player)
+    
 end
 
 return TaskListWindow

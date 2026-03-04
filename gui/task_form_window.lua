@@ -5,6 +5,8 @@ local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
 local constants = require("constants")
 local Gui = require("gui")
 local TaskManager = require("scripts.task_manager")
+local PlayerState = require("scripts.player_state")
+
 
 local TaskFormWindow = {}
 
@@ -27,7 +29,7 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     local checkbox_state_add_to_top = task.checkbox_add_to_top or ADD_TO_TOP_CHECKBOX_DEFAULT_STATE
     
     -- Get the current groups' id
-    local current_group_id = Task_manager.get_current_group_id(player)
+    local current_group_id = PlayerState.get_current_group_id(player)
     
     -- Set group id to the param if provided or the last group selected if new task
     local group_id = task.group_id or current_group_id
@@ -45,7 +47,7 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     local new_task_window = Gui.new_dialog_window(options)
     
     -- Add event to watch for button click to close the window
-    Task_manager.bind_close_button(player, options.back_button_name, options.window_name)
+    PlayerState.bind_close_button(player, options.back_button_name, options.window_name)
 
     -- Only add the label line if needed
     -- need brackets because 'not' operator is applied first 
