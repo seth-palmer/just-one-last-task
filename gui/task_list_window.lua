@@ -579,7 +579,14 @@ local function refresh_task_data(player, task_id)
     -- and it it is not a subtask remove the root task
     if (not task.parent_id and not PlayerState.get_setting_show_completed(player)) and task.is_complete then
         if root_task_row ~= nil then
-            root_task_row.destroy()
+            -- If we are removing the last task, refresh the group 
+            -- to get the empty task message
+            if #root_task_row.parent.children == 1 then
+                TaskListWindow.refresh_group(player, group_id)
+            else -- otherwise just remove the task
+                root_task_row.destroy()
+            end
+            
         end
     end
 end
