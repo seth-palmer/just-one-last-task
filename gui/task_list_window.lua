@@ -46,11 +46,11 @@ function TaskListWindow.new_gui_task(parent, task, tab_in_ammount, selected_task
     if is_selected then
         -- Style it with the selected style
         -- IMPORTANT! this is how to style background colors have to use sprites
-        controls_container.style = "jolt_task_selected"
+        controls_container.style = constants.jolt.styles.backgrounds.selected
         
     end
     controls_container.style.padding = 0
-    controls_container.style.margin = 0
+    controls_container.style.margin = 2
 
 
 
@@ -320,10 +320,68 @@ function TaskListWindow.open(event)
     local group_order = Task_manager.get_group_order()
     local groups = Task_manager.get_groups()
 
-    --region =======Controls=======
+    -- Add controls for window
+    TaskListWindow.add_controls(player, content_frame)
+
+    -- Add a tab for each group
+    for index, group_id in ipairs(group_order) do
+        -- Get the group from its id
+        local group = Task_manager.get_group(group_id)
+
+        -- Icon button is the "tab", clicking it changes to that group
+        -- displaying only tasks in it
+        local icon_button = button_table.add{
+            type="sprite-button",
+            sprite=group.icon,
+            style="slot_button",
+            -- Add tags since can't use the same name for each
+            -- but can check tag for group_management_btn and then get group_id
+            tags = {is_jolt = true, is_group_change_button=true, group_id=group.id}
+        }
+        -- If this button is selected change its style to
+        -- be yellow button background to show it is the active group
+        if group.id == current_group_id then
+            icon_button.style = constants.styles.buttons.yellow
+
+            -- Update current group name
+            lbl_current_group_name.caption = current_group.name
+        end
+
+        -- Add tasks for group
+
+        -- Display tasks for the currently selected group
+        local tab_content = content_frame.add{
+            type="scroll-pane", 
+            direction="vertical",
+            vertical_scroll_policy = "auto",  -- Only show scrollbar when needed
+            horizontal_scroll_policy = "never",
+            name = constants.jolt.task_list.tasks_scroll_pane_prefix .. group.id,
+            -- only make scroll-pane visible for current group
+            visible = (group.id == current_group_id),
+        }
+        tab_content.style.padding = 10
+        tab_content.style.minimal_width = 350
+
+        -- Add tasks and do full refresh for group tasks
+        TaskListWindow.refresh_group(player, group.id)
+    end
+
+    --endregion
+end
+
+
+--- Adds the controls to top of the the provided parent
+---@param player any - player associated
+---@param parent any - parent to add it to
+function TaskListWindow.add_controls(player, parent)
+    -- Remove it it already exists
+    if parent.jolt_controls_container then
+        parent.jolt_controls_container.destroy()
+    end
 
     -- Add row for controls 
-    local controls_container = content_frame.add {
+    local controls_container = parent.add {
+        index = 1, -- Add to top so when readded to refresh is put above the task list
         type = "frame",
         name = "jolt_controls_container",
         direction = "horizontal",
@@ -401,56 +459,6 @@ function TaskListWindow.open(event)
     }
     add_task_button.style.width = 50
     add_task_button.style.height = 30
-
-
-    --endregion 
-
-
-    -- Add a tab for each group
-    for index, group_id in ipairs(group_order) do
-        -- Get the group from its id
-        local group = Task_manager.get_group(group_id)
-
-        -- Icon button is the "tab", clicking it changes to that group
-        -- displaying only tasks in it
-        local icon_button = button_table.add{
-            type="sprite-button",
-            sprite=group.icon,
-            style="slot_button",
-            -- Add tags since can't use the same name for each
-            -- but can check tag for group_management_btn and then get group_id
-            tags = {is_jolt = true, is_group_change_button=true, group_id=group.id}
-        }
-        -- If this button is selected change its style to
-        -- be yellow button background to show it is the active group
-        if group.id == current_group_id then
-            icon_button.style = constants.styles.buttons.yellow
-            local selected_group = group
-
-            -- Update current group name
-            lbl_current_group_name.caption = current_group.name
-        end
-
-        -- Add tasks for group
-
-        -- Display tasks for the currently selected group
-        local tab_content = content_frame.add{
-            type="scroll-pane", 
-            direction="vertical",
-            vertical_scroll_policy = "auto",  -- Only show scrollbar when needed
-            horizontal_scroll_policy = "never",
-            name = constants.jolt.task_list.tasks_scroll_pane_prefix .. group.id,
-            -- only make scroll-pane visible for current group
-            visible = (group.id == current_group_id),
-        }
-        tab_content.style.padding = 10
-        tab_content.style.minimal_width = 350
-
-        -- Add tasks and do full refresh for group tasks
-        TaskListWindow.refresh_group(player, group.id)
-    end
-
-    --endregion
 end
 
 --- Closes the task list menu
@@ -464,6 +472,8 @@ end
 
 --region Local_Refresh_Functions
 
+--- Refreshes the groups list
+---@param player any
 local function refresh_current_group(player)
     local selected_group_id = PlayerState.get_current_group_id(player)
     
@@ -473,14 +483,27 @@ local function refresh_current_group(player)
     local content_frame = window.main_frame.content_frame
     local group_order = Task_manager.get_group_order()
 
-    -- hide all panes
+    -- hide all scroll panes except the current one
     for _, group_id in ipairs(group_order) do
         local pane = content_frame[constants.jolt.task_list.tasks_scroll_pane_prefix .. group_id]
         if pane and pane.valid then
             pane.visible = (group_id == selected_group_id)
         end
     end
+
+
+    -- update to highlight the current group
+    local button_table = window.main_frame.group_controls_frame.group_content.button_table
+
+    for _, child in ipairs(button_table.children) do
+        if child.tags.group_id == selected_group_id then
+            child.style = constants.styles.buttons.yellow
+        else 
+            child.style = "slot_button"
+        end
+    end
 end
+
 
 
 --- Gets the scroll pane for a group
@@ -646,6 +669,17 @@ local function refresh_for_new_task(player, task_id)
     end
 end
 
+--- Refreshes the controls for the window
+---@param player any
+local function refresh_window_controls(player)
+    local window = player.gui.screen[constants.jolt.task_list.window]
+    if not window or not window.valid then return end
+
+    local content_frame = window.main_frame.content_frame
+
+    TaskListWindow.add_controls(player, content_frame)
+end
+
 --- Refreshes data from the visual_action_log
 ---@param player any
 local function refresh_from_visual_log(player)
@@ -669,6 +703,11 @@ local function refresh_from_visual_log(player)
 
             elseif entry.type == actions.added_task then
                 refresh_for_new_task(player, entry.data.task_id)
+
+            elseif entry.type == actions.selected_task then
+                refresh_task_data(player, entry.data.task_id)
+                
+
             end
         end
     end
@@ -677,26 +716,7 @@ local function refresh_from_visual_log(player)
     PlayerState.set_last_visual_log_index(player, VisualActionLog.get_latest_log_index())
 end
 
-local function refresh_window_controls(player)
-    -- update the currently selected group 
 
-    -- get the button table 
-    local selected_group_id = PlayerState.get_current_group_id(player)
-    
-    local window = player.gui.screen[constants.jolt.task_list.window]
-    if not window or not window.valid then return end
-
-    local button_table = window.main_frame.group_controls_frame.group_content.button_table
-
-    for index, child in ipairs(button_table.children) do
-        if child.tags.group_id == selected_group_id then
-            child.style = constants.styles.buttons.yellow
-        else 
-            child.style = "slot_button"
-        end
-    end
-
-end
 
 
 
@@ -706,12 +726,14 @@ end
 --- Refreshes the window for the player
 ---@param player any - player associated
 function TaskListWindow.refresh(player)
+    -- Refresh the groups list and the current scroll pane
     refresh_current_group(player)
 
+    -- Refresh controls (move down/up delete etc.)
     refresh_window_controls(player)
 
+    -- Special refreshes depending on the action
     refresh_from_visual_log(player)
-
 end
 
 return TaskListWindow

@@ -415,15 +415,18 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- Note: (non sibling tasks will not be added)
             local outcome = PlayerState.add_selected_task(player, task_id)
 
-            -- Check if it did not succeed
-            if not outcome.success then
+            -- Check if it succeeded
+            if outcome.success then
+                -- Log the action
+                local data = {task_id = task_id}
+                VisualActionLog.add(constants.jolt.actions.selected_task, data)
+            else
                 -- Display error message
                 Utils.display_error(player, outcome.message)
             end
 
             -- Refresh list of tasks
             TaskListWindow.refresh(player)
-        --    TaskListWindow.open(event)
         
         else -- Otherwise mark mark complete / uncomplete 
             -- clear selected tasks 
