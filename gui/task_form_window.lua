@@ -220,7 +220,9 @@ end
 --- Closes the task form window
 ---@param player any
 function TaskFormWindow.close(player)
-    player.gui.screen[constants.jolt.new_task.window].destroy()
+    if player.gui.screen[constants.jolt.new_task.window] then
+        player.gui.screen[constants.jolt.new_task.window].destroy()
+    end
 end
 
 return TaskFormWindow

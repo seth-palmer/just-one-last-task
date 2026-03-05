@@ -13,6 +13,7 @@ local constants = require("constants")
 local Gui = require("gui")
 local TaskManager = require("scripts.task_manager")
 local PlayerState = require("scripts.player_state")
+local VisualActionLog = require("scripts.visual_action_log")
 
 
 local TaskListWindow = {}
@@ -28,6 +29,7 @@ function TaskListWindow.new_gui_task(parent, task, tab_in_ammount, selected_task
     -- A container to hold all tasks, controls, and subtasks 
     local task_container = parent.add {
         type="flow",
+        name = constants.jolt.task_list.tasks_row_prefix .. task.id,
         direction="vertical",
     }
 
@@ -51,8 +53,6 @@ function TaskListWindow.new_gui_task(parent, task, tab_in_ammount, selected_task
     controls_container.style.margin = 0
 
 
-    -- A container to put subtasks so they are tabbed in 
-    local subtask_container = task_container.add{type="flow", direction="vertical"}
 
     -- add a name and task id so this can be identified in 
     -- an on click event
@@ -235,6 +235,7 @@ function TaskListWindow.open(event)
     local main_frame = window.add {
         type = "frame",
         direction = "vertical",
+        name = "main_frame",
         style = "slot_button_deep_frame",
     }
     -- Limit max height
@@ -251,6 +252,7 @@ function TaskListWindow.open(event)
     -- Make outer frame for style reasons
     local group_controls_frame = main_frame.add {
         type = "frame",
+        name = "group_controls_frame",
         direction = "vertical",
     }
     group_controls_frame.style.margin = 0
@@ -279,6 +281,7 @@ function TaskListWindow.open(event)
     -- Frame for groups and group edit button
     local group_content = group_controls_frame.add {
         type = "flow",
+        name = "group_content",
         direction = "horizontal",
         horizontally_stretchable = "on"
     }
@@ -404,9 +407,9 @@ function TaskListWindow.open(event)
 
 
     -- Add a tab for each group
-    for index, value in ipairs(group_order) do
+    for index, group_id in ipairs(group_order) do
         -- Get the group from its id
-        local group = Task_manager.get_group(value)
+        local group = Task_manager.get_group(group_id)
 
         -- Icon button is the "tab", clicking it changes to that group
         -- displaying only tasks in it
@@ -427,83 +430,273 @@ function TaskListWindow.open(event)
             -- Update current group name
             lbl_current_group_name.caption = current_group.name
         end
-    end
 
-    -- Display tasks for the currently selected group
-    local tab_content = content_frame.add{
-        type="scroll-pane", 
-        direction="vertical",
-        vertical_scroll_policy = "auto",  -- Only show scrollbar when needed
-        horizontal_scroll_policy = "never",
-    }
-    tab_content.style.padding = 10
-    tab_content.style.minimal_width = 350
+        -- Add tasks for group
 
-    -- Get the last interacted with task (may be nil)
-    local last_interacted_task_id = PlayerState.get_last_interacted_task_id(player)
-    local last_interacted_task_element
-
-    local task_count = 0
-
-    -- Get tasks, checking if the control button "Show Completed".
-    -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-    local group_tasks = Task_manager.get_tasks(current_group_id, PlayerState.get_setting_show_completed(player))
-    for _, task in pairs(group_tasks) do
-
-        -- Increment task counter
-        task_count = task_count + 1
-
-        -- Add a divider every 5 tasks
-        local DIVIDER_COUNT = 5
-        if task_count > 1 and (task_count - 1) % DIVIDER_COUNT == 0 then
-            tab_content.add{type="line", direction="horizontal"}
-        end
-
-        -- Check if task is selected 
-        local selected_tasks = PlayerState.get_selected_tasks(player)
-        local is_selected = PlayerState.is_task_selected(player, task.id)
-
-        -- Display the task (see new_gui_task() for getting subtasks)
-        local tab_in_ammount = 0
-        local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
-        
-        -- TODO: in future if element does not exist (like when
-        -- marking as done, go to next or prev element)
-
-        -- Mark the last interacted with task (for when the scroll bar is very long)
-        if last_interacted_task_id and task.id == last_interacted_task_id then
-            last_interacted_task_element = gui_task
-        end
-    end
-
-    -- Add placeholder text if no tasks
-    if #group_tasks == 0 then
-        local placeholder = tab_content.add{
-            type = "label",
-            caption = {"jolt_task_list_window.no_tasks_info_text"}
+        -- Display tasks for the currently selected group
+        local tab_content = content_frame.add{
+            type="scroll-pane", 
+            direction="vertical",
+            vertical_scroll_policy = "auto",  -- Only show scrollbar when needed
+            horizontal_scroll_policy = "never",
+            name = constants.jolt.task_list.tasks_scroll_pane_prefix .. group.id,
+            -- only make scroll-pane visible for current group
+            visible = (group.id == current_group_id),
         }
-        placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
+        tab_content.style.padding = 10
+        tab_content.style.minimal_width = 350
+
+        -- Get the last interacted with task (may be nil)
+        local last_interacted_task_id = PlayerState.get_last_interacted_task_id(player)
+        local last_interacted_task_element
+
+        local task_count = 0
+
+        -- Get tasks, checking if the control button "Show Completed".
+        -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
+        local group_tasks = Task_manager.get_tasks(group.id, PlayerState.get_setting_show_completed(player))
+        for _, task in pairs(group_tasks) do
+
+            -- Increment task counter
+            task_count = task_count + 1
+
+            -- Add a divider every 5 tasks
+            local DIVIDER_COUNT = 5
+            if task_count > 1 and (task_count - 1) % DIVIDER_COUNT == 0 then
+                tab_content.add{
+                    type="line",
+                    direction="horizontal",
+                }
+            end
+
+            -- Check if task is selected 
+            local selected_tasks = PlayerState.get_selected_tasks(player)
+            local is_selected = PlayerState.is_task_selected(player, task.id)
+
+            -- Display the task (see new_gui_task() for getting subtasks)
+            local tab_in_ammount = 0
+            local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
+            
+            -- TODO: in future if element does not exist (like when
+            -- marking as done, go to next or prev element)
+
+            -- Mark the last interacted with task (for when the scroll bar is very long)
+            if last_interacted_task_id and task.id == last_interacted_task_id then
+                last_interacted_task_element = gui_task
+            end
+        end
+
+        -- Add placeholder text if no tasks
+        if #group_tasks == 0 then
+            local placeholder = tab_content.add{
+                type = "label",
+                caption = {"jolt_task_list_window.no_tasks_info_text"}
+            }
+            placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
+        end
+
+        -- Scroll to the last interacted with element 
+        if last_interacted_task_element and last_interacted_task_element.valid then
+            -- tab_content.scroll_to_element(last_interacted_task_element, "top-third")
+        end
     end
 
-    -- Scroll to the last interacted with element 
-    if last_interacted_task_element and last_interacted_task_element.valid then
-        tab_content.scroll_to_element(last_interacted_task_element, "top-third")
-    end
+    
 
     --endregion
 end
 
 --- Closes the task list menu
-function TaskListWindow.close(event)
-    local player = game.get_player(event.player_index)
-    player.gui.screen[constants.jolt.task_list.window].destroy()
+function TaskListWindow.close(player)
+    if player.gui.screen[constants.jolt.task_list.window] then
+        player.gui.screen[constants.jolt.task_list.window].destroy()
+    end
+end
+
+
+
+--region Local_Refresh_Functions
+
+local function refresh_current_group(player)
+    local selected_group_id = PlayerState.get_current_group_id(player)
+    
+    local window = player.gui.screen[constants.jolt.task_list.window]
+    if not window or not window.valid then return end
+
+    local content_frame = window.main_frame.content_frame
+    local group_order = Task_manager.get_group_order()
+
+    -- hide all panes
+    for _, group_id in ipairs(group_order) do
+        local pane = content_frame[constants.jolt.task_list.tasks_scroll_pane_prefix .. group_id]
+        if pane and pane.valid then
+            pane.visible = (group_id == selected_group_id)
+        end
+    end
+end
+
+
+--- Gets the scroll pane for a group
+---@param player LuaPlayer
+---@param group_id string
+---@return LuaGuiElement|nil
+local function get_group_pane(player, group_id)
+    local window = player.gui.screen[constants.jolt.task_list.window]
+    if not window or not window.valid then return nil end
+    return window.main_frame.content_frame[
+        constants.jolt.task_list.tasks_scroll_pane_prefix .. group_id
+    ]
+end
+
+--- Gets a task row element by task_id
+---@param player LuaPlayer
+---@param group_id string
+---@param task_id string
+---@return LuaGuiElement|nil
+local function get_task_row(player, group_id, task_id)
+    local task = Task_manager.get_task(task_id)
+
+    -- If subtask 
+    if task.parent_id  ~= nil then
+        return get_task_row(player, group_id, task.parent_id)[constants.jolt.task_list.tasks_row_prefix .. task_id]
+
+    else
+
+        local pane = get_group_pane(player, group_id)
+        if not pane or not pane.valid then return nil end
+
+        return pane[constants.jolt.task_list.tasks_row_prefix .. task_id]
+    end
+end
+
+--- Returns the root task
+---@param player any
+---@param task_id any
+---@param group_id any
+local function get_root_task(player, task_id, group_id)
+    local task = Task_manager.get_task(task_id)
+
+    if task.parent_id then
+        return get_root_task(player, task.parent_id, group_id)
+    else
+        local pane = get_group_pane(player, group_id)
+
+        return pane[constants.jolt.task_list.tasks_row_prefix .. task_id], task_id
+    end
+end
+
+--- Refreshes the data for the provided task_id and all parent tasks
+---@param player any - associated player
+---@param task_id string - task to update
+local function refresh_task_data(player, task_id)
+    -- find the task
+    local task = Task_manager.get_task(task_id)
+    -- subtasks don't have group_id so fetch that 
+    local group_id = task.group_id or Task_manager.get_parent_group(task.id)
+
+    -- get the path to it in the gui 
+    local task_row = get_task_row(player, group_id, task.id)
+
+    -- If subtask destroy and recreate the root task
+    if task.parent_id then
+        -- Get the root task of this subtask
+        local root_task_id = Task_manager.get_root_task_id(task.id)
+        task_row = get_root_task(player, task.id, group_id)
+
+        if task_row ~= nil then
+            -- Get the scroll bar parent
+            local parent = task_row.parent
+
+            -- Save its position to swap with later
+            local position = task_row.get_index_in_parent()
+
+            -- change the old name to prevent a name confict
+            task_row.name = "temp"
+            
+            local selected_tasks = PlayerState.get_selected_tasks(player)
+
+            -- Add the update root task so all subtasks data is refreshed
+            local root_task_data = Task_manager.get_task(root_task_id)
+            TaskListWindow.new_gui_task(parent, root_task_data, 0, selected_tasks, player)
+            
+            -- Swap new element into the old position
+            parent.swap_children(position, #parent.children)
+            
+            -- Destroy the old one (now at the bottom after swap)
+            parent.children[#parent.children].destroy()
+        end
+    end
+
+
+    -- If completed tasks are not shown remove it 
+    if not PlayerState.get_setting_show_completed(player) then
+        if task_row ~= nil then
+            task_row.destroy()
+        end
+    end
+end
+
+
+--- Refreshes data from the visual_action_log
+---@param player any
+local function refresh_from_visual_log(player)
+    local current_index = PlayerState.get_last_visual_log_index(player)
+    if VisualActionLog.is_new_action_since_index(current_index) then
+        -- Get list of new updates to visually apply 
+        local log_entries = VisualActionLog.get_entries_since_index(current_index)
+
+        -- get actions enum 
+        local actions = constants.jolt.actions
+        for index, entry in ipairs(log_entries) do
+            
+            if entry.type == actions.updated_task_completed_status then
+                refresh_task_data(player, entry.data.task_id)
+
+            elseif entry.type == actions.selected_task then
+
+            end
+        end
+    end
+
+    -- Update the tast visual log index for this player
+    PlayerState.set_last_visual_log_index(player, VisualActionLog.get_latest_log_index())
+end
+
+local function refresh_window_controls(player)
+    -- update the currently selected group 
+
+    -- get the button table 
+    local selected_group_id = PlayerState.get_current_group_id(player)
+    
+    local window = player.gui.screen[constants.jolt.task_list.window]
+    if not window or not window.valid then return end
+
+    local button_table = window.main_frame.group_controls_frame.group_content.button_table
+
+    for index, child in ipairs(button_table.children) do
+        if child.tags.group_id == selected_group_id then
+            child.style = constants.styles.buttons.yellow
+        else 
+            child.style = "slot_button"
+        end
+    end
 
 end
+
+
+
+--endregion Local_Refresh_Functions
+
 
 --- Refreshes the window for the player
 ---@param player any - player associated
 function TaskListWindow.refresh(player)
-    
+    refresh_current_group(player)
+
+    refresh_window_controls(player)
+
+    refresh_from_visual_log(player)
+
 end
 
 return TaskListWindow

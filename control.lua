@@ -7,6 +7,7 @@ local constants = require("constants")
 local Gui = require("gui")
 local Utils = require("scripts.utils")
 local Outcome = require("scripts.outcome")
+local VisualActionLog = require("scripts.visual_action_log")
 
 -- Graphical Imports 
 local TaskListWindow = require("gui.task_list_window")
@@ -123,6 +124,9 @@ script.on_init(function()
         groups = default_group_data,
         priorities = {},
         group_order = default_group_order,
+        visual_action_log = {
+            entries = {},
+        }
     }
 
     -- store players and their info
@@ -130,6 +134,9 @@ script.on_init(function()
 
     -- setup the task manager 
     Task_manager = TaskManager.new()
+
+    -- setup visual log 
+    VisualActionLog.initialize()
 end)
 
 
@@ -139,6 +146,9 @@ end)
 --- https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_configuration_changed
 ---@param event any
 script.on_configuration_changed(function(event)
+    -- setup visual log if needed
+    VisualActionLog.initialize()
+
     -- Migrate old data structure to new one
     if storage.task_data and not storage.jolt then
         log("jolt: migrating old data structure")
@@ -175,6 +185,14 @@ script.on_configuration_changed(function(event)
             end
         end
     end
+
+    -- Close windows for all players 
+    for _, player in pairs(game.players) do
+        TaskListWindow.close(player)
+        TaskFormWindow.close(player)
+        GroupManagerWindow.close(player)
+    end
+    
 end)
 
 --- Called when a new player is created
@@ -204,7 +222,7 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
 
         -- If the window is already open close it
         if player.gui.screen[constants.jolt.task_list.window] then
-            TaskListWindow.close(event)
+            TaskListWindow.close(player)
         else -- otherwise open the task list window
             TaskListWindow.open(event)
         end
@@ -392,25 +410,18 @@ script.on_event(defines.events.on_gui_click, function(event)
             end
 
             -- Refresh list of tasks
-           TaskListWindow.open(event)
+            TaskListWindow.refresh(player)
+        --    TaskListWindow.open(event)
         
         else -- Otherwise mark mark complete / uncomplete 
             -- clear selected tasks 
             PlayerState.clear_selected_tasks(player)
 
-            -- Get the task 
-            local task = Task_manager.get_task(task_id)
+            -- Mark the task complete/incomplete
+            Task_manager.toggle_task_completed(task_id)
 
-            -- Invert completed status 
-            task.is_complete = not task.is_complete
-
-            -- Move task to the end 
-            -- if task.is_complete then
-            --     Task_manager.move_task_to_bottom(task.id)
-            -- end
-
-            -- Refresh list of tasks (Is this inefficient?)
-           TaskListWindow.open(event)
+            -- Refresh window
+            TaskListWindow.refresh(player)
         end
 
     -- Toggle viewing completed/incomplete tasks 
@@ -455,8 +466,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Clear selected tasks 
         PlayerState.clear_selected_tasks(player)
 
-        -- Refresh list of tasks
-       TaskListWindow.open(event)
+        -- Refresh window
+        TaskListWindow.refresh(player)
 
     -- Group Management button
     elseif element_name == constants.jolt.group_management.open_window_button then

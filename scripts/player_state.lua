@@ -30,6 +30,18 @@ function PlayerState.initialize(player_index)
     }
 end
 
+--- Sets the index of the last visual log for the player
+---@param player any
+---@param new_index any
+function PlayerState.set_last_visual_log_index(player, new_index)
+    storage.players[player.index].jolt.ui.last_visual_log_index = new_index
+end
+
+--- Returns the index of the last visual log for the player
+---@param player any
+function PlayerState.get_last_visual_log_index(player)
+    return storage.players[player.index].jolt.ui.last_visual_log_index
+end
 
 --region SelectingTasks
 

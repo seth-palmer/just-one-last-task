@@ -234,5 +234,13 @@ function GroupManagerWindow.open(event)
     }
 end
 
+--- Close the window for the player
+---@param player any
+function GroupManagerWindow.close(player)
+    if player.gui.screen[constants.jolt.group_management.window_name] then
+        player.gui.screen[constants.jolt.group_management.window_name].destroy()
+    end
+end
+
 
 return GroupManagerWindow

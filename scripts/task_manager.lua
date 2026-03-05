@@ -1,7 +1,7 @@
 local Utils = require("utils")
 local Outcome = require("outcome")
 local constants = require("constants")
-
+local VisualActionLog = require("scripts.visual_action_log")
 
 TaskManager = {}
 local MAX_GUI_GROUPS = 28
@@ -18,6 +18,8 @@ function TaskManager.new(params)
 
     local self = {}
 
+    
+
     -- Store group, player, and task data
     local players = storage.players
 
@@ -29,8 +31,26 @@ function TaskManager.new(params)
     local task_priorities = (storage.jolt or storage.task_data).priorities
 
 
+    local actions = constants.jolt.actions
 
-    
+    --- Marks the provided task as complete/incomplete
+    ---@param task_id string - id the the task to modify
+    function self.toggle_task_completed(task_id)
+        -- Get the task 
+        local task = Task_manager.get_task(task_id)
+
+        -- Invert completed status 
+        task.is_complete = not task.is_complete
+
+        -- Move task to the end?
+        -- if task.is_complete then
+        --     Task_manager.move_task_to_bottom(task.id)
+        -- end
+        local data = {task_id = task.id, is_complete = task.is_complete}
+        -- Log new state change
+        VisualActionLog.add(actions.updated_task_completed_status, data)
+
+    end
 
     --- Get the list of groups
     --- (Note groups do not contain lists of tasks
@@ -118,6 +138,30 @@ function TaskManager.new(params)
             if task_id == list_task_id then
                 return index
             end
+        end
+    end
+
+    --- Returns the id of the parent group for the subtask
+    ---@param subtask_id any
+    function self.get_parent_group(subtask_id)
+        local task = self.get_task(subtask_id)
+
+        if task.parent_id then
+            return self.get_parent_group(task.parent_id)
+        else
+            return task.group_id
+        end
+    end
+
+    --- Returns the id of the root task 
+    ---@param subtask_id any
+    function self.get_root_task_id(subtask_id)
+        local task = self.get_task(subtask_id)
+
+        if task.parent_id then
+            return self.get_root_task_id(task.parent_id)
+        else
+            return task.id
         end
     end
 
