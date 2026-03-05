@@ -1,7 +1,6 @@
 local Utils = require("utils")
 local Outcome = require("outcome")
 local constants = require("constants")
-local VisualActionLog = require("scripts.visual_action_log")
 
 TaskManager = {}
 local MAX_GUI_GROUPS = 28
@@ -18,7 +17,6 @@ function TaskManager.new(params)
 
     local self = {}
 
-    
 
     -- Store group, player, and task data
     local players = storage.players
@@ -31,13 +29,14 @@ function TaskManager.new(params)
     local task_priorities = (storage.jolt or storage.task_data).priorities
 
 
-    local actions = constants.jolt.actions
-
     --- Marks the provided task as complete/incomplete
     ---@param task_id string - id the the task to modify
     function self.toggle_task_completed(task_id)
-        -- Get the task 
-        local task = Task_manager.get_task(task_id)
+        -- Get the task
+        local task = tasks[task_id]
+        if task == nil then 
+            return Outcome.fail("No task in with matching id: " .. tostring(task_id))
+        end
 
         -- Invert completed status 
         task.is_complete = not task.is_complete
@@ -46,10 +45,8 @@ function TaskManager.new(params)
         -- if task.is_complete then
         --     Task_manager.move_task_to_bottom(task.id)
         -- end
-        local data = {task_id = task.id, is_complete = task.is_complete}
-        -- Log new state change
-        VisualActionLog.add(actions.updated_task_completed_status, data)
 
+        return Outcome.success(task_id)
     end
 
     --- Get the list of groups
@@ -291,19 +288,18 @@ function TaskManager.new(params)
 
         else -- If valid data add task
             if data.is_edit_task then -- if it has id, update task
-                Task_manager.update_task(data, data.id)
+                return Task_manager.update_task(data, data.id)
                 
             else -- otherwise add new task
-                Task_manager.add_task(data, data.add_to_top)
+                return Task_manager.add_task(data, data.add_to_top)
             end
-
-            return Outcome.success()
         end
     end
 
     --- Add a task using provided parameters
     ---@param task_params any
-    ---@param add_to_top boolean if the group should be added to the top of the list
+    ---@param add_to_top boolean - if the group should be added to the top of the list
+    ---@return any new_task_id - an outcome, outcome.value has the id of the new task
     function self.add_task(task_params, add_to_top)
         if type(add_to_top) ~= "boolean" then
             error("New task error: Must provide a boolean for variable [add_to_top]")
@@ -326,17 +322,13 @@ function TaskManager.new(params)
 
         tasks[id] = new_task
 
-        -- Log the data 
-        local data = {task_id = id}
-        VisualActionLog.add(constants.jolt.actions.added_task, data)
-
         if not (new_task.parent_id == nil) then
             -- If this is a subtask add its id to the parent 
             local parent_task = tasks[new_task.parent_id]
             table.insert(parent_task.subtasks, id)
 
             -- end early since we don't need to set task priority
-            return
+            return Outcome.success(id)
         end
 
         -- Add id to bottom/end of priorities list
@@ -346,6 +338,9 @@ function TaskManager.new(params)
         else -- or insert top shifing everything else down  
             table.insert(task_priorities, 1, id)
         end
+
+        -- return the id
+        return Outcome.success(id)
     end
 
     --- Deletes the task removing its data
@@ -407,15 +402,16 @@ function TaskManager.new(params)
     function self.update_task(task_params, task_id)
         -- Get the task
         local task = tasks[task_id]
-        if task == nil then error("No task in with matching id: " .. tostring(task_id)) end
+        if task == nil then 
+            return Outcome.fail("No task in with matching id: " .. tostring(task_id))
+        end
 
         -- Update task values
         task.title = task_params.title
         task.description = task_params.description
         task.group_id = task_params.group_id
 
-        local data = {task_id = task_id}
-        VisualActionLog.add(constants.jolt.actions.edited_task, data)
+        return Outcome.success(task_id)
     end
 
     --- Update the provided group

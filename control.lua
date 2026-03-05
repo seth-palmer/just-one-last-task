@@ -78,6 +78,18 @@ local function add_new_task(event)
         }
 
     else -- If valid data add task
+        -- Log data for editing or adding a new task 
+        local action = constants.jolt.actions.added_task
+        local task_id
+        if task_data.is_edit_task then
+            action = constants.jolt.actions.edited_task
+            task_id = task_data.id
+        else
+            task_id = outcome.value
+        end
+        -- Log the data 
+        local data = {task_id = task_id}
+        VisualActionLog.add(action, data)
 
         -- Close task form window
         TaskFormWindow.close(player)
@@ -419,6 +431,10 @@ script.on_event(defines.events.on_gui_click, function(event)
 
             -- Mark the task complete/incomplete
             Task_manager.toggle_task_completed(task_id)
+
+            -- Log action so we know what task to update
+            local data = {task_id = task_id}
+            VisualActionLog.add(constants.jolt.actions.updated_task_completed_status, data)
 
             -- Refresh window
             TaskListWindow.refresh(player)
