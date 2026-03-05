@@ -326,6 +326,10 @@ function TaskManager.new(params)
 
         tasks[id] = new_task
 
+        -- Log the data 
+        local data = {task_id = id}
+        VisualActionLog.add(constants.jolt.actions.added_task, data)
+
         if not (new_task.parent_id == nil) then
             -- If this is a subtask add its id to the parent 
             local parent_task = tasks[new_task.parent_id]
@@ -409,6 +413,9 @@ function TaskManager.new(params)
         task.title = task_params.title
         task.description = task_params.description
         task.group_id = task_params.group_id
+
+        local data = {task_id = task_id}
+        VisualActionLog.add(constants.jolt.actions.edited_task, data)
     end
 
     --- Update the provided group

@@ -83,7 +83,7 @@ local function add_new_task(event)
         TaskFormWindow.close(player)
 
         -- Refresh data
-       TaskListWindow.open(event)
+       TaskListWindow.refresh(player)
     end
 end
 
@@ -332,7 +332,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
-       TaskListWindow.open(event)
+        TaskListWindow.refresh(player)
 
         -- open window to add a new task
         TaskFormWindow.open(event, "New Task", nil, {})
@@ -441,9 +441,11 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- invert property to mark that details should be shown/hidden
         task.show_details = not task.show_details
+        local data = {task_id = task_id}
+        VisualActionLog.add(constants.jolt.actions.updated_show_task_details_status, data)
 
         -- Refresh list of tasks
-       TaskListWindow.open(event)
+       TaskListWindow.refresh(player)
     
     -- On click of the "+ Subtask" button 
     elseif element_name == constants.jolt.task_list.add_subtask_button then

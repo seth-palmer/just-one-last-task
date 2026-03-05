@@ -41,7 +41,7 @@ constants.jolt = {
     --- An enum to store actions for action_log.lua
     actions = {
         updated_task_completed_status = "updated_task_completed_status",
-        updated_task_details_expanded = "updated_task_details_expanded",
+        updated_show_task_details_status = "updated_show_task_details_status",
         added_task                    = "added_task",
         deleted_tasks                 = "deleted_tasks",
         edited_task                   = "edited_task",

@@ -446,62 +446,9 @@ function TaskListWindow.open(event)
         tab_content.style.padding = 10
         tab_content.style.minimal_width = 350
 
-        -- Get the last interacted with task (may be nil)
-        local last_interacted_task_id = PlayerState.get_last_interacted_task_id(player)
-        local last_interacted_task_element
-
-        local task_count = 0
-
-        -- Get tasks, checking if the control button "Show Completed".
-        -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-        local group_tasks = Task_manager.get_tasks(group.id, PlayerState.get_setting_show_completed(player))
-        for _, task in pairs(group_tasks) do
-
-            -- Increment task counter
-            task_count = task_count + 1
-
-            -- Add a divider every 5 tasks
-            local DIVIDER_COUNT = 5
-            if task_count > 1 and (task_count - 1) % DIVIDER_COUNT == 0 then
-                tab_content.add{
-                    type="line",
-                    direction="horizontal",
-                }
-            end
-
-            -- Check if task is selected 
-            local selected_tasks = PlayerState.get_selected_tasks(player)
-            local is_selected = PlayerState.is_task_selected(player, task.id)
-
-            -- Display the task (see new_gui_task() for getting subtasks)
-            local tab_in_ammount = 0
-            local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
-            
-            -- TODO: in future if element does not exist (like when
-            -- marking as done, go to next or prev element)
-
-            -- Mark the last interacted with task (for when the scroll bar is very long)
-            if last_interacted_task_id and task.id == last_interacted_task_id then
-                last_interacted_task_element = gui_task
-            end
-        end
-
-        -- Add placeholder text if no tasks
-        if #group_tasks == 0 then
-            local placeholder = tab_content.add{
-                type = "label",
-                caption = {"jolt_task_list_window.no_tasks_info_text"}
-            }
-            placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
-        end
-
-        -- Scroll to the last interacted with element 
-        if last_interacted_task_element and last_interacted_task_element.valid then
-            -- tab_content.scroll_to_element(last_interacted_task_element, "top-third")
-        end
+        -- Add tasks and do full refresh for group tasks
+        TaskListWindow.refresh_group(player, group.id)
     end
-
-    
 
     --endregion
 end
@@ -559,9 +506,7 @@ local function get_task_row(player, group_id, task_id)
     -- If subtask 
     if task.parent_id  ~= nil then
         return get_task_row(player, group_id, task.parent_id)[constants.jolt.task_list.tasks_row_prefix .. task_id]
-
     else
-
         local pane = get_group_pane(player, group_id)
         if not pane or not pane.valid then return nil end
 
@@ -596,46 +541,103 @@ local function refresh_task_data(player, task_id)
 
     -- get the path to it in the gui 
     local task_row = get_task_row(player, group_id, task.id)
+    local root_task_id = Task_manager.get_root_task_id(task.id)
 
-    -- If subtask destroy and recreate the root task
+    -- If subtask destroy and recreate the root task instead
     if task.parent_id then
         -- Get the root task of this subtask
-        local root_task_id = Task_manager.get_root_task_id(task.id)
         task_row = get_root_task(player, task.id, group_id)
-
-        if task_row ~= nil then
-            -- Get the scroll bar parent
-            local parent = task_row.parent
-
-            -- Save its position to swap with later
-            local position = task_row.get_index_in_parent()
-
-            -- change the old name to prevent a name confict
-            task_row.name = "temp"
-            
-            local selected_tasks = PlayerState.get_selected_tasks(player)
-
-            -- Add the update root task so all subtasks data is refreshed
-            local root_task_data = Task_manager.get_task(root_task_id)
-            TaskListWindow.new_gui_task(parent, root_task_data, 0, selected_tasks, player)
-            
-            -- Swap new element into the old position
-            parent.swap_children(position, #parent.children)
-            
-            -- Destroy the old one (now at the bottom after swap)
-            parent.children[#parent.children].destroy()
-        end
     end
 
+    if task_row ~= nil then
+        -- Get the scroll bar parent
+        local parent = task_row.parent
+
+        -- Save its position to swap with later
+        local position = task_row.get_index_in_parent()
+
+        -- change the old name to prevent a name confict
+        task_row.name = "temp"
+        
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+
+        -- Add the update root task so all subtasks data is refreshed
+        local root_task_data = Task_manager.get_task(root_task_id)
+        TaskListWindow.new_gui_task(parent, root_task_data, 0, selected_tasks, player)
+        
+        -- Swap new element into the old position
+        parent.swap_children(position, #parent.children)
+        
+        -- Destroy the old one (now at the bottom after swap)
+        parent.children[#parent.children].destroy()
+    end
+
+    -- Re-fetch the newly created row
+    local root_task_row = get_task_row(player, group_id, root_task_id)
 
     -- If completed tasks are not shown remove it 
-    if not PlayerState.get_setting_show_completed(player) then
-        if task_row ~= nil then
-            task_row.destroy()
+    -- and it it is not a subtask remove the root task
+    if (not task.parent_id and not PlayerState.get_setting_show_completed(player)) and task.is_complete then
+        if root_task_row ~= nil then
+            root_task_row.destroy()
         end
     end
 end
 
+--- Refresh the data fully for the group
+---@param player any
+---@param group_id any
+function TaskListWindow.refresh_group(player, group_id)
+
+    local tab_content = get_group_pane(player, group_id)
+    if tab_content then
+        -- remove all children
+        tab_content.clear()
+    end
+
+    -- Get tasks, checking if the control button "Show Completed".
+    -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
+    local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
+    for _, task in pairs(group_tasks) do
+        -- Check if task is selected 
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        local is_selected = PlayerState.is_task_selected(player, task.id)
+
+        -- Display the task (see new_gui_task() for getting subtasks)
+        local tab_in_ammount = 0
+        local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
+    end
+
+    -- Add placeholder text if no tasks
+    if #group_tasks == 0 then
+        local placeholder = tab_content.add {
+            type = "label",
+            caption = {"jolt_task_list_window.no_tasks_info_text"}
+        }
+        placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
+    end
+end
+
+--- Refresh when adding new tasks or subtasks
+---@param player any
+---@param task_id any
+local function refresh_for_new_task(player, task_id)
+    local task = Task_manager.get_task(task_id)
+
+    -- For subtasks just refresh the root parents task data
+    if task.parent_id then
+        refresh_task_data(player, task_id)
+    else
+        -- Refresh the whole group pane
+        TaskListWindow.refresh_group(player, task.group_id)
+        
+        -- Scroll to the new task
+        local task_row = get_task_row(player, task.group_id, task_id)
+        if task_row and task_row.parent then
+            task_row.parent.scroll_to_element(task_row, "top-third")
+        end
+    end
+end
 
 --- Refreshes data from the visual_action_log
 ---@param player any
@@ -652,8 +654,14 @@ local function refresh_from_visual_log(player)
             if entry.type == actions.updated_task_completed_status then
                 refresh_task_data(player, entry.data.task_id)
 
-            elseif entry.type == actions.selected_task then
+            elseif entry.type == actions.updated_show_task_details_status then
+                refresh_task_data(player, entry.data.task_id)
 
+            elseif entry.type == actions.edited_task then
+                refresh_task_data(player, entry.data.task_id)
+
+            elseif entry.type == actions.added_task then
+                refresh_for_new_task(player, entry.data.task_id)
             end
         end
     end
