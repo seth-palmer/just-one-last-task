@@ -680,6 +680,73 @@ local function refresh_window_controls(player)
     TaskListWindow.add_controls(player, content_frame)
 end
 
+
+local function refresh_group_tasks_slowly(player, group_id)
+    -- TODO: test 
+    -- Alternate way 
+    -- Do a full refresh of the tasks in the group 
+    -- But only remove one at a time so as to keep scroll position 
+    -- So go through and rename all elements first to prevent conflicts 
+    -- Then get the list of updated tasks 
+    -- Delete the first one 
+    -- Add the new task in position 1 (can set index so add var to new_gui_task )
+    -- continue...
+
+    -- different than refresh_group as that removes all first
+    -- hmm could modify that to rename all, then remove 
+    -- one add one, repeat...
+    
+    -- Get the scroll pane for the group
+    local scroll_pane = get_group_pane(player, group_id)
+    if not scroll_pane then return end
+
+    local selected_tasks = PlayerState.get_selected_tasks(player)
+    
+    -- Clear names of all elements to prevent conflicts later
+    for _, element in ipairs(scroll_pane.children) do
+        element.name = nil
+    end
+
+    local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
+    for _, task in pairs(group_tasks) do
+        -- Rename 
+
+        -- Display the task (see new_gui_task() for getting subtasks)
+        local tab_in_ammount = 0
+        local gui_task = TaskListWindow.new_gui_task(scroll_pane, task, tab_in_ammount, selected_tasks, player)
+    end
+
+    for _, element in ipairs(scroll_pane.children) do
+        
+        -- delete first element 
+        element.destroy()
+
+        -- replace it
+
+    end
+
+
+    -- Get tasks, checking if the control button "Show Completed".
+    -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
+    -- local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
+    -- for _, task in pairs(group_tasks) do
+    --     -- Rename 
+
+    --     -- Display the task (see new_gui_task() for getting subtasks)
+    --     local tab_in_ammount = 0
+    --     local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
+    -- end
+
+    -- -- Add placeholder text if no tasks
+    -- if #group_tasks == 0 then
+    --     local placeholder = tab_content.add {
+    --         type = "label",
+    --         caption = {"jolt_task_list_window.no_tasks_info_text"}
+    --     }
+    --     placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
+    -- end
+end
+
 --- Refreshes data from the visual_action_log
 ---@param player any
 local function refresh_from_visual_log(player)
@@ -707,6 +774,9 @@ local function refresh_from_visual_log(player)
             elseif entry.type == actions.selected_task then
                 refresh_task_data(player, entry.data.task_id)
                 
+            elseif entry.type == actions.moved_tasks then
+                -- refresh_moved_tasks(player)
+                refresh_group_tasks_slowly(player, entry.data.group_id)
 
             end
         end

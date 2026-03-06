@@ -355,8 +355,15 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Move the selected tasks
         Task_manager.move_selected_tasks(player, Direction.Up)
 
+        -- get group id 
+
+
+        -- Log movement 
+        local data = {group_id = PlayerState.get_current_group_id(player)}
+        VisualActionLog.add(constants.jolt.actions.moved_tasks, data)
+
         -- Refresh list of tasks
-       TaskListWindow.open(event)
+       TaskListWindow.refresh(player)
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.move_task_down_button then
@@ -365,7 +372,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_selected_tasks(player, Direction.Down)
 
         -- Refresh list of tasks
-       TaskListWindow.open(event)
+       TaskListWindow.refresh(player)
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.delete_tasks_button then
