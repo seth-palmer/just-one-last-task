@@ -56,6 +56,78 @@ function TaskManager.new(params)
         return groups
     end
 
+    --- Returns the id of the topmost selected task
+    function self.get_top_most_selected_task(player)
+        -- Get selected tasks 
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+
+        local top_most_task_id
+        local top_most_task_position
+
+        -- Handle subtask case 
+        local subtask_id = next(selected_tasks)
+        local subtask = self.get_task(subtask_id)
+        if subtask_id and subtask.parent_id then
+            --TODO: is subtask so return sorted in the subtask list 
+            return subtask_id
+        end
+        
+        for task_id, _ in pairs(selected_tasks) do
+            -- set topmost to first task 
+            if top_most_task_id == nil then
+                top_most_task_id = task_id
+                top_most_task_position = Task_manager.get_task_order_position(task_id)
+
+            else 
+                -- compare positions 
+
+                local task_pos = self.get_task_order_position(task_id)
+                if task_pos < top_most_task_position then
+                    top_most_task_id = task_id
+                    top_most_task_position = task_pos
+                end
+            end
+        end
+        return top_most_task_id
+    end
+
+    --- Returns the id of the bottom most selected task
+    function self.get_bottom_most_selected_task(player)
+        -- Get selected tasks 
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+
+        local bottom_most_task_id
+        local bottom_most_task_position
+
+        -- Handle subtask case 
+        local subtask_id = next(selected_tasks)
+        local subtask = self.get_task(subtask_id)
+        if subtask_id and subtask.parent_id then
+            --TODO: return based on subtask list
+            return subtask_id
+        end
+
+        
+        
+        for task_id, _ in pairs(selected_tasks) do
+            -- set topmost to first task 
+            if bottom_most_task_id == nil then
+                bottom_most_task_id = task_id
+                bottom_most_task_position = Task_manager.get_task_order_position(task_id)
+
+            else 
+                -- compare positions 
+
+                local task_pos = self.get_task_order_position(task_id)
+                if task_pos > bottom_most_task_position then
+                    bottom_most_task_id = task_id
+                    bottom_most_task_position = task_pos
+                end
+            end
+        end
+        return bottom_most_task_id
+    end
+
     --- Count the number of tasks in a group
     --- @param group_id string the group to search for
     --- @return number task_count the total number of tasks

@@ -21,9 +21,10 @@ local TaskListWindow = {}
 --- Adds a row to the parent, for a individual task displaying title  
 ---@param parent LuaGuiElement The gui object that the task will be added to
 ---@param task Task The task object with title, desc, etc
-function TaskListWindow.new_gui_task(parent, task, tab_in_ammount, selected_tasks, player)
-
-    tab_in_ammount = tab_in_ammount or 0
+function TaskListWindow.new_gui_task(player, task, parent, params)
+    params = params or {}
+    local tab_in_ammount = params.tab_in_ammount or 0
+    local selected_tasks = params.selected_tasks or PlayerState.get_selected_tasks(player)
     local tab_increment = 20
 
     -- A container to hold all tasks, controls, and subtasks 
@@ -178,7 +179,8 @@ function TaskListWindow.new_gui_task(parent, task, tab_in_ammount, selected_task
             -- Otherwise show only tasks that are not completed
             local show_completed = PlayerState.get_setting_show_completed(player)
             if show_completed or subtask.is_complete == false then
-                TaskListWindow.new_gui_task(task_container, subtask, tab_in_ammount, selected_tasks, player)
+                -- TaskListWindow.new_gui_task(task_container, subtask, tab_in_ammount, selected_tasks, player)
+                TaskListWindow.new_gui_task(player, subtask, task_container, {selected_tasks = selected_tasks, tab_in_ammount = tab_in_ammount})
             end
         end
 
@@ -475,8 +477,9 @@ end
 --- Refreshes the groups list
 ---@param player any
 local function refresh_current_group(player)
+
     local selected_group_id = PlayerState.get_current_group_id(player)
-    
+
     local window = player.gui.screen[constants.jolt.task_list.window]
     if not window or not window.valid then return end
 
@@ -582,11 +585,10 @@ local function refresh_task_data(player, task_id)
         -- change the old name to prevent a name confict
         task_row.name = "temp"
         
-        local selected_tasks = PlayerState.get_selected_tasks(player)
-
         -- Add the update root task so all subtasks data is refreshed
         local root_task_data = Task_manager.get_task(root_task_id)
-        TaskListWindow.new_gui_task(parent, root_task_data, 0, selected_tasks, player)
+        -- TaskListWindow.new_gui_task(parent, root_task_data, 0, selected_tasks, player)
+        TaskListWindow.new_gui_task(player, root_task_data, parent)
         
         -- Swap new element into the old position
         parent.swap_children(position, #parent.children)
@@ -634,8 +636,8 @@ function TaskListWindow.refresh_group(player, group_id)
         local is_selected = PlayerState.is_task_selected(player, task.id)
 
         -- Display the task (see new_gui_task() for getting subtasks)
-        local tab_in_ammount = 0
-        local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
+        -- local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
+        local gui_task = TaskListWindow.new_gui_task(player, task, tab_content)
     end
 
     -- Add placeholder text if no tasks
@@ -681,7 +683,7 @@ local function refresh_window_controls(player)
 end
 
 
-local function refresh_group_tasks_slowly(player, group_id)
+function TaskListWindow.refresh_group_tasks_slowly(player, group_id)
     -- TODO: test 
     -- Alternate way 
     -- Do a full refresh of the tasks in the group 
@@ -700,8 +702,6 @@ local function refresh_group_tasks_slowly(player, group_id)
     local scroll_pane = get_group_pane(player, group_id)
     if not scroll_pane then return end
 
-    local selected_tasks = PlayerState.get_selected_tasks(player)
-    
     -- Clear names of all elements to prevent conflicts later
     for _, element in ipairs(scroll_pane.children) do
         element.name = nil
@@ -709,42 +709,14 @@ local function refresh_group_tasks_slowly(player, group_id)
 
     local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
     for _, task in pairs(group_tasks) do
-        -- Rename 
+        -- Destroy row
+        local _, task_element = next(scroll_pane.children)
+        if task_element then task_element.destroy() end
 
-        -- Display the task (see new_gui_task() for getting subtasks)
-        local tab_in_ammount = 0
-        local gui_task = TaskListWindow.new_gui_task(scroll_pane, task, tab_in_ammount, selected_tasks, player)
+        -- Display the task and all subtasks
+        TaskListWindow.new_gui_task(player, task, scroll_pane)
     end
 
-    for _, element in ipairs(scroll_pane.children) do
-        
-        -- delete first element 
-        element.destroy()
-
-        -- replace it
-
-    end
-
-
-    -- Get tasks, checking if the control button "Show Completed".
-    -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-    -- local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
-    -- for _, task in pairs(group_tasks) do
-    --     -- Rename 
-
-    --     -- Display the task (see new_gui_task() for getting subtasks)
-    --     local tab_in_ammount = 0
-    --     local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
-    -- end
-
-    -- -- Add placeholder text if no tasks
-    -- if #group_tasks == 0 then
-    --     local placeholder = tab_content.add {
-    --         type = "label",
-    --         caption = {"jolt_task_list_window.no_tasks_info_text"}
-    --     }
-    --     placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
-    -- end
 end
 
 --- Refreshes data from the visual_action_log
@@ -774,9 +746,33 @@ local function refresh_from_visual_log(player)
             elseif entry.type == actions.selected_task then
                 refresh_task_data(player, entry.data.task_id)
                 
-            elseif entry.type == actions.moved_tasks then
-                -- refresh_moved_tasks(player)
-                refresh_group_tasks_slowly(player, entry.data.group_id)
+            elseif entry.type == actions.moved_tasks_up then
+                TaskListWindow.refresh_group_tasks_slowly(player, entry.data.group_id)
+
+                -- top selected task if going up or the bottom one if going down
+                -- Scroll to the selected_tasks
+                local task_id = Task_manager.get_top_most_selected_task(player)
+                local task = Task_manager.get_task(task_id)
+                if not task.parent_id then
+                    local task_row = get_task_row(player, task.group_id, task_id)
+                    if task_row and task_row.parent then
+                        task_row.parent.scroll_to_element(task_row, "in-view") -- or "top-third"
+                    end
+                end
+            
+            elseif entry.type == actions.moved_tasks_down then
+                TaskListWindow.refresh_group_tasks_slowly(player, entry.data.group_id)
+
+                -- top selected task if going up or the bottom one if going down
+                -- Scroll to the selected_tasks
+                local task_id = Task_manager.get_bottom_most_selected_task(player)
+                local task = Task_manager.get_task(task_id)
+                if not task.parent_id then
+                    local task_row = get_task_row(player, task.group_id, task_id)
+                    if task_row and task_row.parent then
+                        task_row.parent.scroll_to_element(task_row, "in-view") -- or "top-third"
+                    end
+                end
 
             end
         end
@@ -799,11 +795,15 @@ function TaskListWindow.refresh(player)
     -- Refresh the groups list and the current scroll pane
     refresh_current_group(player)
 
+    local group_id = PlayerState.get_current_group_id(player)
+    TaskListWindow.refresh_group_tasks_slowly(player, group_id)
+
     -- Refresh controls (move down/up delete etc.)
     refresh_window_controls(player)
 
     -- Special refreshes depending on the action
     refresh_from_visual_log(player)
+    local tasks = PlayerState.get_selected_tasks(player)
 end
 
 return TaskListWindow

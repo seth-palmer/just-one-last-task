@@ -48,11 +48,12 @@ constants.jolt = {
     actions = {
         updated_task_completed_status = "updated_task_completed_status",
         updated_show_task_details_status = "updated_show_task_details_status",
-        added_task                    = "added_task",
-        deleted_tasks                 = "deleted_tasks",
-        edited_task                   = "edited_task",
-        moved_tasks                   = "moved_tasks",
-        selected_task                 = "selected_task",
+        added_task = "added_task",
+        deleted_tasks = "deleted_tasks",
+        edited_task = "edited_task",
+        moved_tasks_down = "moved_tasks_down",
+        moved_tasks_up = "moved_tasks_up",
+        selected_task = "selected_task",
     },
     -- For shortcut buttons
     shortcuts = {

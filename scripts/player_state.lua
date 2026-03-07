@@ -77,6 +77,7 @@ function PlayerState.get_selected_tasks(player)
     return storage.players[player.index].jolt.ui.selected_tasks
 end
 
+
 --- Returns true if there are any tasks selected 
 ---@param player any
 ---@return boolean is_any_task_selected

@@ -355,12 +355,9 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Move the selected tasks
         Task_manager.move_selected_tasks(player, Direction.Up)
 
-        -- get group id 
-
-
         -- Log movement 
         local data = {group_id = PlayerState.get_current_group_id(player)}
-        VisualActionLog.add(constants.jolt.actions.moved_tasks, data)
+        VisualActionLog.add(constants.jolt.actions.moved_tasks_up, data)
 
         -- Refresh list of tasks
        TaskListWindow.refresh(player)
@@ -370,6 +367,10 @@ script.on_event(defines.events.on_gui_click, function(event)
         
         -- Move the selected tasks
         Task_manager.move_selected_tasks(player, Direction.Down)
+
+        -- Log movement 
+        local data = {group_id = PlayerState.get_current_group_id(player)}
+        VisualActionLog.add(constants.jolt.actions.moved_tasks_down, data)
 
         -- Refresh list of tasks
        TaskListWindow.refresh(player)
@@ -381,7 +382,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.delete_selected_tasks(player)
 
         -- Refresh list of tasks
-       TaskListWindow.open(event)
+       TaskListWindow.refresh(player)
 
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
