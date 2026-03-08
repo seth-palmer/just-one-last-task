@@ -1,4 +1,18 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2026-03-08
+  Features:
+    - Added shortcut (default `CTRL+T`) to toggle open/close the task list window. Can be configured in Factorio Settings > Controls > Search for "JOLT".
+    - Added shortcut to add task and keep the form window open (CTRL + ENTER in task title text-field), also works for adding multiple subtasks quickly.
+  Changes:
+    - Updated tool-tips for Edit and New Task windows to feature the keyboard shortcuts.
+    - Removed divider lines between every 5 tasks due to prevent bugs with new internal scroll pane refactor
+    - When moving multiple selected tasks window now scrolls to keep visible the top-most task when moving up, or bottom-most task when moving down
+    - Internal code refactor: split GUI and player state logic into separate files to improve maintainability.
+  Bugfixes:
+    - Shortcut button now properly toggles visible state when task list window is opened or closed.
+    - Scroll position is now properly maintained when changing tabs, editing a task, expanding or collapsing task details, adding a subtask, moving subtasks, and deleting task/subtask.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2026-02-23
   Features:

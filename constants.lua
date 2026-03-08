@@ -30,7 +30,8 @@ constants.styles = {
         yellow = "yellow_slot_button",
         blue = "tool_button_blue",
         green = "tool_button_green",
-    }
+    },
+    
     
 
 }
@@ -38,6 +39,22 @@ constants.styles = {
 --- Store all names used for jolt elements
 --- divided by different windows
 constants.jolt = {
+    styles = {
+        backgrounds = {
+                selected = "jolt_task_selected",
+            }
+    },
+    --- An enum to store actions for action_log.lua
+    actions = {
+        updated_task_completed_status = "updated_task_completed_status",
+        updated_show_task_details_status = "updated_show_task_details_status",
+        added_task = "added_task",
+        deleted_tasks = "deleted_tasks",
+        edited_task = "edited_task",
+        moved_tasks_down = "moved_tasks_down",
+        moved_tasks_up = "moved_tasks_up",
+        selected_task = "selected_task",
+    },
     -- For shortcut buttons
     shortcuts = {
         open_task_list_window = "jolt_shortcut_open_task_list_window"
@@ -102,6 +119,8 @@ constants.jolt = {
         move_task_up_button = "jolt_move_task_up_button",
         move_task_down_button = "jolt_move_task_down_button",
         delete_tasks_button = "jolt_delete_task_button",
+        tasks_scroll_pane_prefix = "jolt_tasks_scroll_pane_for_group_",
+        tasks_row_prefix = "jolt_tasks_row_",
     },
     -- For new task window
     new_task = {

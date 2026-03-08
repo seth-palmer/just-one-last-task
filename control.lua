@@ -2,23 +2,27 @@
 
 --- Imports
 local TaskManager = require("scripts.task_manager")
+local PlayerState = require("scripts.player_state")
 local constants = require("constants")
 local Gui = require("gui")
 local Utils = require("scripts.utils")
 local Outcome = require("scripts.outcome")
+local VisualActionLog = require("scripts.visual_action_log")
+
+-- Graphical Imports 
+local TaskListWindow = require("gui.task_list_window")
+local GroupManagerWindow = require("gui.group_manager_window")
+local TaskFormWindow = require("gui.task_form_window")
 
 -- Window width and height constants
 local TASK_LIST_MAX_WINDOW_HEIGHT = 600
 local AUTO_SCALE_WINDOW_HEIGHT = 0
 local TASK_LIST_WINDOW_WIDTH = 400
-local GROUP_MANAGEMENT_WINDOW_WIDTH = 320
-local GROUP_MANAGEMENT_WINDOW_HEIGHT = 480
+
 local WARNING_WINDOW_WIDTH = 300
 local WARNING_WINDOW_HEIGHT = 180
 local SUBTITLE_MAX_WIDTH = TASK_LIST_WINDOW_WIDTH - 130
 
--- If the "add to top" is selected in the new task window
-local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
 
 --region =======Debug Functions=======
 
@@ -53,791 +57,61 @@ end
 --region =======Local Functions=======
 --- IMPORTANT put local functions before where they are used!!!
 
---- Closes the task list menu
-local function close_task_list_menu(event)
-    local player = game.get_player(event.player_index)
-    player.gui.screen[constants.jolt.task_list.window].destroy()
-end
-
---- Opens the group management window
----@param event any
-local function open_group_management_window(event)
-    local player = game.get_player(event.player_index)
-    local title = {"jolt_group_management.window_title"}
-    local window_name = constants.jolt.group_management.window_name
-    local close_name = constants.jolt.group_management.close_button
-    local window_width = GROUP_MANAGEMENT_WINDOW_WIDTH
-    local window_height = GROUP_MANAGEMENT_WINDOW_HEIGHT
-    local window = Gui.new_window(player, title, window_name, close_name, window_width, window_height)
-
-    -- Add event to watch for button click to close the window
-    Task_manager.bind_close_button(player, close_name, window_name)
-
-    -- The selected group
-    local selected_group = {title = "", icon="virtual/signal-question-mark"}
-
-    local main_frame = window.add {
-        type = "frame",
-        direction="vertical",
-        name=constants.jolt.group_management.main_frame,
-        style = "slot_button_deep_frame",
-    }
-    main_frame.style.padding = 0
-    main_frame.style.margin = 4
-    main_frame.style.horizontal_align = "center"
-
-
-    -- Controls frame
-    local controls_frame = main_frame.add {
-        type="frame",
-        direction="horizontal",
-        style = "subheader_frame"
-    }
-    controls_frame.style.minimal_height = 40
-    controls_frame.style.margin = 4
-
-    -- Empty space
-    local empty_space = controls_frame.add {
-        type = "empty-widget",
-    }
-    -- Make it expand to fill the space
-    empty_space.style.minimal_width = 50
-    empty_space.style.horizontally_stretchable = true
-
-    -- Label for new group button 
-    local add_new_group_text = {"jolt_group_management.add_new_group_text"}
-    local add_group_label = Gui.new_label(controls_frame, add_new_group_text, player)
-
-    -- Add new group button
-    local add_group_button = controls_frame.add{
-        type="sprite-button",
-        style = "confirm_button",
-        sprite=constants.jolt.sprites.plus_folder,
-        name=constants.jolt.group_management.add_new_group_icon_button,
-        tooltip = {"jolt_group_management.tooltip_add_group"}
-    }
-    add_group_button.style.width = 75
-    add_group_button.style.height = 30
-
-    -- Display icon for each group
-    local button_frame = main_frame.add{
-        type="frame",
-        direction="horizontal",
-        style="jolt_deep_frame"
-    }
-    button_frame.style.margin = 0
-
-    local max_col_count = 7
-    local button_table = button_frame.add{
-        type="table",
-        name="button_table",
-        column_count=max_col_count,
-        style="filter_slot_table"
-    }
-    
-    -- Get group order
-    local group_order = Task_manager.get_group_order()
-
-    -- Add each group
-    for index, value in ipairs(group_order) do
-        -- Get the group from its id
-        -- Example: local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
-        local group = Task_manager.get_group(value)
-
-        local icon_button = button_table.add{
-            type="sprite-button",
-            sprite=group.icon,
-            style="slot_button",
-            -- Add tags since can't use the same name for each
-            -- but can check tag for group_mgnmt_btn and then get group_id
-            tags = {is_jolt = true, is_group_management_icon_button=true, group_id=group.id}
-        }
-        -- If this button is selected change its style to 
-        -- be yellow button background
-        local selected_group_id = Task_manager.get_group_management_selected_group_id(player)
-        if group.id == selected_group_id then
-            icon_button.style = constants.styles.buttons.yellow
-            selected_group = group
-        end
-    end
-
-
-    -- Disable all buttons 
-    local default_btn_state = selected_group.id ~= nil
-
-    local form_bg_frame = main_frame.add {
-        type = "frame",
-        style = "inside_shallow_frame",
-        name=constants.jolt.group_management.form_frame,
-    }
-
-    -- Edit form in the bottom half of the window
-    local form_table = form_bg_frame.add{
-        type="table",
-        column_count=2,
-        name=constants.jolt.group_management.form_container,
-        style="table"
-    }
-    form_table.style.padding = 10
-    
-    -- Label "Title" and textbox input
-    local label = form_table.add {type = "label", caption = "Title:"}
-    local task_title_textbox = form_table.add {
-        type = "textfield",
-        name = constants.jolt.group_management.task_title_textbox,
-        text = selected_group.name,
-        style = constants.styles.form.textfield,
-        enabled = default_btn_state,
-        icon_selector = true, -- add icon selector section
-    }
-    -- Focus the textbox for faster edits
-    task_title_textbox.focus()
-
-    -- Icon label for group
-    local label = form_table.add {type = "label", caption = "Icon:"}
-
-    -- Show icon from group selected
-    local icon_button = form_table.add{
-        type = "choose-elem-button", -- let user choose group
-        name = constants.jolt.group_management.change_group_icon_button,
-        elem_type = "signal",  -- or "fluid", "recipe", "technology", "entity", etc.
-        enabled = default_btn_state,
-    }
-    -- Split up path e.g. "space-location/nauvis" for elem_value
-    local slash_pos = string.find(selected_group.icon, "/")
-    local icon_type = string.sub(selected_group.icon, 0, slash_pos -1)
-    local icon_name = string.sub(selected_group.icon, slash_pos+1, -1)
-
-    -- Translate back for edge case where it uses 'virtual'
-    -- in a choose elem btn, but 'virtual-signal' in a sprite
-    if icon_type == "virtual-signal" then icon_type = "virtual" end
-
-    -- MUST set elem_value after icon button
-    -- (can't set property inside of it)
-    icon_button.elem_value = {type = icon_type, name = icon_name}
-
-    -- Position buttons - to change selected group position
-    form_table.add {type = "label", caption = "Position:"}
-    form_table.add {type = "label", caption = ""} -- skip this row
-
-    -- Move group left button
-    form_table.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.left,
-        name = constants.jolt.group_management.move_group_left,
-        tooltip = {"jolt_group_management.tooltip_move_group_left"},
-        enabled = default_btn_state,
-    }
-
-    -- Move group right button
-    form_table.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.right,
-        name = constants.jolt.group_management.move_group_right,
-        tooltip = {"jolt_group_management.tooltip_move_group_right"},
-        enabled = default_btn_state,
-    }
-
-    -- A line to separate the controls
-    local separator = window.add{
-        type = "line",
-        direction = "horizontal"
-    }
-
-    -- Add row for controls 
-    local controls_container = window.add {
-        type = "flow",
-        direction = "horizontal",
-    }
-    controls_container.style.top_padding = 4
-    controls_container.style.left_padding = 3
-    controls_container.style.right_padding = 3
-
-    -- Delete group button
-    local btn_delete_group = controls_container.add {
-        type = "sprite-button",
-        name = constants.jolt.group_management.delete_group,
-        style = constants.styles.buttons.red,
-        sprite = constants.jolt.sprites.delete,
-        tooltip = {"jolt_group_management.tooltip_delete_group"},
-        enabled = default_btn_state,
-    }
-
-    -- Empty space
-    local empty_space = controls_container.add {
-        type = "empty-widget",
-    }
-    -- Make it expand to fill the space
-    empty_space.style.minimal_width = 50
-    empty_space.style.height = 24
-    empty_space.style.horizontally_stretchable = true
-
-    -- Save button
-    local btn_save_group = controls_container.add {
-        type = "button",
-        caption = "Save",
-        tooltip = {"jolt_group_management.tooltip_save"},
-        enabled = default_btn_state,
-        name = constants.jolt.group_management.btn_save_group
-    }
-end
-
-
-
---- Opens a new window with a form to create a new task/subtask 
---- or edit an existing one
-local function open_task_form_window(event, window_title, window_subtitle, task)
-
-    -- If data in task is there, then this must be an edit
-    local is_edit = not task == nil
-    local is_subtask = task.parent_id ~= nil
-
-    -- get player by index
-    local player = game.get_player(event.player_index)
-
-    -- Setup the data if editing an existing task
-    task = task or {}
-    local title = task.title or ""
-    local description = task.description or ""
-    local task_id = task.task_id or ""
-    local checkbox_state_add_to_top = task.checkbox_add_to_top or ADD_TO_TOP_CHECKBOX_DEFAULT_STATE
-    
-    -- Get the current groups' id
-    local current_group_id = Task_manager.get_current_group_id(player)
-    
-    -- Set group id to the param if provided or the last group selected if new task
-    local group_id = task.group_id or current_group_id
-
-    -- Setup options for the new window
-    local options = {
-        player = player,
-        window_title = window_title,
-        window_name = constants.jolt.new_task.window,
-        back_button_name = constants.jolt.new_task.back_button,
-        confirm_button_name = constants.jolt.new_task.confirm_button
-    }
-
-    -- Make the new window and set close button
-    local new_task_window = Gui.new_dialog_window(options)
-    
-    -- Add event to watch for button click to close the window
-    Task_manager.bind_close_button(player, options.back_button_name, options.window_name)
-
-    -- Only add the label line if needed
-    -- need brackets because 'not' operator is applied first 
-    local need_label = not (window_subtitle == nil)
-
-    -- only add a subtitle if it is needed (like for subtasks)
-    if need_label then
-        -- Add subtitle line 
-        local controls_container = new_task_window.add {
-            type = "frame",
-            name = "jolt_controls_container",
-            direction = "horizontal",
-            style = "control_settings_section_frame",
-            -- style = "repeated_subheader_frame",
-            -- style = "no_header_filler_frame",
-            index = 2, -- Must set to 2 to place above the bottom row
-        }
-        controls_container.style.padding = 4
-        controls_container.style.top_margin = 4
-        controls_container.style.bottom_margin = 4
-
-        -- subtitle 
-        local lbl_subtitle = controls_container.add {
-            type = "label",
-            -- Add the icon this way to prevent a crash with not being able to concat tables
-            caption = {"", "[img=" .. constants.jolt.sprites.subtasks .. "] ", window_subtitle},
-            horizontally_stretchable = "on",
-        }
-        -- Limit the maximum width to prevent overflow for long task names
-        lbl_subtitle.style.maximal_width = SUBTITLE_MAX_WIDTH
-        lbl_subtitle.style.font = "default-bold"
-
-        -- Empty space
-        local empty_space = controls_container.add {
-            type = "empty-widget",
-        }
-        -- Make it expand to fill the space
-        empty_space.style.minimal_width = 50
-        empty_space.style.height = 24
-        empty_space.style.horizontally_stretchable = true
-    end
-    
-    -- Calculate the position of the form if the subtitle was added or not
-    local form_pos = 2
-    if need_label then form_pos = form_pos + 1 end
-
-    -- Container to hold form inputs
-    local new_task_form = new_task_window.add {
-        type = "flow",
-        name = constants.jolt.new_task.form_container,
-        direction = "vertical",
-        index = form_pos, -- Must set to 2 to place above the bottom row
-        tags = {is_jolt = true, task_id = task_id, parent_id = task.parent_id } -- Store task id if this is an edit task 
-    }
-    -- Space out the elements (must use flow not frame)
-    new_task_form.style.vertical_spacing = 4
-    
-    -- Label "Title" and textbox input
-    local task_title_label = Gui.new_label(new_task_form, "Title", player)
-
-    -- textbox for the task title
-    local task_title_textbox = new_task_form.add {
-        type = "textfield",
-        name = constants.jolt.new_task.title_textbox,
-        text = title,
-        style = constants.styles.form.textfield,
-        icon_selector = true, -- add an icon selector to insert icons
-    }
-    task_title_textbox.style.horizontally_stretchable = true
-    task_title_textbox.style.maximal_width = 300
-
-    -- Focus the textfield so the player can type immediately
-    task_title_textbox.focus()
-
-
-    -- Checkbox for "Add to top"
-    local checkbox_add_to_top = new_task_form.add {
-        type = "checkbox",
-        name = constants.jolt.new_task.add_to_top_checkbox,
-        caption = {"jolt_new_task_window.add_to_top_checkbox_desc"},
-        state = checkbox_state_add_to_top,
-    }
-
-    -- Get position
-    local position = Task_manager.get_group_position(group_id)
-    
-
-    -- Dropdown to select which group the task is added to
-    local dropdown_select_group = new_task_form.add {
-        type = "drop-down",
-        name = constants.jolt.new_task.group_dropdown,
-        caption = "Group",
-        items = Task_manager.get_group_names(),
-        style = "dropdown",
-        selected_index = position,
-        enabled = not is_subtask,
-    }
-
-    -- Task description
-    -- https://lua-api.factorio.com/latest/concepts/GuiElementType.html
-    local task_description_label = Gui.new_label(new_task_form, "Description", player)
-    local task_description_textbox = new_task_form.add {
-        type = "text-box", -- A multiline textfield
-        name = constants.jolt.new_task.description_textbox,
-        text = description,
-        style = constants.styles.form.textfield,
-        icon_selector = true, -- add an icon selector to insert icons
-    }
-    task_description_textbox.style.horizontally_stretchable = true
-    task_description_textbox.style.vertically_stretchable = true
-    task_description_textbox.word_wrap = true
-    task_description_textbox.style.maximal_width = 340
-
-end
-
-
-
---- Open the task list menu
-local function open_task_list_menu(event)
-    -- Initialize data if needed
-    -- !! Note: index 1 is the start not 0 in lua !!
-
-    -- get player by index
-    local player = game.get_player(event.player_index)
-
-    -- In case a group is deleted have a fallback to the first group 
-    -- to avoid a crash
-    local current_group_id = Task_manager.get_current_group_id(player)
-    if not Task_manager.does_group_exist(current_group_id) then
-        local first_group_id = storage.jolt.group_order[1]
-        Task_manager.set_current_group_id(player, first_group_id)
-    end
-
-    --region =======Task List=======
-
-    -- Setup variables for tasks list window
-    local close_button_name = constants.jolt.task_list.close_window_button
-    local window_name = constants.jolt.task_list.window
-
-    local window_width = TASK_LIST_WINDOW_WIDTH
-    -- set the window height to 0 to make it auto adjust size based on the 
-    -- content, (limit by setting main_frame.style.maximal_height = MAX_WINDOW_HEIGHT)
-    -- see below
-    local window_height = AUTO_SCALE_WINDOW_HEIGHT
-    -- Make new window for tasks list
-    local window = Gui.new_window(player, {"jolt.tasks_list_window_title"}, window_name, close_button_name, window_width, window_height)
-
-    -- Add event to watch for button click to close the window
-    Task_manager.bind_close_button(player, close_button_name, window_name)
-
-    local main_frame = window.add {
-        type = "frame",
-        direction = "vertical",
-        style = "slot_button_deep_frame",
-    }
-    -- Limit max height
-    main_frame.style.maximal_height = TASK_LIST_MAX_WINDOW_HEIGHT
-    main_frame.style.padding = 0
-    main_frame.style.margin = 4
-    main_frame.style.horizontal_align = "center"
-
-    --endregion
-
-
-    --region =======Tabs=======
-
-    -- Make outer frame for style reasons
-    local group_controls_frame = main_frame.add {
-        type = "frame",
-        direction = "vertical",
-    }
-    group_controls_frame.style.margin = 0
-    group_controls_frame.style.padding = 4
-
-    -- Make place to put content in
-    local content_frame = main_frame.add {
-        type = "frame",
-        name = "content_frame",
-        direction = "vertical",
-        style = "jolt_content_frame"
-    }
-    content_frame.style.margin = 0
-    content_frame.style.padding = 0
-
-    
-    -- Add label for current group name
-    local lbl_current_group_name = group_controls_frame.add {
-            type = "label",
-            caption = "",
-            horizontally_stretchable = "on"
-    }
-    lbl_current_group_name.style.bottom_margin = -15
-    lbl_current_group_name.style.font = "default-large-bold"
-    
-    -- Frame for groups and group edit button
-    local group_content = group_controls_frame.add {
-        type = "flow",
-        direction = "horizontal",
-        horizontally_stretchable = "on"
-    }
-    group_content.style.top_padding = 12
-    group_content.style.bottom_padding = 2
-    group_content.style.left_margin = 0
-    group_content.style.bottom_margin = 0
-    group_content.style.minimal_width = 500 -- make it take up the full width
-
-    -- Add section for tab icons
-    local max_col_count = 7
-    local button_table = group_content.add{
-        type="table",
-        name="button_table",
-        column_count=max_col_count,
-        style="filter_slot_table"
-    }
-
-    -- Edit groups button
-    local btn_edit_groups = group_content.add {
-        type = "sprite-button",
-        name = constants.jolt.group_management.open_window_button,
-        style = constants.styles.frame.button,
-        sprite = constants.jolt.sprites.edit_group,
-        tooltip = {"jolt.tooltip_edit_groups_button"},
-    }
-    btn_edit_groups.style.size = {32, 32}
-    btn_edit_groups.style.top_margin = 6
-    btn_edit_groups.style.left_margin = 24
-
-    -- Save current group id
-    local current_group_id = Task_manager.get_current_group_id(player)
-    local current_group = Task_manager.get_group(current_group_id)
-
-    -- Get group order
-    local group_order = Task_manager.get_group_order()
-    local groups = Task_manager.get_groups()
-
-    --region =======Controls=======
-
-    -- Add row for controls 
-    local controls_container = content_frame.add {
-        type = "frame",
-        name = "jolt_controls_container",
-        direction = "horizontal",
-        style = "subheader_frame"
-    }
-    controls_container.style.minimal_height = 40
-    controls_container.style.margin = 2
-    controls_container.style.top_margin = 0
-
-    -- A checkbox to toggle seeing completed/incomplete tasks
-    local cb_show_completed = controls_container.add {
-        type = "checkbox",
-        name = constants.jolt.task_list.show_completed_checkbox,
-        caption = {"jolt_task_list_window.show_completed_tasks"},
-        state = Task_manager.get_setting_show_completed(player),
-        horizontally_stretchable = "on"
-    }
-    cb_show_completed.style.right_margin = 20
-
-    -- Only enable controls if tasks are selected
-    local enable_move_controls = Task_manager.is_any_task_selected(player)
-
-    -- Move tasks up button 
-    local move_task_up_button = controls_container.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.up,
-        name = constants.jolt.task_list.move_task_up_button,
-        tooltip = {"jolt_task_list_window.tooltip_move_tasks_up"},
-        enabled = enable_move_controls,
-        tags = {is_jolt=true} -- seems to need a tag to be detected
-    }
-    move_task_up_button.style.size = {32, 32}
-
-    -- Move tasks down button 
-    local move_task_down_button = controls_container.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.down,
-        name = constants.jolt.task_list.move_task_down_button,
-        tooltip = {"jolt_task_list_window.tooltip_move_tasks_down"},
-        enabled = enable_move_controls,
-        tags = {is_jolt=true} -- seems to need a tag to be detected
-    }
-    move_task_down_button.style.size = {32, 32}
-    move_task_down_button.style.right_margin = 10
-
-    -- Delete tasks down button 
-    local delete_tasks_button = controls_container.add {
-        type = "sprite-button",
-        sprite = constants.jolt.sprites.trash,
-        name = constants.jolt.task_list.delete_tasks_button,
-        tooltip = {"jolt_task_list_window.tooltip_delete_tasks"},
-        enabled = enable_move_controls,
-        style = constants.styles.buttons.red,
-        tags = {is_jolt=true} -- seems to need a tag to be detected
-    }
-    delete_tasks_button.style.size = {32, 32}
-
-
-    -- Empty space
-    local empty_space = controls_container.add {
-        type = "empty-widget",
-    }
-    -- Make it expand to fill the space
-    empty_space.style.minimal_width = 10
-    empty_space.style.height = 24
-    empty_space.style.horizontally_stretchable = true
-
-    -- Add task button
-    local add_task_button = controls_container.add {
-        type = "sprite-button",
-        style = "confirm_button",
-        sprite = constants.jolt.sprites.add,
-        name = constants.jolt.task_list.add_task_button,
-        tooltip = {"jolt.tootlip_add_task"}
-    }
-    add_task_button.style.width = 50
-    add_task_button.style.height = 30
-
-
-    --endregion 
-
-
-    -- Add a tab for each group
-    for index, value in ipairs(group_order) do
-        -- Get the group from its id
-        local group = Task_manager.get_group(value)
-
-        -- Icon button is the "tab", clicking it changes to that group
-        -- displaying only tasks in it
-        local icon_button = button_table.add{
-            type="sprite-button",
-            sprite=group.icon,
-            style="slot_button",
-            -- Add tags since can't use the same name for each
-            -- but can check tag for group_management_btn and then get group_id
-            tags = {is_jolt = true, is_group_change_button=true, group_id=group.id}
-        }
-        -- If this button is selected change its style to
-        -- be yellow button background to show it is the active group
-        if group.id == current_group_id then
-            icon_button.style = constants.styles.buttons.yellow
-            local selected_group = group
-
-            -- Update current group name
-            lbl_current_group_name.caption = current_group.name
-        end
-    end
-
-    -- Display tasks for the currently selected group
-    local tab_content = content_frame.add{
-        type="scroll-pane", 
-        direction="vertical",
-        vertical_scroll_policy = "auto",  -- Only show scrollbar when needed
-        horizontal_scroll_policy = "never",
-    }
-    tab_content.style.padding = 10
-    tab_content.style.minimal_width = 350
-
-    -- Get the last interacted with task (may be nil)
-    local last_interacted_task_id = Task_manager.get_last_interacted_task_id(player)
-    local last_interacted_task_element
-
-    local task_count = 0
-
-    -- Get tasks, checking if the control button "Show Completed".
-    -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-    local group_tasks = Task_manager.get_tasks(current_group_id, Task_manager.get_setting_show_completed(player))
-    for _, task in pairs(group_tasks) do
-
-        -- Increment task counter
-        task_count = task_count + 1
-
-        -- Add a divider every 5 tasks
-        local DIVIDER_COUNT = 5
-        -- Add divider every 5 tasks
-        if task_count > 1 and (task_count - 1) % DIVIDER_COUNT == 0 then
-            tab_content.add{type="line", direction="horizontal"}
-        end
-
-        -- Check if task is selected 
-        local selected_tasks = Task_manager.get_selected_tasks(player)
-        local is_selected = Task_manager.is_task_selected(player, task.id)
-
-        -- Display the task (see new_gui_task() for getting subtasks)
-        local tab_in_ammount = 0
-        local gui_task = Gui.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
-        
-        -- TODO: in future if element does not exist (like when
-        -- marking as done, go to next or prev element)
-
-        -- Mark the last interacted with task (for when the scroll bar is very long)
-        if last_interacted_task_id and task.id == last_interacted_task_id then
-            last_interacted_task_element = gui_task
-        end
-    end
-
-    -- Add placeholder text if no tasks
-    if #group_tasks == 0 then
-        local placeholder = tab_content.add{
-            type = "label",
-            caption = {"jolt_task_list_window.no_tasks_info_text"}
-        }
-        placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
-    end
-
-    -- Scroll to the last interacted with element 
-    if last_interacted_task_element and last_interacted_task_element.valid then
-        tab_content.scroll_to_element(last_interacted_task_element, "in-view")
-    end
-
-    --endregion
-end
-
 
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
 local function add_new_task(event)
-    -- Go through element tree to get to the form_container
     local player = game.get_player(event.player_index)
-    local screen = player.gui.screen
-    local window = screen[constants.jolt.new_task.window]
-    local form_container = window[constants.jolt.new_task.form_container]
-
-    -- Get form elements
-    local textbox_title = form_container[constants.jolt.new_task.title_textbox]
-    local textbox_description = form_container[constants.jolt.new_task.description_textbox]
-    local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
-    local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
-
-    -- Get Values
-    local task_id = form_container.tags.task_id
-    local title = textbox_title.text
-    local description = textbox_description.text
-    local add_to_top = checkbox_add_to_top.state
-
-    -- If it has a parent_id then it is a subtask
-    local is_subtask = form_container.tags.parent_id
-    local group_id
-
-    -- If a regular task get the group id
-    if not is_subtask then
-        -- Get the selected index in the dropdown
-        local group_index = dropdown_group.selected_index
-        -- Get the actual group id
-        group_id = Task_manager.get_group_order()[group_index]
     
-    else -- otherwise set the group_id to nil
-        group_id = nil
-    end
+    -- Get the task data from the form
+    local task_data = TaskFormWindow.get_form_data(player)
 
-    
-    -- check if empty string not nil since task_id is string type
-    -- check type with debug_print(event, "type is: " .. type(task_id))
-    local is_edit_task = task_id ~= ""
-    
-    -- Make task parameters
-    local task_params = {
-        title = title,
-        description = description,
-        group_id = group_id,
-        parent_id = form_container.tags.parent_id or nil
-    }
+    local outcome = Task_manager.save_task(task_data)
 
-    -- If no title display error and do not close window
-    if title == "" then
+    -- If fails display error and do not close window
+    if not outcome.success then
+
         -- Create "flying text" with error message
         player.create_local_flying_text {
-            text = {"jolt_new_task_window.no_title_error_message"},
+            text = outcome.message,
             create_at_cursor=true,
         }
 
     else -- If valid data add task
-        if is_edit_task then -- if it has id, update task
-            Task_manager.update_task(task_params, task_id)
-        else -- otherwise add new task
-            Task_manager.add_task(task_params, add_to_top)
+        -- Log data for editing or adding a new task 
+        local action = constants.jolt.actions.added_task
+        local task_id
+        if task_data.is_edit_task then
+            action = constants.jolt.actions.edited_task
+            task_id = task_data.id
+        else
+            task_id = outcome.value
         end
+        -- Log the data 
+        local data = {task_id = task_id}
+        VisualActionLog.add(action, data)
 
-        -- Close task form window
-        player.gui.screen[constants.jolt.new_task.window].destroy()
+        -- On control keep the window open and clear the form 
+        -- But NOT for editing tasks
+        if event.control and not task_data.is_edit_task then
+            TaskFormWindow.clear_form(player)
+            -- TaskFormWindow.open(event, "New Task", nil, {})
+
+        else
+            -- Close task form window
+            TaskFormWindow.close(player)
+        end
+        
 
         -- Refresh data
-        open_task_list_menu(event)
+       TaskListWindow.refresh(player)
     end
 end
 
---- Initialize data for the player
----@param player_index any - player index to initialize
-local function initialize_player(player_index)
-    local player = game.get_player(player_index)
 
-    -- Initialize the player's data table
-    if not storage.players[player.index] then
-        storage.players[player.index] = {}
-    end
-
-    -- Initialize jolt specific data under a jolt key
-    storage.players[player.index].jolt = {
-        ui = {
-            selected_tasks = {},
-            selected_group_tab_id = Task_manager.get_group_order()[1],
-            saved_window_locations = {},
-            close_button_registry = {},
-            is_task_list_pinned_open = false,
-            selected_group_icon_id = nil,
-            last_interacted_task_id = nil,
-            show_completed_tasks = false,
-        },
-        
-    }
-end
 --endregion =======Local Functions=======
 
 
-local function initialize_storage()
-    
-end
 
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convinience, don't worry if you don't understand how this works
@@ -871,6 +145,9 @@ script.on_init(function()
         groups = default_group_data,
         priorities = {},
         group_order = default_group_order,
+        visual_action_log = {
+            entries = {},
+        }
     }
 
     -- store players and their info
@@ -878,6 +155,9 @@ script.on_init(function()
 
     -- setup the task manager 
     Task_manager = TaskManager.new()
+
+    -- setup visual log 
+    VisualActionLog.initialize()
 end)
 
 
@@ -919,10 +199,20 @@ script.on_configuration_changed(function(event)
                     p.settings = nil
                 end
             else
-                initialize_player(player.index)
+                PlayerState.initialize(player.index)
             end
         end
     end
+
+    -- Close windows for all players 
+    for _, player in pairs(game.players) do
+        TaskListWindow.close(player)
+        TaskFormWindow.close(player)
+        GroupManagerWindow.close(player)
+    end
+    
+    -- setup visual log if needed
+    VisualActionLog.initialize()
 end)
 
 --- Called when a new player is created
@@ -930,7 +220,7 @@ end)
 --- https://lua-api.factorio.com/latest/events.html#on_player_created
 script.on_event(defines.events.on_player_created, function(event)
     -- Initialize data for the player
-    initialize_player(event.player_index)
+    PlayerState.initialize(event.player_index)
 
 end)
 
@@ -943,22 +233,47 @@ script.on_load(function ()
     -- Note: TaskManager.new() loads in the save data itself
 end)
 
+--- Toggles the main task list window
+---@param event any
+local function toggle_task_list_window(event)
+    local player = game.get_player(event.player_index)
+        -- debug_print(event, event)
+
+        local is_shortcut_toggled = player.is_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window)
+        -- debug_print(event, "is shortcut enabled: " .. tostring(is_shortcut_toggled))
+
+        local pinned = PlayerState.is_task_list_pinned_open(player)
+        -- debug_print(event, pinned)
+
+        -- If the window is already open close it
+        if player.gui.screen[constants.jolt.task_list.window] then
+            TaskListWindow.close(player)
+
+            -- update the style of the shortcut button
+            player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
+
+        else -- otherwise open the task list window
+            TaskListWindow.open(event)
+
+            -- update the style of the shortcut button
+            player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, true)
+        end
+end
+
 --- Watch for clicks on the task shortcut icon to open and close
 --- the task list window
 script.on_event(defines.events.on_lua_shortcut, function(event)
     -- Only react for the jolt shortcut button
     if event.prototype_name == constants.jolt.shortcuts.open_task_list_window then
-        local player = game.get_player(event.player_index)
-
-        -- If the window is already open close it
-        if player.gui.screen[constants.jolt.task_list.window] then
-            close_task_list_menu(event)
-        else -- otherwise open the task list window
-            open_task_list_menu(event)
-        end
+        toggle_task_list_window(event)
     end
 end) -- end on_lua_shortcut
 
+
+-- Keyboard shortcut default (Ctrl+T)
+script.on_event(constants.jolt.shortcuts.open_task_list_window, function(event)
+    toggle_task_list_window(event)
+end)
 
 --- Called when a LuaGuiElement is confirmed, for example by pressing 
 --- Enter in a textfield.
@@ -1025,11 +340,11 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- in separate "if" statement so it doesn't block other interactions
     if event.element.tags.task_id then
         -- save task id
-        Task_manager.save_last_interacted_task_id(player, event.element.tags.task_id)
+        PlayerState.save_last_interacted_task_id(player, event.element.tags.task_id)
     end
 
     -- Check if element is a close button for one of jolt's windows
-    local window_name = Task_manager.pop_close_button(player, element_name)
+    local window_name = PlayerState.pop_close_button(player, element_name)
 
     -- If it is then attempt to close the window
     if window_name ~= nil then
@@ -1041,31 +356,31 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- When closing group management, clear the selected group 
         -- (so the window opens with nothing selected)
         if window_name == constants.jolt.group_management.window_name then
-            Task_manager.clear_group_management_selected_group_id(player)
+            PlayerState.clear_group_management_selected_group_id(player)
         end
 
         -- clear selected tasks
-        Task_manager.clear_selected_tasks(player)
+        PlayerState.clear_selected_tasks(player)
 
     -- Keep open button is pressed
     elseif element_name == constants.jolt.task_list.keep_window_open_button then
 
         -- toggle the keep open state
-        Task_manager.toggle_task_list_pinned_open(player)
+        PlayerState.toggle_task_list_pinned_open(player)
 
         -- Refresh window 
-        open_task_list_menu(event)
+       TaskListWindow.open(event)
 
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
         -- clear selected tasks
-        Task_manager.clear_selected_tasks(player)
+        PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
-        open_task_list_menu(event)
+        TaskListWindow.refresh(player)
 
         -- open window to add a new task
-        open_task_form_window(event, "New Task", nil, {})
+        TaskFormWindow.open(event, "New Task", nil, {})
 
     -- Move selected task(s) up
     elseif element_name == constants.jolt.task_list.move_task_up_button then
@@ -1073,8 +388,12 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Move the selected tasks
         Task_manager.move_selected_tasks(player, Direction.Up)
 
+        -- Log movement 
+        local data = {group_id = PlayerState.get_current_group_id(player)}
+        VisualActionLog.add(constants.jolt.actions.moved_tasks_up, data)
+
         -- Refresh list of tasks
-        open_task_list_menu(event)
+       TaskListWindow.refresh(player)
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.move_task_down_button then
@@ -1082,17 +401,28 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Move the selected tasks
         Task_manager.move_selected_tasks(player, Direction.Down)
 
+        -- Log movement 
+        local data = {group_id = PlayerState.get_current_group_id(player)}
+        VisualActionLog.add(constants.jolt.actions.moved_tasks_down, data)
+
         -- Refresh list of tasks
-        open_task_list_menu(event)
+       TaskListWindow.refresh(player)
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.delete_tasks_button then
 
-        -- Delete the selected tasks (also clears the selected tasks)
+        -- Log tasks deleted 
+        local data = {tasks = PlayerState.get_selected_tasks(player), group_id = PlayerState.get_current_group_id(player)}
+        VisualActionLog.add(constants.jolt.actions.deleted_tasks, data)
+
+        -- Delete the selected tasks
         Task_manager.delete_selected_tasks(player)
 
+        -- Clear selected tasks 
+        PlayerState.clear_selected_tasks(player)
+
         -- Refresh list of tasks
-        open_task_list_menu(event)
+       TaskListWindow.refresh(player)
 
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
@@ -1120,7 +450,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             task_id = task_id,
             parent_id = task.parent_id,
         }
-        open_task_form_window(event, "Edit Task", nil, params)
+        TaskFormWindow.open(event, "Edit Task", nil, params)
 
     -- Task checkbox clicked to select or mark complete / uncomplete 
     elseif element_name == constants.jolt.task_list.task_checkbox then
@@ -1131,44 +461,44 @@ script.on_event(defines.events.on_gui_click, function(event)
         if event.control then
             -- Add selected task to list
             -- Note: (non sibling tasks will not be added)
-            local outcome = Task_manager.add_selected_task(player, task_id)
+            local outcome = PlayerState.add_selected_task(player, task_id)
 
-            -- Check if it did not succeed
-            if not outcome.success then
+            -- Check if it succeeded
+            if outcome.success then
+                -- Log the action
+                local data = {task_id = task_id}
+                VisualActionLog.add(constants.jolt.actions.selected_task, data)
+            else
                 -- Display error message
                 Utils.display_error(player, outcome.message)
             end
 
             -- Refresh list of tasks
-            open_task_list_menu(event)
+            TaskListWindow.refresh(player)
         
         else -- Otherwise mark mark complete / uncomplete 
             -- clear selected tasks 
-            Task_manager.clear_selected_tasks(player)
+            PlayerState.clear_selected_tasks(player)
 
-            -- Get the task 
-            local task = Task_manager.get_task(task_id)
+            -- Mark the task complete/incomplete
+            Task_manager.toggle_task_completed(task_id)
 
-            -- Invert completed status 
-            task.is_complete = not task.is_complete
+            -- Log action so we know what task to update
+            local data = {task_id = task_id}
+            VisualActionLog.add(constants.jolt.actions.updated_task_completed_status, data)
 
-            -- Move task to the end 
-            -- if task.is_complete then
-            --     Task_manager.move_task_to_bottom(task.id)
-            -- end
-
-            -- Refresh list of tasks (Is this inefficient?)
-            open_task_list_menu(event)
+            -- Refresh window
+            TaskListWindow.refresh(player)
         end
 
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
         -- Invert the setting stored in task manager 
-        local show_completed = Task_manager.get_setting_show_completed(player)
-        Task_manager.set_setting_show_completed(player, not show_completed)
+        local show_completed = PlayerState.get_setting_show_completed(player)
+        PlayerState.set_setting_show_completed(player, not show_completed)
 
         -- Refresh list of tasks
-        open_task_list_menu(event)
+       TaskListWindow.open(event)
 
     -- Toggle details for individual task
     elseif element_name == constants.jolt.task_list.toggle_details_button then
@@ -1178,9 +508,11 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- invert property to mark that details should be shown/hidden
         task.show_details = not task.show_details
+        local data = {task_id = task_id}
+        VisualActionLog.add(constants.jolt.actions.updated_show_task_details_status, data)
 
         -- Refresh list of tasks
-        open_task_list_menu(event)
+       TaskListWindow.refresh(player)
     
     -- On click of the "+ Subtask" button 
     elseif element_name == constants.jolt.task_list.add_subtask_button then
@@ -1192,31 +524,31 @@ script.on_event(defines.events.on_gui_click, function(event)
         local subtitle = {"jolt_task_list_window.label_subtask_of", task.title}
         local subtask = {}
         subtask.parent_id = task.id
-        open_task_form_window(event, "New Subtask", subtitle, subtask)
+        TaskFormWindow.open(event, "New Subtask", subtitle, subtask)
 
     -- If selected an tab group icon button change the tasks
     elseif event.element.tags.is_group_change_button then
         -- Save selected group id
         local selected_group_id = event.element.tags.group_id
-        Task_manager.set_current_group_id(player, selected_group_id)
+        PlayerState.set_current_group_id(player, selected_group_id)
 
         -- Clear selected tasks 
-        Task_manager.clear_selected_tasks(player)
+        PlayerState.clear_selected_tasks(player)
 
-        -- Refresh list of tasks
-        open_task_list_menu(event)
+        -- Refresh window
+        TaskListWindow.refresh(player)
 
     -- Group Management button
     elseif element_name == constants.jolt.group_management.open_window_button then
         -- If the window is already open close it
         if player.gui.screen[constants.jolt.group_management.window_name] then
             -- clear the selected group 
-            Task_manager.clear_group_management_selected_group_id(player)
+            PlayerState.clear_group_management_selected_group_id(player)
 
             -- close the window
             player.gui.screen[constants.jolt.group_management.window_name].destroy()
         else -- otherwise open the group management window
-            open_group_management_window(event)
+            GroupManagerWindow.open(event)
         end
         
 
@@ -1233,18 +565,18 @@ script.on_event(defines.events.on_gui_click, function(event)
             Utils.display_error(player, max_groups_error_message)
         else
             -- Make it the currently selected group
-            Task_manager.set_group_management_selected_group_id(player, new_group_id)
+            PlayerState.set_group_management_selected_group_id(player, new_group_id)
 
             -- Refresh windows
-            open_task_list_menu(event)
-            open_group_management_window(event)
+           TaskListWindow.open(event)
+           GroupManagerWindow.open(event)
         end
 
 
     -- Delete selected group
     elseif element_name ==  constants.jolt.group_management.delete_group then
         -- Get group id
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- If tasks in group show warning
         local task_count = Task_manager.count_tasks_for_group(group_id)
@@ -1260,13 +592,13 @@ script.on_event(defines.events.on_gui_click, function(event)
                 window_name = constants.jolt.delete_group.window_name,
                 window_title = {"jolt_group_management.confirm_delete_window_title"},
                 back_button_name = constants.jolt.delete_group.back_button,
-                confirm_button_name = constants.jolt.delete_group.confirm_button
+                confirm_button_name = constants.jolt.delete_group.confirm_button,
             }
             -- Open new confirmation dialog window
             local confirm_delete_window = Gui.new_dialog_window(options)
 
             -- Add event to watch for button click to close the window
-            Task_manager.bind_close_button(player, options.back_button_name, options.window_name)
+            PlayerState.bind_close_button(player, options.back_button_name, options.window_name)
 
             -- Confirm delete button
             local confirm_delete_frame = confirm_delete_window.add {
@@ -1296,14 +628,14 @@ script.on_event(defines.events.on_gui_click, function(event)
             end
 
             -- Refresh windows
-            open_task_list_menu(event)
-            open_group_management_window(event)
+           TaskListWindow.open(event)
+           GroupManagerWindow.open(event)
         end
 
     -- Confirm deleted group button
     elseif element_name ==  constants.jolt.delete_group.confirm_button then
         -- Get group id
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- Delete group
         local is_deleted = Task_manager.delete_group(group_id)
@@ -1315,8 +647,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         end
 
         -- Refresh windows
-        open_task_list_menu(event)
-        open_group_management_window(event)
+       TaskListWindow.open(event)
+       GroupManagerWindow.open(event)
 
         -- Close confirmation window
         player.gui.screen[constants.jolt.delete_group.window_name].destroy()
@@ -1325,16 +657,16 @@ script.on_event(defines.events.on_gui_click, function(event)
     elseif event.element.tags.is_group_management_icon_button then
         -- Save new selected group id 
         local selected_group_id = event.element.tags.group_id
-        Task_manager.set_group_management_selected_group_id(player, selected_group_id)
+        PlayerState.set_group_management_selected_group_id(player, selected_group_id)
 
         -- Refresh windows
-        open_task_list_menu(event)
-        open_group_management_window(event)
+       TaskListWindow.open(event)
+       GroupManagerWindow.open(event)
 
     -- Move group left button
     elseif element_name == constants.jolt.group_management.move_group_left then
         -- Get current selected group
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- save group changes to prevent them being lost
         Task_manager.save_current_group(player)
@@ -1343,13 +675,13 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_left(group_id)
 
         -- Refresh windows
-        open_task_list_menu(event)
-        open_group_management_window(event)
+       TaskListWindow.open(event)
+       GroupManagerWindow.open(event)
 
     -- Move group right button
     elseif element_name == constants.jolt.group_management.move_group_right then
         -- Get current selected group
-        local group_id = Task_manager.get_group_management_selected_group_id(player)
+        local group_id = PlayerState.get_group_management_selected_group_id(player)
 
         -- save group changes to prevent them being lost
         Task_manager.save_current_group(player)
@@ -1358,8 +690,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_right(group_id)
 
         -- Refresh windows
-        open_task_list_menu(event)
-        open_group_management_window(event)
+       TaskListWindow.open(event)
+       GroupManagerWindow.open(event)
 
     -- Save group button 
     elseif element_name == constants.jolt.group_management.btn_save_group then
@@ -1371,8 +703,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         
 
         -- Refresh windows
-        open_task_list_menu(event)
-        open_group_management_window(event)
+       TaskListWindow.open(event)
+       GroupManagerWindow.open(event)
     end
 end)
 
@@ -1388,7 +720,7 @@ script.on_event(defines.events.on_gui_location_changed, function(event)
     
     -- Save new location to storage
     -- storage.players[event.player_index].saved_window_locations[event.element.name] = new_location
-    Task_manager.save_window_location(player, event.element.name, new_location)
+    PlayerState.save_window_location(player, event.element.name, new_location)
 end)
 
 --- Called when the player closes the GUI they have open.
@@ -1397,73 +729,32 @@ end)
 --- https://lua-api.factorio.com/latest/events.html#on_gui_closed
 ---@param event any
 script.on_event(defines.events.on_gui_closed, function(event)
+
     if not event.element then return end
+    if not event.element.valid then return end
+
+    -- Do not continue if it is not a window from JOLT
+    if not Task_manager.is_jolt_window(event.element.name) then return end
+
+
     local player = game.get_player(event.player_index)
     local window_name = event.element.name
 
-    -- Do not continue if it is not a window from JOLT
-    if not Task_manager.is_jolt_window(window_name) then return end
 
     -- Don't close if task_list window and it is pinned open 
-    if window_name == constants.jolt.task_list.window and Task_manager.is_task_list_pinned_open(player) then
+    if window_name == constants.jolt.task_list.window and PlayerState.is_task_list_pinned_open(player) then
         return
     end
 
-    -- Close the window
-    if event.element.valid then event.element.destroy() end
+    -- Make sure window is closed
+    if event.element.valid then
+        TaskFormWindow.close(player)
+    end
     
     -- Can run run cleanup specific to that window (see also section in on_gui_click)
     if window_name == constants.jolt.group_management.window_name then
     end
-    if window_name == constants.jolt.task_list.window_name then
-        Task_manager.clear_selected_tasks(player)
+    if window_name == constants.jolt.task_list.window then
+        PlayerState.clear_selected_tasks(player)
     end
 end)
-
---[[
-script.on_event(defines.events.on_gui_closed, function(event)
-    debug_print(event, "closing with e")
-    -- Exit if invalid
-    local element = event.element
-    if not element or not element.valid then return end
-    local element_name = event.element.name
-
-
-    -- Early exit: ignore elements that don't belong to me
-    if element_name:find("^jolt") then
-        --TIP: uncomment below to debug naming issues
-        -- is our gui element so continue
-    else
-        -- debug_print(event, "tags is jolt = " )
-        debug_print(event, event.element.name)
-        return
-    end
-
-    -- Get the player that is interacting with our gui
-    local player = game.get_player(event.player_index)
-
-
-    -- Check if element is a close button for one of jolt's windows
-    local window_name = Task_manager.pop_close_button(player, element_name)
-    debug_print(event, window_name)
-    debug_print(event, element_name)
-    window_name = element_name
-
-    -- If it is then attempt to close the window
-    if window_name ~= nil then
-        -- Check if the frame still exists before destroying
-        if player.gui.screen[window_name] and player.gui.screen[window_name].valid then
-            player.gui.screen[window_name].destroy()
-        end
-
-        -- When closing group management, clear the selected group 
-        -- (so the window opens with nothing selected)
-        if window_name == constants.jolt.group_management.window_name then
-            Task_manager.clear_group_management_selected_group_id(player)
-        end
-
-        -- clear selected tasks
-        Task_manager.clear_selected_tasks(player)
-    end
-end)
-]]--
