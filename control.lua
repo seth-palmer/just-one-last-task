@@ -225,22 +225,47 @@ script.on_load(function ()
     -- Note: TaskManager.new() loads in the save data itself
 end)
 
+--- Toggles the main task list window
+---@param event any
+local function toggle_task_list_window(event)
+    local player = game.get_player(event.player_index)
+        -- debug_print(event, event)
+
+        local is_shortcut_toggled = player.is_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window)
+        -- debug_print(event, "is shortcut enabled: " .. tostring(is_shortcut_toggled))
+
+        local pinned = PlayerState.is_task_list_pinned_open(player)
+        -- debug_print(event, pinned)
+
+        -- If the window is already open close it
+        if player.gui.screen[constants.jolt.task_list.window] then
+            TaskListWindow.close(player)
+
+            -- update the style of the shortcut button
+            player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
+
+        else -- otherwise open the task list window
+            TaskListWindow.open(event)
+
+            -- update the style of the shortcut button
+            player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, true)
+        end
+end
+
 --- Watch for clicks on the task shortcut icon to open and close
 --- the task list window
 script.on_event(defines.events.on_lua_shortcut, function(event)
     -- Only react for the jolt shortcut button
     if event.prototype_name == constants.jolt.shortcuts.open_task_list_window then
-        local player = game.get_player(event.player_index)
-
-        -- If the window is already open close it
-        if player.gui.screen[constants.jolt.task_list.window] then
-            TaskListWindow.close(player)
-        else -- otherwise open the task list window
-            TaskListWindow.open(event)
-        end
+        toggle_task_list_window(event)
     end
 end) -- end on_lua_shortcut
 
+
+-- Keyboard shortcut default (Ctrl+T)
+script.on_event(constants.jolt.shortcuts.open_task_list_window, function(event)
+    toggle_task_list_window(event)
+end)
 
 --- Called when a LuaGuiElement is confirmed, for example by pressing 
 --- Enter in a textfield.
@@ -696,25 +721,32 @@ end)
 --- https://lua-api.factorio.com/latest/events.html#on_gui_closed
 ---@param event any
 script.on_event(defines.events.on_gui_closed, function(event)
+
     if not event.element then return end
+    if not event.element.valid then return end
+
+    -- Do not continue if it is not a window from JOLT
+    if not Task_manager.is_jolt_window(event.element.name) then return end
+
+
     local player = game.get_player(event.player_index)
     local window_name = event.element.name
 
-    -- Do not continue if it is not a window from JOLT
-    if not Task_manager.is_jolt_window(window_name) then return end
 
     -- Don't close if task_list window and it is pinned open 
     if window_name == constants.jolt.task_list.window and PlayerState.is_task_list_pinned_open(player) then
         return
     end
 
-    -- Close the window
-    if event.element.valid then event.element.destroy() end
+    -- Make sure window is closed
+    if event.element.valid then
+        TaskFormWindow.close(player)
+    end
     
     -- Can run run cleanup specific to that window (see also section in on_gui_click)
     if window_name == constants.jolt.group_management.window_name then
     end
-    if window_name == constants.jolt.task_list.window_name then
+    if window_name == constants.jolt.task_list.window then
         PlayerState.clear_selected_tasks(player)
     end
 end)

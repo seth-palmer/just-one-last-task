@@ -98,6 +98,13 @@ data:extend({
         small_icon_size = 24,
         scale = 0.5,  -- scale down to 32x32
         flags = {"gui-icon"},
+        toggleable = true, -- change styles to show if it is on/off
+    },
+    {
+        type = "custom-input",
+        name = constants.jolt.shortcuts.open_task_list_window,  -- same name as shortcut
+        key_sequence = "CONTROL + T",
+        action = "lua",
     },
     -- Custom icons for GUI
     {
