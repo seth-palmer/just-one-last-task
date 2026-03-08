@@ -378,8 +378,15 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.delete_tasks_button then
 
-        -- Delete the selected tasks (also clears the selected tasks)
+        -- Log tasks deleted 
+        local data = {tasks = PlayerState.get_selected_tasks(player), group_id = PlayerState.get_current_group_id(player)}
+        VisualActionLog.add(constants.jolt.actions.deleted_tasks, data)
+
+        -- Delete the selected tasks
         Task_manager.delete_selected_tasks(player)
+
+        -- Clear selected tasks 
+        PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
        TaskListWindow.refresh(player)

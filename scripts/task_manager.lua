@@ -502,14 +502,15 @@ function TaskManager.new(params)
 
     --- Gets the task with the provided uuid
     --- @param task_id string - uuid of the task to search for
-    ---@return any - or nil if no matching task exists
+    ---@return any|nil - or nil if no matching task exists
     function self.get_task(task_id)
         local task
         if tasks[task_id] ~= nil then
             return tasks[task_id]
         end
         if task == nil then
-            error("Task not found with id: " .. (task_id or "[nil value]"))
+            return nil
+            -- error("Task not found with id: " .. (task_id or "[nil value]"))
         end
 
         return task
@@ -731,9 +732,6 @@ function TaskManager.new(params)
         for task_id, _ in pairs(selected_tasks) do
             self.delete_task(task_id)
         end
-
-        -- Clear selected tasks 
-        PlayerState.clear_selected_tasks(player)
     end
 
     --- Save current group selected in group management window

@@ -559,9 +559,17 @@ end
 --- Refreshes the data for the provided task_id and all parent tasks
 ---@param player any - associated player
 ---@param task_id string - task to update
-local function refresh_task_data(player, task_id)
+local function refresh_task_data(player, task_id, group_id)
     -- find the task
     local task = Task_manager.get_task(task_id)
+
+
+    -- If no data then task was deleted so remove it 
+    if not task then 
+        local task_row = get_task_row(player, group_id, task_id)
+        if task_row then task_row.destroy() return end
+    end
+
     -- subtasks don't have group_id so fetch that 
     local group_id = task.group_id or Task_manager.get_parent_group(task.id)
 
@@ -685,18 +693,6 @@ end
 
 function TaskListWindow.refresh_group_tasks_slowly(player, group_id)
     -- TODO: test 
-    -- Alternate way 
-    -- Do a full refresh of the tasks in the group 
-    -- But only remove one at a time so as to keep scroll position 
-    -- So go through and rename all elements first to prevent conflicts 
-    -- Then get the list of updated tasks 
-    -- Delete the first one 
-    -- Add the new task in position 1 (can set index so add var to new_gui_task )
-    -- continue...
-
-    -- different than refresh_group as that removes all first
-    -- hmm could modify that to rename all, then remove 
-    -- one add one, repeat...
     
     -- Get the scroll pane for the group
     local scroll_pane = get_group_pane(player, group_id)
@@ -707,6 +703,7 @@ function TaskListWindow.refresh_group_tasks_slowly(player, group_id)
         element.name = nil
     end
 
+    -- Get group tasks 
     local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
     for _, task in pairs(group_tasks) do
         -- Destroy row
@@ -717,6 +714,22 @@ function TaskListWindow.refresh_group_tasks_slowly(player, group_id)
         TaskListWindow.new_gui_task(player, task, scroll_pane)
     end
 
+end
+
+
+--- Visuall remove the task from the window without doing a full refresh
+---@param player any
+---@param group_id any
+---@param task_id any
+function TaskListWindow.remove_task(player, group_id, task_id)
+    -- Get the scroll pane 
+    local scroll_pane = get_group_pane(player, group_id)
+
+    -- Remove the task 
+    local task_element = scroll_pane[constants.jolt.task_list.tasks_row_prefix .. task_id]
+    if task_element then
+        task_element.destroy()
+    end
 end
 
 --- Refreshes data from the visual_action_log
@@ -742,6 +755,17 @@ local function refresh_from_visual_log(player)
 
             elseif entry.type == actions.added_task then
                 refresh_for_new_task(player, entry.data.task_id)
+
+            elseif entry.type == actions.deleted_tasks then
+                -- Remove each task from the group
+                for task_id, _ in pairs(entry.data.tasks) do
+                    TaskListWindow.remove_task(player, entry.data.group_id, task_id)
+                end
+
+                -- Refresh the group in case subtask was deleted to update
+                -- the parent task
+                TaskListWindow.refresh_group_tasks_slowly(player, entry.data.group_id)
+
 
             elseif entry.type == actions.selected_task then
                 refresh_task_data(player, entry.data.task_id)
@@ -794,9 +818,6 @@ end
 function TaskListWindow.refresh(player)
     -- Refresh the groups list and the current scroll pane
     refresh_current_group(player)
-
-    local group_id = PlayerState.get_current_group_id(player)
-    TaskListWindow.refresh_group_tasks_slowly(player, group_id)
 
     -- Refresh controls (move down/up delete etc.)
     refresh_window_controls(player)
