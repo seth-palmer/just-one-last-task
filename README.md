@@ -7,6 +7,11 @@ A single player task/todo mod where you can organize tasks by group, perfect for
 ## Screenshots
 
 ![](thumbnail.png?raw=true)
+![](/assets/screenshots/0.2.0/task-list-annotated.png?raw=true)
+![](/assets/screenshots/0.2.0/edit-task-annotated.png?raw=true)
+![](/assets/screenshots/0.2.0/groups-annotated.png?raw=true)
+![](/assets/screenshots/0.2.0/select-move-delete-tasks.png?raw=true)
+
 
 
 
