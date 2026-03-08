@@ -91,8 +91,15 @@ local function add_new_task(event)
         local data = {task_id = task_id}
         VisualActionLog.add(action, data)
 
-        -- Close task form window
-        TaskFormWindow.close(player)
+        if event.control then
+            TaskFormWindow.clear_form(player)
+            -- TaskFormWindow.open(event, "New Task", nil, {})
+
+        else
+            -- Close task form window
+            TaskFormWindow.close(player)
+        end
+        
 
         -- Refresh data
        TaskListWindow.refresh(player)
@@ -584,7 +591,7 @@ script.on_event(defines.events.on_gui_click, function(event)
                 window_name = constants.jolt.delete_group.window_name,
                 window_title = {"jolt_group_management.confirm_delete_window_title"},
                 back_button_name = constants.jolt.delete_group.back_button,
-                confirm_button_name = constants.jolt.delete_group.confirm_button
+                confirm_button_name = constants.jolt.delete_group.confirm_button,
             }
             -- Open new confirmation dialog window
             local confirm_delete_window = Gui.new_dialog_window(options)

@@ -1,5 +1,7 @@
 -- If the "add to top" is selected in the new task window
 local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
+local TASK_LIST_WINDOW_WIDTH = 400
+local SUBTITLE_MAX_WIDTH = TASK_LIST_WINDOW_WIDTH - 130
 
 -- Imports
 local constants = require("constants")
@@ -10,12 +12,16 @@ local PlayerState = require("scripts.player_state")
 
 local TaskFormWindow = {}
 
+function TaskFormWindow.create_form()
+    
+end
+
 --- Opens a new window with a form to create a new task/subtask 
 --- or edit an existing one
 function TaskFormWindow.open(event, window_title, window_subtitle, task)
 
     -- If data in task is there, then this must be an edit
-    local is_edit = not task == nil
+    local is_edit = task and task.task_id ~= nil
     local is_subtask = task.parent_id ~= nil
 
     -- get player by index
@@ -40,8 +46,13 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
         window_title = window_title,
         window_name = constants.jolt.new_task.window,
         back_button_name = constants.jolt.new_task.back_button,
-        confirm_button_name = constants.jolt.new_task.confirm_button
+        confirm_button_name = constants.jolt.new_task.confirm_button,
+        confirm_button_tooltip = {"jolt_new_task_window.add_task_confirm_button_tooltip"}
     }
+    -- Change the tooltip if it is and edit task
+    if is_edit then
+        options.confirm_button_tooltip = {"jolt_new_task_window.edit_task_confirm_button_tooltip"}
+    end
 
     -- Make the new window and set close button
     local new_task_window = Gui.new_dialog_window(options)
@@ -215,6 +226,28 @@ function TaskFormWindow.get_form_data(player)
         add_to_top = add_to_top,
     }
     return task_params
+end
+
+
+function TaskFormWindow.clear_form(player)
+    -- Go through element tree to get to the form_container
+    local screen = player.gui.screen
+    local window = screen[constants.jolt.new_task.window]
+    local form_container = window[constants.jolt.new_task.form_container]
+
+    -- Get form elements
+    local textbox_title = form_container[constants.jolt.new_task.title_textbox]
+    local textbox_description = form_container[constants.jolt.new_task.description_textbox]
+    local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
+    local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
+
+    -- Clear title and desc Values
+    local task_id = form_container.tags.task_id
+    textbox_title.text = ""
+    textbox_description.text = ""
+
+    -- Leave the checkbox the same
+    local add_to_top = checkbox_add_to_top.state
 end
 
 --- Closes the task form window

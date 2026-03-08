@@ -111,6 +111,7 @@ function Gui.new_dialog_window(options)
     local width = options.width or default_width
     local height = options.height or default_height
     local auto_center = options.auto_center
+    local confirm_button_tooltip = options.confirm_button_tooltip or nil
     
     -- Get screen to display to
     local screen_element = player.gui.screen
@@ -195,7 +196,8 @@ function Gui.new_dialog_window(options)
         type = "button",
         caption = {"jolt.confirm_button"},
         style = constants.styles.frame.confirm_button,
-        name = confirm_button_name
+        name = confirm_button_name,
+        tooltip = confirm_button_tooltip,
     }
 
     --[[
