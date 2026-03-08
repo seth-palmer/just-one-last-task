@@ -692,8 +692,6 @@ end
 
 
 function TaskListWindow.refresh_group_tasks_slowly(player, group_id)
-    -- TODO: test 
-    
     -- Get the scroll pane for the group
     local scroll_pane = get_group_pane(player, group_id)
     if not scroll_pane then return end
@@ -712,6 +710,15 @@ function TaskListWindow.refresh_group_tasks_slowly(player, group_id)
 
         -- Display the task and all subtasks
         TaskListWindow.new_gui_task(player, task, scroll_pane)
+    end
+
+    -- If no tasks an in placeholder text
+    if #group_tasks == 0 then
+        local placeholder = scroll_pane.add {
+            type = "label",
+            caption = {"jolt_task_list_window.no_tasks_info_text"}
+        }
+        placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
     end
 
 end
@@ -765,7 +772,6 @@ local function refresh_from_visual_log(player)
                 -- Refresh the group in case subtask was deleted to update
                 -- the parent task
                 TaskListWindow.refresh_group_tasks_slowly(player, entry.data.group_id)
-
 
             elseif entry.type == actions.selected_task then
                 refresh_task_data(player, entry.data.task_id)

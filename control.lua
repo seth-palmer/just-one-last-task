@@ -91,7 +91,9 @@ local function add_new_task(event)
         local data = {task_id = task_id}
         VisualActionLog.add(action, data)
 
-        if event.control then
+        -- On control keep the window open and clear the form 
+        -- But NOT for editing tasks
+        if event.control and not task_data.is_edit_task then
             TaskFormWindow.clear_form(player)
             -- TaskFormWindow.open(event, "New Task", nil, {})
 
@@ -165,9 +167,6 @@ end)
 --- https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_configuration_changed
 ---@param event any
 script.on_configuration_changed(function(event)
-    -- setup visual log if needed
-    VisualActionLog.initialize()
-
     -- Migrate old data structure to new one
     if storage.task_data and not storage.jolt then
         log("jolt: migrating old data structure")
@@ -212,6 +211,8 @@ script.on_configuration_changed(function(event)
         GroupManagerWindow.close(player)
     end
     
+    -- setup visual log if needed
+    VisualActionLog.initialize()
 end)
 
 --- Called when a new player is created
