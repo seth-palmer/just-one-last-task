@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+Date: 2026-03-08
+  Bugfixes:
+    - Fixed bug where group name was not updated when changing tabs.
+    - Fixed issue where closing the task list window with "X" button did not update the shortcut.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.0
 Date: 2026-03-08
   Features:
