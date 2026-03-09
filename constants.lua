@@ -121,6 +121,7 @@ constants.jolt = {
         delete_tasks_button = "jolt_delete_task_button",
         tasks_scroll_pane_prefix = "jolt_tasks_scroll_pane_for_group_",
         tasks_row_prefix = "jolt_tasks_row_",
+        group_title_label = "jolt_tasks_group_title_label",
     },
     -- For new task window
     new_task = {

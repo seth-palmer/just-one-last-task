@@ -275,7 +275,8 @@ function TaskListWindow.open(event)
     local lbl_current_group_name = group_controls_frame.add {
             type = "label",
             caption = "",
-            horizontally_stretchable = "on"
+            horizontally_stretchable = "on",
+            name = constants.jolt.task_list.group_title_label,
     }
     lbl_current_group_name.style.bottom_margin = -15
     lbl_current_group_name.style.font = "default-large-bold"
@@ -477,6 +478,7 @@ end
 --- Refreshes the groups list
 ---@param player any
 local function refresh_current_group(player)
+    
 
     local selected_group_id = PlayerState.get_current_group_id(player)
 
@@ -494,6 +496,12 @@ local function refresh_current_group(player)
         end
     end
 
+    -- Update the title
+    local window = player.gui.screen[constants.jolt.task_list.window]
+    if not window or not window.valid then return nil end
+    local group_title_label = window.main_frame.group_controls_frame[constants.jolt.task_list.group_title_label]
+    local group = Task_manager.get_group(selected_group_id)
+    group_title_label.caption = group.name
 
     -- update to highlight the current group
     local button_table = window.main_frame.group_controls_frame.group_content.button_table
@@ -628,7 +636,7 @@ end
 ---@param player any
 ---@param group_id any
 function TaskListWindow.refresh_group(player, group_id)
-
+    -- Update the content
     local tab_content = get_group_pane(player, group_id)
     if tab_content then
         -- remove all children
