@@ -351,6 +351,12 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Check if the frame still exists before destroying
         if player.gui.screen[window_name] and player.gui.screen[window_name].valid then
             player.gui.screen[window_name].destroy()
+
+            -- Update state of shortcut
+            if window_name == constants.jolt.task_list.window then
+                player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
+            end
+            
         end
 
         -- When closing group management, clear the selected group 
@@ -749,6 +755,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
     -- Make sure window is closed
     if event.element.valid then
         TaskFormWindow.close(player)
+
     end
     
     -- Can run run cleanup specific to that window (see also section in on_gui_click)
