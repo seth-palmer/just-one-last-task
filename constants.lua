@@ -79,6 +79,7 @@ constants.jolt = {
         pin = "jolt-icon-pin",
         trash = "jolt-icon-trash",
         subtasks = "jolt-icon-subtasks",
+        location = "jolt-icon-location",
     },
     group_management = {
         open_window_button = "jolt_open_group_management_button",
@@ -122,6 +123,7 @@ constants.jolt = {
         tasks_scroll_pane_prefix = "jolt_tasks_scroll_pane_for_group_",
         tasks_row_prefix = "jolt_tasks_row_",
         group_title_label = "jolt_tasks_group_title_label",
+        location_button = "jolt_location_button",
     },
     -- For new task window
     new_task = {

@@ -711,6 +711,10 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Refresh windows
        TaskListWindow.open(event)
        GroupManagerWindow.open(event)
+
+    -- Go to Location button in task list
+    elseif element_name == constants.jolt.task_list.location_button then
+        debug_print(event, "location")
     end
 end)
 

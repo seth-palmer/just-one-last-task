@@ -142,9 +142,11 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
         state = checkbox_state_add_to_top,
     }
 
+    
+
+
     -- Get position
     local position = Task_manager.get_group_position(group_id)
-    
 
     -- Dropdown to select which group the task is added to
     local dropdown_select_group = new_task_form.add {
@@ -156,6 +158,31 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
         selected_index = position,
         enabled = not is_subtask,
     }
+
+    local task_description_label = Gui.new_label(new_task_form, "Location:", player)
+
+    -- Location buttons 
+    local sbtn_location = new_task_form.add {
+        type = "sprite-button",
+        name = constants.jolt.task_list.location_button,
+        sprite = constants.jolt.sprites.location,
+        tooltip={"jolt.tooltip_view_location"},
+    }
+    sbtn_location.style.padding = 2
+    sbtn_location.style.height = 32
+    sbtn_location.style.width = 32
+
+    local surface = game.surfaces["nauvis"].index
+    local camera = new_task_form.add {
+        type = "camera",
+        position = {1.5, 3},
+        surface_index = surface,
+        zoom = 0.1,
+    }
+    local camera_dimensions = 80
+    camera.style.width = 280
+    camera.style.height = camera_dimensions
+    
 
     -- Task description
     -- https://lua-api.factorio.com/latest/concepts/GuiElementType.html
