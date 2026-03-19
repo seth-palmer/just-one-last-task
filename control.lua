@@ -706,7 +706,6 @@ script.on_event(defines.events.on_gui_click, function(event)
         local player = game.get_player(event.player_index)
 
         Task_manager.save_current_group(player)
-        
 
         -- Refresh windows
        TaskListWindow.open(event)
@@ -714,10 +713,74 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Go to Location button in task list
     elseif element_name == constants.jolt.task_list.location_button then
-        debug_print(event, "location")
+
+        -- Get location
+        local task = Task_manager.get_task(event.element.tags.task_id)
+        local position = task.location
+
+        -- Go to location
+        player.set_controller({type = defines.controllers.remote, position = position, surface = surface_index})
+
+    elseif element_name == constants.jolt.new_task.set_location_button then
+        game.print("setting task location")
+        local position = {1,1}
+        local surface_index = "nauvis"
+
+        -- Open the map 
+        player.set_controller({type = defines.controllers.remote, position = position, surface = surface_index})
+        
+
+        -- save the task id to the player state since can't pass it to an event
+        local task_id = event.element.tags.task_id
+        PlayerState.set_setting_location_task_id(player, task_id)
+
+        -- Get the location the player clicks on
+        set_task_location_event(player)
+        
+
+        
     end
 end)
 
+
+-- When player clicks "Set Location" button in your GUI:
+function set_task_location_event(player)
+    PlayerState.set_are_setting_location(player, true)
+    script.on_event(constants.jolt.new_task.set_location_button, function(event)
+        if event.player_index ~= player.index then return end
+        if event.cursor_position == nil then return end
+        
+        local task_id = PlayerState.get_setting_location_task_id(player)
+        local pos = event.cursor_position
+        game.print("id: " .. task_id)
+        game.print("Location selected: " .. pos.x .. ", " .. pos.y)
+
+        -- Save new location 
+        local result = Task_manager.set_task_location(task_id, pos)
+        -- game.print(serpent.block(result))
+
+        local task = Task_manager.get_task(task_id)
+        -- game.print(serpent.block(task))
+
+        Clear_Task_Location_Event(player)
+    end)
+end
+
+function Clear_Task_Location_Event(player)
+    PlayerState.set_are_setting_location(player, false)
+    script.on_event(constants.jolt.new_task.set_location_button, nil) -- unregister!
+end
+
+-- script.on_event(constants.jolt.new_task.set_location_button, function (event)
+--     local player = game.get_player(event.player_index)
+--     -- TODO: finish
+--     -- Only set location if player is in that mode 
+--     local is_in_location_mode = PlayerState.get_are_setting_location(player)
+--     if not is_in_location_mode then return end
+
+--     local pos = event.cursor_position
+--     game.print("Location selected: " .. pos.x .. ", " .. pos.y)
+-- end)
 
 --- Called when a window is moved
 --- save locations to make window locations persistent

@@ -26,8 +26,25 @@ function PlayerState.initialize(player_index)
             selected_group_icon_id = nil,
             last_interacted_task_id = nil,
             show_completed_tasks = false,
+            setting_location = false,
         },
     }
+end
+
+function PlayerState.get_are_setting_location(player)
+    return storage.players[player.index].jolt.ui.setting_location or false
+end
+
+function PlayerState.set_are_setting_location(player, new_boolean)
+    storage.players[player.index].jolt.ui.setting_location = new_boolean
+end
+
+function PlayerState.get_setting_location_task_id(player)
+    return storage.players[player.index].jolt.ui.setting_location_task_id
+end
+
+function PlayerState.set_setting_location_task_id(player, task_id)
+    storage.players[player.index].jolt.ui.setting_location_task_id = task_id
 end
 
 --- Sets the index of the last visual log for the player

@@ -83,31 +83,12 @@ styles["jolt_task_selected"] = {
 
 
 data:extend({
-    { -- A selector tool to select a new location for a task
-        type = "selection-tool",
-        name = "task-location-selector",
-        icons = {
-        {
-            icon = "__just-one-last-task__/graphics/icons/map_marker_64x64.png",
-            icon_size = 64,
-            scale = 0.5
-        }
-        },
-        flags = {"only-in-cursor", "spawnable", "not-stackable"},
-        subgroup = "tool",
-        order = "c[automated-construction]-a[task-location-selector]",
-        stack_size = 1,
-
-        select = {
-        mode = "any-entity",
-        cursor_box_type = "entity",
-        border_color = { r = 0, g = 1, b = 0 },
-        },
-        alt_select = {
-        mode = "any-entity",
-        cursor_box_type = "entity",
-        border_color = { r = 1, g = 0, b = 0 },
-        },
+    {
+        type = "custom-input",
+        name = constants.jolt.new_task.set_location_button,
+        key_sequence = "mouse-button-1",
+        action = "lua",
+        consuming = "none",
     },
     -- Custom shortcut icon 
     {

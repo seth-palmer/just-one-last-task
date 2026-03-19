@@ -475,7 +475,7 @@ function TaskManager.new(params)
         -- Get the task
         local task = tasks[task_id]
         if task == nil then 
-            return Outcome.fail("No task in with matching id: " .. tostring(task_id))
+            return Outcome.fail("No task with matching id: " .. tostring(task_id))
         end
 
         -- Update task values
@@ -484,6 +484,20 @@ function TaskManager.new(params)
         task.group_id = task_params.group_id
 
         return Outcome.success(task_id)
+    end
+
+    --- Sets the location of the task
+    ---@param task_id string uuid of the task
+    ---@param new_location table example {1,3} as the position
+    function self.set_task_location(task_id, new_location)
+        local task = tasks[task_id]
+        if task == nil then 
+            return Outcome.fail("No task with matching id: " .. tostring(task_id))
+        else
+            task.location = new_location
+            return Outcome.success()
+        end
+        
     end
 
     --- Update the provided group

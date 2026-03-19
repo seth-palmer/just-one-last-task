@@ -135,6 +135,7 @@ constants.jolt = {
         group_dropdown = "jolt_new_task_group_dropdown",
         form_container = "jolt_new_task_form_container",
         description_textbox = "jolt_new_task_description_textbox",
+        set_location_button = "jolt_set_task_location_button",
     },
     -- Edit task window 
     edit_task = {

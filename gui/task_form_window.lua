@@ -142,8 +142,6 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
         state = checkbox_state_add_to_top,
     }
 
-    
-
 
     -- Get position
     local position = Task_manager.get_group_position(group_id)
@@ -164,9 +162,11 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     -- Location buttons 
     local sbtn_location = new_task_form.add {
         type = "sprite-button",
-        name = constants.jolt.task_list.location_button,
+        name = constants.jolt.new_task.set_location_button,
         sprite = constants.jolt.sprites.location,
-        tooltip={"jolt.tooltip_view_location"},
+        -- tooltip={"jolt.tooltip_view_location"},
+        -- provide task id since the location will be updated in an event
+        tags = {task_id = task_id},
     }
     sbtn_location.style.padding = 2
     sbtn_location.style.height = 32
@@ -175,7 +175,7 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     local surface = game.surfaces["nauvis"].index
     local camera = new_task_form.add {
         type = "camera",
-        position = {1.5, 3},
+        position = task.location or {1,1},
         surface_index = surface,
         zoom = 0.1,
     }
