@@ -719,11 +719,18 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Get location from task
         local task = Task_manager.get_task(event.element.tags.task_id)
         local position = task.coordinates
-        local surface = task.surface_index
+        local surface_index = task.surface_index
 
-        -- Go to location
-        player.set_controller({type = defines.controllers.remote, position = position, surface = surface})
+        local surface = game.get_surface(surface_index)
 
+        -- check that surface exists 
+        if not surface or not surface.valid then
+            -- game.print("surface not found")
+        else
+            -- Go to location
+            player.set_controller({type = defines.controllers.remote, position = position, surface = surface})
+        end
+        
     elseif element_name == constants.jolt.new_task.set_location_button then
 
         -- hide the task form before opening map
