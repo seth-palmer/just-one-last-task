@@ -803,48 +803,6 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
 end)
 
 
--- TODO: delete when new system works
--- When player clicks "Set Location" button in your GUI:
--- function set_task_location_event(player)
---     PlayerState.set_are_setting_location(player, true)
---     script.on_event(constants.jolt.new_task.set_location_button, function(event)
---         if event.player_index ~= player.index then return end
---         if event.cursor_position == nil then return end
-        
---         local task_id = PlayerState.get_setting_location_task_id(player)
---         local pos = event.cursor_position
---         game.print("id: " .. task_id)
---         game.print("Location selected: " .. pos.x .. ", " .. pos.y)
-
---         -- Save new location 
---         local result = Task_manager.set_task_location(task_id, pos)
---         -- game.print(serpent.block(result))
-
---         local task = Task_manager.get_task(task_id)
---         -- game.print(serpent.block(task))
-
---         Clear_Task_Location_Event(player)
---     end)
--- end
-
--- function Clear_Task_Location_Event(player)
---     PlayerState.set_are_setting_location(player, false)
---     script.on_event(constants.jolt.new_task.set_location_button, nil) -- unregister!
--- end
-
--- script.on_event(constants.jolt.new_task.set_location_button, function (event)
---     local player = game.get_player(event.player_index)
---     -- TODO: finish
---     -- Only set location if player is in that mode 
---     local is_in_location_mode = PlayerState.get_are_setting_location(player)
---     if not is_in_location_mode then return end
-
---     local pos = event.cursor_position
---     game.print("Location selected: " .. pos.x .. ", " .. pos.y)
--- end)
-
-
-
 --- Called when a window is moved
 --- save locations to make window locations persistent
 script.on_event(defines.events.on_gui_location_changed, function(event)
