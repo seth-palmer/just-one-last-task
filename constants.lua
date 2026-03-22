@@ -31,9 +31,6 @@ constants.styles = {
         blue = "tool_button_blue",
         green = "tool_button_green",
     },
-    
-    
-
 }
 
 --- Store all names used for jolt elements
@@ -136,6 +133,7 @@ constants.jolt = {
         form_container = "jolt_new_task_form_container",
         description_textbox = "jolt_new_task_description_textbox",
         set_location_button = "jolt_set_task_location_button",
+        task_location_camera = "jolt_task_location_camera",
     },
     -- Edit task window 
     edit_task = {

@@ -3,17 +3,34 @@ local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
 local TASK_LIST_WINDOW_WIDTH = 600
 local SUBTITLE_MAX_WIDTH = TASK_LIST_WINDOW_WIDTH - 130
 
+local DEFAULT_WINDOW_WIDTH = 400
+local DEFAULT_WINDOW_HEIGHT = 550
+
+
 -- Imports
 local constants = require("constants")
 local Gui = require("gui")
 local TaskManager = require("scripts.task_manager")
 local PlayerState = require("scripts.player_state")
+local Utils = require("scripts.utils")
 
 
 local TaskFormWindow = {}
 
 function TaskFormWindow.create_form()
     
+end
+
+function TaskFormWindow.refresh_task_location_camera(player, new_coordinates, new_surface)
+    local window = player.gui.screen[constants.jolt.new_task.window]
+    if not window or not window.valid then return nil end
+
+    local camera = Utils.find_element(window, constants.jolt.new_task.task_location_camera)
+
+    -- local camera = window[constants.jolt.new_task.form_container].camera
+    -- local new_position = PlayerState.get_temp_location_for_task(player)
+    camera.position = new_coordinates
+    camera.surface_index = new_surface
 end
 
 --- Opens a new window with a form to create a new task/subtask 
@@ -43,8 +60,8 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     -- Setup options for the new window
     local options = {
         player = player,
-        width = 400,
-        height = 500,
+        width = DEFAULT_WINDOW_WIDTH,
+        height = DEFAULT_WINDOW_HEIGHT,
         window_title = window_title,
         window_name = constants.jolt.new_task.window,
         back_button_name = constants.jolt.new_task.back_button,
@@ -175,16 +192,19 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     -- sbtn_location.style.height = 32
     -- sbtn_location.style.width = 32
 
-    local surface = game.surfaces["nauvis"].index
+    local DEFAULT_CAMERA_ZOOM = 0.040
+
     local camera = new_task_form.add {
         type = "camera",
-        position = task.location or {1,1},
-        surface_index = surface,
-        zoom = 0.1,
+        name = constants.jolt.new_task.task_location_camera,
+        position = task.coordinates or {1,1},
+        -- set the default view to the player's current surface
+        surface_index = task.surface_index or player.surface.index,
+        zoom = DEFAULT_CAMERA_ZOOM,
     }
-    camera.style.width = 350
-    camera.style.height = 120
-    
+    camera.style.width = DEFAULT_WINDOW_WIDTH - 20
+    camera.style.height = 150
+
 
     -- Task description
     -- https://lua-api.factorio.com/latest/concepts/GuiElementType.html
@@ -199,7 +219,7 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     task_description_textbox.style.horizontally_stretchable = true
     task_description_textbox.style.vertically_stretchable = true
     task_description_textbox.word_wrap = true
-    task_description_textbox.style.maximal_width = 340
+    task_description_textbox.style.maximal_width = DEFAULT_WINDOW_WIDTH - 20
 
 end
 
@@ -240,8 +260,7 @@ function TaskFormWindow.get_form_data(player)
 
     -- Get location from the PlayerState
     local location = PlayerState.get_temp_location_for_task(player)
-    game.print("temp location")
-    game.print(serpent.block(location))
+
     -- Clear the saved location 
     PlayerState.save_temp_location_for_task(player, nil)
     

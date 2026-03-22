@@ -25,6 +25,16 @@ function Utils.display_error(player, message)
     }
 end
 
+--- Helper function to find a child in a parent
+---@param parent any
+---@param name any
+function Utils.find_element(parent, name)
+    if parent.name == name then return parent end
+    for _, child in pairs(parent.children) do
+        local found = Utils.find_element(child, name)
+        if found then return found end
+    end
+end
 
 
 -- TIP:

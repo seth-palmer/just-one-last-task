@@ -455,6 +455,8 @@ script.on_event(defines.events.on_gui_click, function(event)
             description = task.description,
             task_id = task_id,
             parent_id = task.parent_id,
+            coordinates = task.coordinates,
+            surface_index = task.surface_index,
         }
         TaskFormWindow.open(event, "Edit Task", nil, params)
 
@@ -714,10 +716,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Go to Location button in task list
     elseif element_name == constants.jolt.task_list.location_button then
 
-        -- Get location
+        -- Get location from task
         local task = Task_manager.get_task(event.element.tags.task_id)
-        game.print("task-----------------")
-        game.print(serpent.block(task))
         local position = task.coordinates
         local surface = task.surface_index
 
@@ -725,24 +725,25 @@ script.on_event(defines.events.on_gui_click, function(event)
         player.set_controller({type = defines.controllers.remote, position = position, surface = surface})
 
     elseif element_name == constants.jolt.new_task.set_location_button then
-        game.print("setting task location")
 
+        -- hide the task form before opening map
+        local window = player.gui.screen[constants.jolt.new_task.window]
+        if window then window.visible = false end
+
+        -- give the player a tool to pick the new location
         player.cursor_stack.set_stack({ name = constants.jolt.tools.location_selector, count = 1 })
 
-        -- local position = {1,1}
-        local position = player.position
-        local surface_index = player.surface.index
-
-        -- Open the map 
-        player.set_controller({type = defines.controllers.remote, position = position, surface = surface_index})
+        -- Open the map where the player is
+        player.set_controller({
+            type = defines.controllers.remote,
+            position = player.position,
+            surface = player.surface})
         
-
         -- save the task id to the player state since can't pass it to an event
         local task_id = event.element.tags.task_id
         PlayerState.save_task_id_for_task_location(player, task_id)
         
         -- Continued in "events.on_player_selected_area"
-        
     end
 end)
 
@@ -754,9 +755,8 @@ script.on_event(defines.events.on_player_selected_area, function (event)
     -- Tool to select the location for tasks
     if event.item == constants.jolt.tools.location_selector then
         local player = game.get_player(event.player_index)
-        
 
-        -- Get the center
+        -- Get the center of the area selected
         local area = event.area
         local location = {
             coordinates = {
@@ -766,27 +766,40 @@ script.on_event(defines.events.on_player_selected_area, function (event)
             surface_index = event.surface.index,
         }
 
-        game.print("selected: " .. location.surface_index .. ", ".. location.coordinates.x .. " " .. location.coordinates.y)
 
-        local task_id = PlayerState.get_task_id_for_task_location(player)
+        -- save the location 
+        PlayerState.save_temp_location_for_task(player, location)
 
-        -- If task_id exists then we are editing an existing task 
-        if task_id then
-            -- Save new location 
-            --local result = Task_manager.set_task_location(task_id, pos)
-            PlayerState.save_temp_location_for_task(player, location)
+        -- update the camera in the task form window
+        TaskFormWindow.refresh_task_location_camera(player, location.coordinates, location.surface_index)
 
-        else -- otherwise it's a new task 
-            -- save the location
-            PlayerState.save_temp_location_for_task(player, location)
-        end
-
-        
         -- clear the cursor
         player.cursor_stack.clear()
-        -- player.remove_item("task-location-selector")
+
+        -- show form window
+        local window = player.gui.screen[constants.jolt.new_task.window]
+        if window then window.visible = true end
 
     end
+end)
+
+--- Called after a player's cursor stack changed in some way.
+-- This is fired in the same tick that the change happens, but not instantly.
+--- Used after the player cancels selecting a location by pressing "q"
+script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
+  local player = game.get_player(event.player_index)
+  if not player or not player.valid then return end
+
+  local cursor = player.cursor_stack
+  if not (cursor and cursor.valid_for_read and cursor.name == constants.jolt.tools.location_selector) then
+    -- Player canceled selection, clear item and state
+    player.remove_item { name = constants.jolt.tools.location_selector, count = 1 }
+    
+    -- show form window
+    local window = player.gui.screen[constants.jolt.new_task.window]
+    if window then window.visible = true end
+  end
+  
 end)
 
 
