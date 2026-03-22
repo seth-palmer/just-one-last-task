@@ -141,6 +141,9 @@ constants.jolt = {
     edit_task = {
         confirm_button = "jolt_edit_task_confirm_button",
     },
+    tools = {
+        location_selector = "jolt_location_selector",
+    }
 
 }
 

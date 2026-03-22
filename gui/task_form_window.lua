@@ -1,6 +1,6 @@
 -- If the "add to top" is selected in the new task window
 local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
-local TASK_LIST_WINDOW_WIDTH = 400
+local TASK_LIST_WINDOW_WIDTH = 600
 local SUBTITLE_MAX_WIDTH = TASK_LIST_WINDOW_WIDTH - 130
 
 -- Imports
@@ -43,6 +43,8 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
     -- Setup options for the new window
     local options = {
         player = player,
+        width = 400,
+        height = 500,
         window_title = window_title,
         window_name = constants.jolt.new_task.window,
         back_button_name = constants.jolt.new_task.back_button,
@@ -161,16 +163,17 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
 
     -- Location buttons 
     local sbtn_location = new_task_form.add {
-        type = "sprite-button",
+        type = "button",
+        caption = "Set location",
         name = constants.jolt.new_task.set_location_button,
-        sprite = constants.jolt.sprites.location,
+        -- sprite = constants.jolt.sprites.location,
         -- tooltip={"jolt.tooltip_view_location"},
         -- provide task id since the location will be updated in an event
         tags = {task_id = task_id},
     }
     sbtn_location.style.padding = 2
-    sbtn_location.style.height = 32
-    sbtn_location.style.width = 32
+    -- sbtn_location.style.height = 32
+    -- sbtn_location.style.width = 32
 
     local surface = game.surfaces["nauvis"].index
     local camera = new_task_form.add {
@@ -179,9 +182,8 @@ function TaskFormWindow.open(event, window_title, window_subtitle, task)
         surface_index = surface,
         zoom = 0.1,
     }
-    local camera_dimensions = 80
-    camera.style.width = 280
-    camera.style.height = camera_dimensions
+    camera.style.width = 350
+    camera.style.height = 120
     
 
     -- Task description
@@ -236,6 +238,12 @@ function TaskFormWindow.get_form_data(player)
         group_id = nil
     end
 
+    -- Get location from the PlayerState
+    local location = PlayerState.get_temp_location_for_task(player)
+    game.print("temp location")
+    game.print(serpent.block(location))
+    -- Clear the saved location 
+    PlayerState.save_temp_location_for_task(player, nil)
     
     -- check if empty string not nil since task_id is string type
     -- check type with debug_print(event, "type is: " .. type(task_id))
@@ -251,6 +259,8 @@ function TaskFormWindow.get_form_data(player)
         group_id = group_id,
         parent_id = form_container.tags.parent_id or nil,
         add_to_top = add_to_top,
+        coordinates = location and location.coordinates or nil,
+        surface_index = location and location.surface_index or nil,
     }
     return task_params
 end

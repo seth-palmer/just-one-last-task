@@ -31,21 +31,51 @@ function PlayerState.initialize(player_index)
     }
 end
 
-function PlayerState.get_are_setting_location(player)
-    return storage.players[player.index].jolt.ui.setting_location or false
+
+-- function PlayerState.save_edit_location_for_task(player, task_id, location)
+--     storage.players[player.index].jolt.edit_location = {
+--         task_id = task_id,
+--         location = location,
+--     }
+-- end
+
+-- function PlayerState.get_edit_location_for_task(player)
+--     return storage.players[player.index].jolt.edit_location
+-- end
+
+-- function PlayerState.clear_edit_location_for_task(player)
+--     storage.players[player.index].jolt.edit_location = nil
+-- end
+
+
+
+--- Save the task id for setting task location
+---@param player any
+---@param task_id any
+function PlayerState.save_task_id_for_task_location(player, task_id)
+    storage.players[player.index].jolt.ui.task_id_for_task_location = task_id
 end
 
-function PlayerState.set_are_setting_location(player, new_boolean)
-    storage.players[player.index].jolt.ui.setting_location = new_boolean
+--- Returns the saved task id
+---@param player any
+function PlayerState.get_task_id_for_task_location(player)
+    return storage.players[player.index].jolt.ui.task_id_for_task_location
 end
 
-function PlayerState.get_setting_location_task_id(player)
-    return storage.players[player.index].jolt.ui.setting_location_task_id
+--- Save the temp location for the task
+---@param player any
+---@param location any
+function PlayerState.save_temp_location_for_task(player, location)
+    storage.players[player.index].jolt.ui.temp_task_location = location
 end
 
-function PlayerState.set_setting_location_task_id(player, task_id)
-    storage.players[player.index].jolt.ui.setting_location_task_id = task_id
+--- Return the saved location for the task
+---@param player any
+---@param location any
+function PlayerState.get_temp_location_for_task(player)
+    return storage.players[player.index].jolt.ui.temp_task_location
 end
+
 
 --- Sets the index of the last visual log for the player
 ---@param player any

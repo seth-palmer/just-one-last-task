@@ -389,7 +389,9 @@ function TaskManager.new(params)
             is_complete = false,
             show_details = false,
             parent_id = task_params.parent_id or nil,
-            subtasks = {}
+            subtasks = {},
+            coordinates = task_params.coordinates,
+            surface_index = task_params.surface_index,
         }
 
         tasks[id] = new_task
@@ -482,6 +484,8 @@ function TaskManager.new(params)
         task.title = task_params.title
         task.description = task_params.description
         task.group_id = task_params.group_id
+        task.coordinates = task_params.coordinates
+        task.surface_index = task_params.surface_index
 
         return Outcome.success(task_id)
     end
