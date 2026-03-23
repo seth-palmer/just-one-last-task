@@ -556,7 +556,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- close the window
             player.gui.screen[constants.jolt.group_management.window_name].destroy()
         else -- otherwise open the group management window
-            GroupManagerWindow.open(event)
+            GroupManagerWindow.open(player)
         end
         
 
@@ -577,7 +577,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
             -- Refresh windows
            TaskListWindow.open(player)
-           GroupManagerWindow.open(event)
+           GroupManagerWindow.open(player)
         end
 
 
@@ -637,7 +637,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
             -- Refresh windows
            TaskListWindow.open(player)
-           GroupManagerWindow.open(event)
+           GroupManagerWindow.open(player)
         end
 
     -- Confirm deleted group button
@@ -656,7 +656,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.open(player)
-       GroupManagerWindow.open(event)
+       GroupManagerWindow.open(player)
 
         -- Close confirmation window
         player.gui.screen[constants.jolt.delete_group.window_name].destroy()
@@ -669,7 +669,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.open(player)
-       GroupManagerWindow.open(event)
+       GroupManagerWindow.open(player)
 
     -- Move group left button
     elseif element_name == constants.jolt.group_management.move_group_left then
@@ -684,7 +684,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.open(player)
-       GroupManagerWindow.open(event)
+       GroupManagerWindow.open(player)
 
     -- Move group right button
     elseif element_name == constants.jolt.group_management.move_group_right then
@@ -699,7 +699,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.open(player)
-       GroupManagerWindow.open(event)
+       GroupManagerWindow.open(player)
 
     -- Save group button 
     elseif element_name == constants.jolt.group_management.btn_save_group then
@@ -711,7 +711,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.open(player)
-       GroupManagerWindow.open(event)
+       GroupManagerWindow.open(player)
 
     -- Go to Location button in task list
     elseif element_name == constants.jolt.task_list.location_button then

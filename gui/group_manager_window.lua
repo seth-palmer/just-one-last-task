@@ -13,8 +13,7 @@ local GroupManagerWindow = {}
 
 --- Opens the group management window
 ---@param event any
-function GroupManagerWindow.open(event)
-    local player = game.get_player(event.player_index)
+function GroupManagerWindow.open(player)
     local title = {"jolt_group_management.window_title"}
     local window_name = constants.jolt.group_management.window_name
     local close_name = constants.jolt.group_management.close_button

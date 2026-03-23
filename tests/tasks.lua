@@ -13,7 +13,7 @@ local GroupManagerWindow = require("gui.group_manager_window")
 local TaskFormWindow = require("gui.task_form_window")
 
 --- Test if window opens/closes and buttons exist
-describe("window basic tests", function ()
+describe("task list window opens and closes", function ()
     local player
     before_all(function ()
         Task_manager = TaskManager.new()
@@ -39,17 +39,10 @@ describe("window basic tests", function ()
         assert.is_nil(window)
     end)
 
-    test("add task button exists", function ()
-        TaskListWindow.open(player)
-
-        local window = player.gui.screen[constants.jolt.task_list.window]
-        local add_task_button = Utils.find_element(window, constants.jolt.task_list.add_task_button)
-
-        assert.equals(add_task_button.valid, true)
-    end)
 end)
 
-describe("adding tasks", function ()
+
+describe("adding task", function ()
     local player
     before_all(function ()
         Task_manager = TaskManager.new()
@@ -57,6 +50,15 @@ describe("adding tasks", function ()
         -- open the task list window
         player = game.players[1]
         TaskListWindow.open(player)
+    end)
+
+    test("add task button exists", function ()
+        TaskListWindow.open(player)
+
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        local add_task_button = Utils.find_element(window, constants.jolt.task_list.add_task_button)
+
+        assert.equals(add_task_button.valid, true)
     end)
 
     test("new task window opens", function ()
@@ -87,8 +89,23 @@ describe("adding tasks", function ()
 
 end)
 
--- template group
-describe("", function ()
+
+describe("adding subtask", function ()
+    local player
+    before_all(function ()
+        Task_manager = TaskManager.new()
+
+        -- open the task list window
+        player = game.players[1]
+        TaskListWindow.open(player)
+    end)
+
+    test.todo("", function ()
+        
+    end)
+end)
+
+describe("editing task", function ()
     local player
     before_all(function ()
         Task_manager = TaskManager.new()
@@ -104,7 +121,7 @@ describe("", function ()
 end)
 
 
-describe("marking tasks complete or incomplete", function ()
+describe("marking task complete or incomplete", function ()
     local player
     before_all(function ()
         Task_manager = TaskManager.new()
@@ -151,6 +168,172 @@ describe("expanding and collapsing task details", function ()
     end)
 
     test.todo("clicking collapse button hides subtasks", function ()
+        
+    end)
+end)
+
+
+describe("pinning task list window open", function ()
+    local player
+    before_all(function ()
+        Task_manager = TaskManager.new()
+
+        -- open the task list window
+        player = game.players[1]
+        TaskListWindow.open(player)
+    end)
+
+    before_each(function ()
+        TaskListWindow.open(player)
+    end)
+
+    after_each(function ()
+        TaskListWindow.close(player)
+        GroupManagerWindow.close(player)
+    end)
+
+    after_all(function ()
+        TaskListWindow.close(player)
+        GroupManagerWindow.close(player)
+
+        local is_pinned = PlayerState.is_task_list_pinned_open(player)
+
+        -- un pin window 
+        if is_pinned then
+            PlayerState.toggle_task_list_pinned_open(player)
+        end
+    end)
+
+    test("pinned window stays open when new task window is opened", function ()
+        local is_pinned = PlayerState.is_task_list_pinned_open(player)
+
+        if not is_pinned then
+            PlayerState.toggle_task_list_pinned_open(player)
+        end
+
+        GroupManagerWindow.open(player)
+        local task_list_window = player.gui.screen[constants.jolt.task_list.window]
+        local group_manager_window = player.gui.screen[constants.jolt.group_management.window_name]
+        assert.equals(true, task_list_window.valid)
+    end)
+
+    test("pinned window closes when new task window is opened", function ()
+        local is_pinned = PlayerState.is_task_list_pinned_open(player)
+
+        if is_pinned then
+            PlayerState.toggle_task_list_pinned_open(player)
+        end
+
+        GroupManagerWindow.open(player)
+        local task_list_window = player.gui.screen[constants.jolt.task_list.window]
+        local group_manager_window = player.gui.screen[constants.jolt.group_management.window_name]
+        
+        assert.equals(false, task_list_window.valid)
+        assert.equals(true, group_manager_window.valid)
+    end)
+end)
+
+
+describe("selecting tasks", function ()
+    local player
+    before_all(function ()
+        Task_manager = TaskManager.new()
+
+        -- open the task list window
+        player = game.players[1]
+        TaskListWindow.open(player)
+    end)
+
+    test.todo("", function ()
+        
+    end)
+end)
+
+
+describe("moving tasks", function ()
+    local player
+    before_all(function ()
+        Task_manager = TaskManager.new()
+
+        -- open the task list window
+        player = game.players[1]
+        TaskListWindow.open(player)
+    end)
+
+    
+
+    describe("moving task up", function ()
+        test("moving task up button disabled if no tasks selected", function ()
+            local window =  player.gui.screen[constants.jolt.task_list.window]
+            
+            local move_tasks_up_button = Utils.find_element(window, constants.jolt.task_list.move_task_up_button)
+            
+            assert.equals(true, move_tasks_up_button.valid)
+            assert.equals(false, move_tasks_up_button.enabled)
+        end)
+    end)
+
+    describe("moving task down", function ()
+        test("moving task down button disabled if no tasks selected", function ()
+            local window =  player.gui.screen[constants.jolt.task_list.window]
+            
+            local move_tasks_down_button = Utils.find_element(window, constants.jolt.task_list.move_task_down_button)
+            
+            assert.equals(true, move_tasks_down_button.valid)
+            assert.equals(false, move_tasks_down_button.enabled)
+        end)
+    end)
+end)
+
+
+
+describe("deleting tasks", function ()
+    local player
+    before_all(function ()
+        Task_manager = TaskManager.new()
+
+        -- open the task list window
+        player = game.players[1]
+        TaskListWindow.open(player)
+    end)
+
+    test.todo("", function ()
+        
+    end)
+end)
+
+
+
+describe("task location", function ()
+    local player
+    before_all(function ()
+        Task_manager = TaskManager.new()
+
+        -- open the task list window
+        player = game.players[1]
+        TaskListWindow.open(player)
+    end)
+
+    test.todo("", function ()
+        
+    end)
+end)
+
+
+
+
+-- template group
+describe("", function ()
+    local player
+    before_all(function ()
+        Task_manager = TaskManager.new()
+
+        -- open the task list window
+        player = game.players[1]
+        TaskListWindow.open(player)
+    end)
+
+    test.todo("", function ()
         
     end)
 end)
