@@ -31,6 +31,7 @@ function TaskFormWindow.refresh_task_location_camera(player, new_coordinates, ne
     -- local new_position = PlayerState.get_temp_location_for_task(player)
     camera.position = new_coordinates
     camera.surface_index = new_surface
+    camera.visible = true
 end
 
 --- Opens a new window with a form to create a new task/subtask 
@@ -215,6 +216,7 @@ function TaskFormWindow.open(player, task)
         -- set the default view to the player's current surface
         surface_index = task.surface_index or player.surface.index,
         zoom = DEFAULT_CAMERA_ZOOM,
+        visible = task.coordinates ~= nil
     }
     camera.style.width = DEFAULT_WINDOW_WIDTH - 20
     camera.style.height = 150
@@ -251,6 +253,8 @@ function TaskFormWindow.get_form_data(player)
     local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
     local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
 
+
+    
     -- Get Values
     local task_id = form_container.tags.task_id
     local title = textbox_title.text
@@ -295,6 +299,8 @@ function TaskFormWindow.get_form_data(player)
         coordinates = location and location.coordinates or nil,
         surface_index = location and location.surface_index or nil,
     }
+
+
     return task_params
 end
 

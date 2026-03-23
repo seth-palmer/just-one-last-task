@@ -1,0 +1,17 @@
+{
+  "globals": [
+    "game",
+    "test",
+    "it",
+    "describe",
+    "before_each",
+    "after_each",
+    "before_all",
+    "after_all",
+    "after_test",
+    "async",
+    "done",
+    "after_ticks",
+    "on_tick"
+  ]
+}

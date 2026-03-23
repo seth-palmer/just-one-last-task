@@ -140,13 +140,17 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     sbtn_edit.style.size = {26,26}
     sbtn_edit.style.right_margin = 4
 
+
+    local has_location = task.surface_index ~= nil
+
     -- A button to jump to task location
     local sbtn_location = controls_container.add {
         type="sprite-button",
         name = constants.jolt.task_list.location_button,
         sprite = constants.jolt.sprites.location,
         tooltip={"jolt.tooltip_view_location"},
-        tags = {is_jolt = true, task_id = task.id, group_id=task.group_id}
+        tags = {is_jolt = true, task_id = task.id, group_id=task.group_id},
+        enabled = has_location,
     }
     sbtn_location.style.size = {26,26}
     sbtn_location.style.right_margin = 4
