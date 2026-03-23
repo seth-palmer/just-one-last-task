@@ -12,6 +12,8 @@ local TaskListWindow = require("gui.task_list_window")
 local GroupManagerWindow = require("gui.group_manager_window")
 local TaskFormWindow = require("gui.task_form_window")
 
+local Click = require("scripts.events.on_gui_click")
+
 --- Test if window opens/closes and buttons exist
 describe("task list window opens and closes", function ()
     local player
@@ -63,7 +65,14 @@ describe("adding task", function ()
 
     test("new task window opens", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
-        -- TaskFormWindow.open()
+        
+        local event = {player_index = player.index}
+        
+        TaskFormWindow.open(player, {})
+
+        local task_form_window = player.gui.screen[constants.jolt.new_task.window]
+
+        assert.equals(true, task_form_window.valid)
     end)
 
 
@@ -72,16 +81,81 @@ describe("adding task", function ()
     end)
 
     test.todo("new task not created when no title provided", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        local event = {player_index = player.index}
         
+        TaskFormWindow.open(player, {})
+
+        local task_form_window = player.gui.screen[constants.jolt.new_task.window]
+        local add_task_button = Utils.find_element(task_form_window, constants.jolt.new_task.confirm_button)
+
+        assert.equals(true, add_task_button.valid)
+
+
+        local event = {player_index = player.index, control = false}
+        Click.add_new_task(event)
+
+        -- form should remain open 
+        assert.equals(true, task_form_window.valid)
+
+        -- no task should be created
     end)
 
-    test.todo("new task with title created and is in group list", function ()
+    test("new task with title created and is in group list", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        local event = {player_index = player.index}
         
+        TaskFormWindow.open(player, {})
+
+        local task_form_window = player.gui.screen[constants.jolt.new_task.window]
+
+
+        local title_textbox = Utils.find_element(task_form_window, constants.jolt.new_task.title_textbox)
+        assert.equals(true, title_textbox.valid)
+        
+        title_textbox.text = "new task with title"
+
+        local add_task_button = Utils.find_element(task_form_window, constants.jolt.new_task.confirm_button)
+        local event = {player_index = player.index, control = false}
+        local new_task_id = Click.add_new_task(event)
+
+        -- form should close 
+        assert.equals(false, task_form_window.valid)
+        assert.equals(true, new_task_id ~= nil)
+
+        -- task should be created
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. new_task_id)
+        assert.equals(true, task_row.valid)
     end)
 
-    test.todo("when task is created new task window closes", function ()
+    test("new task with title created and is in group list", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        local event = {player_index = player.index}
         
+        TaskFormWindow.open(player, {})
+
+        local task_form_window = player.gui.screen[constants.jolt.new_task.window]
+
+
+        local title_textbox = Utils.find_element(task_form_window, constants.jolt.new_task.title_textbox)
+        assert.equals(true, title_textbox.valid)
+        
+        title_textbox.text = "task where form stays open"
+
+        local add_task_button = Utils.find_element(task_form_window, constants.jolt.new_task.confirm_button)
+        local event = {player_index = player.index, control = true}
+        local new_task_id = Click.add_new_task(event)
+
+        -- form should stay open 
+        assert.equals(true, task_form_window.valid)
+        assert.equals(true, new_task_id ~= nil)
+
+        -- task should be created
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. new_task_id)
+        assert.equals(true, task_row.valid)
     end)
+
+
 
     test.todo("new task window defaults to currently selected group", function ()
         

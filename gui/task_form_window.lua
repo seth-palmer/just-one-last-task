@@ -35,14 +35,28 @@ end
 
 --- Opens a new window with a form to create a new task/subtask 
 --- or edit an existing one
-function TaskFormWindow.open(event, window_title, window_subtitle, task)
+function TaskFormWindow.open(player, task)
 
     -- If data in task is there, then this must be an edit
     local is_edit = task and task.task_id ~= nil
     local is_subtask = task.parent_id ~= nil
+    
+    local window_title = "New Task"
+    local window_subtitle = nil
+    
+    if is_subtask then
+        window_title = "New Subtask"
+        local parent_title = Task_manager.get_task(task.parent_id).title
+        window_subtitle = {"jolt_task_list_window.label_subtask_of", parent_title}
+    end
 
-    -- get player by index
-    local player = game.get_player(event.player_index)
+    if is_edit then
+        window_title = "Edit Task"
+    end
+
+    if is_edit and is_subtask then
+        window_title = "Edit Subtask"
+    end
 
     -- Setup the data if editing an existing task
     task = task or {}
