@@ -15,7 +15,7 @@ local GroupManagerWindow = require("gui.group_manager_window")
 local TaskFormWindow = require("gui.task_form_window")
 
 -- Event Imports 
-require("scripts.events.on_gui_click")
+local OnGuiClick = require("scripts.events.on_gui_click")
 
 -- Window width and height constants
 local TASK_LIST_MAX_WINDOW_HEIGHT = 600
@@ -241,7 +241,7 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
 
     -- Add a new task when pressing [Enter] in the title textbox
     if element_name == constants.jolt.new_task.title_textbox then
-        add_new_task(event)
+        OnGuiClick.add_new_task(event)
     end
 end)
 

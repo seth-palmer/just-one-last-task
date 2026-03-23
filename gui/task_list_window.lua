@@ -776,6 +776,17 @@ local function refresh_from_visual_log(player)
             elseif entry.type == actions.edited_task then
                 refresh_task_data(player, entry.data.task_id)
 
+                if entry.data.old_group_id and (entry.data.group_id ~= entry.data.old_group_id) then
+                    TaskListWindow.remove_task(player, entry.data.old_group_id, entry.data.task_id)
+                end
+
+                TaskListWindow.refresh_group_tasks_slowly(player, entry.data.group_id)
+
+                -- if the task was moved refresh the old group
+                if entry.data.old_group_id then
+                    TaskListWindow.refresh_group_tasks_slowly(player, entry.data.old_group_id)
+                end
+
             elseif entry.type == actions.added_task then
                 refresh_for_new_task(player, entry.data.task_id)
 

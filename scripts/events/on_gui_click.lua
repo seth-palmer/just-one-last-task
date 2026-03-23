@@ -19,9 +19,20 @@ local OnGuiClick = {}
 ---@param event any
 function OnGuiClick.add_new_task(event)
     local player = game.get_player(event.player_index)
+
+    
     
     -- Get the task data from the form
     local task_data = TaskFormWindow.get_form_data(player)
+
+    -- Fetch the old task data for logging the old group_id
+    local old_task_group_id = ""
+    local old_task
+    if task_data.is_edit_task then
+        old_task = Task_manager.get_task(task_data.id)
+        old_task_group_id = old_task.group_id
+    end
+    
 
     local outcome = Task_manager.save_task(task_data)
 
@@ -44,8 +55,18 @@ function OnGuiClick.add_new_task(event)
         else
             task_id = outcome.value
         end
+
+        local group_id = Task_manager.get_parent_group(task_id)
+
         -- Log the data 
-        local data = {task_id = task_id}
+        local data = {task_id = task_id, group_id = group_id}
+
+        -- if editing task, then the group may have changed so 
+        -- log it to update both groups in a refresh
+        if task_data.is_edit_task and old_task_group_id ~= group_id then
+            data.old_group_id = old_task_group_id
+        end
+
         VisualActionLog.add(action, data)
 
         -- On control keep the window open and clear the form 

@@ -80,7 +80,7 @@ describe("adding task", function ()
         
     end)
 
-    test.todo("new task not created when no title provided", function ()
+    test("new task not created when no title provided", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
         local event = {player_index = player.index}
         
@@ -93,12 +93,16 @@ describe("adding task", function ()
 
 
         local event = {player_index = player.index, control = false}
-        Click.add_new_task(event)
+        local new_task_id = Click.add_new_task(event)
+        assert.equals(nil, new_task_id)
+
 
         -- form should remain open 
         assert.equals(true, task_form_window.valid)
 
         -- no task should be created
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. new_task_id)
+        assert.equals(nil, task_row)
     end)
 
     test("new task with title created and is in group list", function ()
