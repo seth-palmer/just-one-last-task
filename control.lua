@@ -253,7 +253,7 @@ local function toggle_task_list_window(event)
             player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
 
         else -- otherwise open the task list window
-            TaskListWindow.open(event)
+            TaskListWindow.open(player)
 
             -- update the style of the shortcut button
             player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, true)
@@ -375,7 +375,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.toggle_task_list_pinned_open(player)
 
         -- Refresh window 
-       TaskListWindow.open(event)
+       TaskListWindow.open(player)
 
     -- Open new task window when Add task button clicked
     elseif element_name == constants.jolt.task_list.add_task_button then
@@ -506,7 +506,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.set_setting_show_completed(player, not show_completed)
 
         -- Refresh list of tasks
-       TaskListWindow.open(event)
+       TaskListWindow.open(player)
 
     -- Toggle details for individual task
     elseif element_name == constants.jolt.task_list.toggle_details_button then
@@ -576,7 +576,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             PlayerState.set_group_management_selected_group_id(player, new_group_id)
 
             -- Refresh windows
-           TaskListWindow.open(event)
+           TaskListWindow.open(player)
            GroupManagerWindow.open(event)
         end
 
@@ -636,7 +636,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             end
 
             -- Refresh windows
-           TaskListWindow.open(event)
+           TaskListWindow.open(player)
            GroupManagerWindow.open(event)
         end
 
@@ -655,7 +655,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         end
 
         -- Refresh windows
-       TaskListWindow.open(event)
+       TaskListWindow.open(player)
        GroupManagerWindow.open(event)
 
         -- Close confirmation window
@@ -668,7 +668,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.set_group_management_selected_group_id(player, selected_group_id)
 
         -- Refresh windows
-       TaskListWindow.open(event)
+       TaskListWindow.open(player)
        GroupManagerWindow.open(event)
 
     -- Move group left button
@@ -683,7 +683,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_left(group_id)
 
         -- Refresh windows
-       TaskListWindow.open(event)
+       TaskListWindow.open(player)
        GroupManagerWindow.open(event)
 
     -- Move group right button
@@ -698,7 +698,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_right(group_id)
 
         -- Refresh windows
-       TaskListWindow.open(event)
+       TaskListWindow.open(player)
        GroupManagerWindow.open(event)
 
     -- Save group button 
@@ -710,7 +710,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.save_current_group(player)
 
         -- Refresh windows
-       TaskListWindow.open(event)
+       TaskListWindow.open(player)
        GroupManagerWindow.open(event)
 
     -- Go to Location button in task list
@@ -720,8 +720,12 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task = Task_manager.get_task(event.element.tags.task_id)
         local position = task.coordinates
         local surface_index = task.surface_index
+        local surface
 
-        local surface = game.get_surface(surface_index)
+        -- check if task has no surface
+        if surface_index then
+            surface = game.get_surface(surface_index)
+        end
 
         -- check that surface exists 
         if not surface or not surface.valid then
@@ -860,3 +864,8 @@ script.on_event(defines.events.on_gui_closed, function(event)
         PlayerState.clear_selected_tasks(player)
     end
 end)
+
+-- For automated testing
+if script.active_mods["factorio-test"] then
+    require("__factorio-test__/init")({ "tests/tasks" }, { load_luassert = true })
+end

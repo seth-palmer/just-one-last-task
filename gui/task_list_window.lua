@@ -213,12 +213,9 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
 end
 
 --- Open the task list menu
-function TaskListWindow.open(event)
+function TaskListWindow.open(player)
     -- Initialize data if needed
     -- !! Note: index 1 is the start not 0 in lua !!
-
-    -- get player by index
-    local player = game.get_player(event.player_index)
 
     -- In case a group is deleted have a fallback to the first group 
     -- to avoid a crash
