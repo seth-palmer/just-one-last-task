@@ -14,6 +14,20 @@ local TaskFormWindow = require("gui.task_form_window")
 
 local Click = require("scripts.events.on_gui_click")
 
+local function delete_all_tasks()
+    storage.jolt.tasks = {}
+    storage.jolt.priorities = {}
+end
+
+local function reset_groups_to_default()
+    local nauvis_group = {id="a1", name="Nauvis", icon="space-location/nauvis"}
+    local default_group_data = {}
+    default_group_data[nauvis_group.id] = nauvis_group
+    local default_group_order = {"a1"}
+    storage.jolt.groups = default_group_data
+    storage.jolt.group_order = default_group_order
+end
+
 --- Test if window opens/closes and buttons exist
 describe("task list window opens and closes", function ()
     local player
@@ -46,13 +60,27 @@ end)
 
 describe("adding task", function ()
     local player
+    local group_id
     before_all(function ()
         Task_manager = TaskManager.new()
 
         -- open the task list window
         player = game.players[1]
         TaskListWindow.open(player)
+
+        -- get the first group
+        group_id = next(Task_manager.get_groups())
     end)
+
+    before_each(function ()
+        delete_all_tasks()
+        reset_groups_to_default()
+    end)
+
+    after_each(function ()
+        TaskFormWindow.close(player)
+    end)
+
 
     test("add task button exists", function ()
         TaskListWindow.open(player)
@@ -76,13 +104,16 @@ describe("adding task", function ()
     end)
 
 
-    test.todo("new task window closes when back button is pressed", function ()
+    test("new task window closes", function ()
         
+        TaskFormWindow.close(player)
+
+        local task_form_window = player.gui.screen[constants.jolt.new_task.window]
+        assert.equals(nil, task_form_window)
     end)
 
     test("new task not created when no title provided", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
-        local event = {player_index = player.index}
         
         TaskFormWindow.open(player, {})
 
@@ -100,9 +131,11 @@ describe("adding task", function ()
         -- form should remain open 
         assert.equals(true, task_form_window.valid)
 
-        -- no task should be created
-        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. new_task_id)
-        assert.equals(nil, task_row)
+        local group_id = "a1"
+        -- no task should be created (count children)
+        local group_scroll_pane = Utils.find_element(window, constants.jolt.task_list.tasks_scroll_pane_prefix .. group_id)
+        -- should have only one child (the "No tasks" message)
+        assert.equals(1, #group_scroll_pane.children)
     end)
 
     test("new task with title created and is in group list", function ()
@@ -161,8 +194,25 @@ describe("adding task", function ()
 
 
 
-    test.todo("new task window defaults to currently selected group", function ()
+    test("new task window defaults to currently selected group", function ()
         
+        -- add group 
+        local new_group = {name = "2", icon="space-location/nauvis"}
+        local new_group_id = Task_manager.add_group(new_group)
+        assert.equals(true, new_group_id ~= nil)
+
+        -- select that group
+        PlayerState.set_current_group_id(player, new_group_id)
+
+        TaskFormWindow.open(player, {})
+        local task_form_window = player.gui.screen[constants.jolt.new_task.window]
+
+
+        local group_dropdown = Utils.find_element(task_form_window, constants.jolt.new_task.group_dropdown)
+        -- should be two groups in the dropdow and the second one selected
+        assert.equals(true, group_dropdown.valid)
+        assert.equals(2, #group_dropdown.items)
+        assert.equals(2, group_dropdown.selected_index)
     end)
 
 end)
@@ -295,7 +345,7 @@ describe("pinning task list window open", function ()
         assert.equals(true, task_list_window.valid)
     end)
 
-    test("pinned window closes when new task window is opened", function ()
+    test("pinned window closes when groups window is opened", function ()
         local is_pinned = PlayerState.is_task_list_pinned_open(player)
 
         if is_pinned then
@@ -306,7 +356,7 @@ describe("pinning task list window open", function ()
         local task_list_window = player.gui.screen[constants.jolt.task_list.window]
         local group_manager_window = player.gui.screen[constants.jolt.group_management.window_name]
         
-        assert.equals(false, task_list_window.valid)
+        assert.equals(nil, task_list_window)
         assert.equals(true, group_manager_window.valid)
     end)
 end)

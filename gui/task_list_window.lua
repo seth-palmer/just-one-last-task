@@ -481,6 +481,10 @@ function TaskListWindow.close(player)
     if player.gui.screen[constants.jolt.task_list.window] then
         player.gui.screen[constants.jolt.task_list.window].destroy()
     end
+
+    -- update the shortcut
+    player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
+
 end
 
 

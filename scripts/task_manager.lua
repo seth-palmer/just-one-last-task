@@ -289,9 +289,9 @@ function TaskManager.new(params)
     end
 
     --- Adds the new group with data provided
-    ---@param task_params table with id, name, and icon values
+    ---@param params table with id, name, and icon values
     ---@return string id the new group id, or nil if an error
-    function self.add_group(task_params)
+    function self.add_group(params)
         -- Check if there are too many groups 
         if #group_order >= MAX_GUI_GROUPS then
             return nil
@@ -303,8 +303,8 @@ function TaskManager.new(params)
         -- Make a new group
         local new_group = {
             id=id,
-            name=task_params.name,
-            icon=task_params.icon
+            name=params.name,
+            icon=params.icon
         }
 
         groups[id] = new_group

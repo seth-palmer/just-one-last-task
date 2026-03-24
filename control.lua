@@ -323,21 +323,29 @@ end)
 --- https://lua-api.factorio.com/latest/events.html#on_gui_closed
 ---@param event any
 script.on_event(defines.events.on_gui_closed, function(event)
-
     if not event.element then return end
     if not event.element.valid then return end
 
     -- Do not continue if it is not a window from JOLT
     if not Task_manager.is_jolt_window(event.element.name) then return end
 
+    -- game.print(event.element.name)
+
 
     local player = game.get_player(event.player_index)
+    -- game.print("opened:...")
+    -- game.print(player.opened)
     local window_name = event.element.name
 
-
+    local is_window_pinned_open = PlayerState.is_task_list_pinned_open(player)
+    -- game.print("is_task_list_pinned_open: " .. tostring(is_window_pinned_open))
     -- Don't close if task_list window and it is pinned open 
-    if window_name == constants.jolt.task_list.window and PlayerState.is_task_list_pinned_open(player) then
+    if (window_name == constants.jolt.task_list.window and is_window_pinned_open) then
         return
+    end
+
+    if window_name == constants.jolt.task_list.window then
+        TaskListWindow.close(player)
     end
 
     -- Make sure window is closed
@@ -348,6 +356,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
     
     -- Can run run cleanup specific to that window (see also section in on_gui_click)
     if window_name == constants.jolt.group_management.window_name then
+        GroupManagerWindow.close(player)
     end
     if window_name == constants.jolt.task_list.window then
         PlayerState.clear_selected_tasks(player)

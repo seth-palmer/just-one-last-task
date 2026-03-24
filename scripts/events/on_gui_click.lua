@@ -128,7 +128,6 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Get the player that is interacting with our gui
     local player = game.get_player(event.player_index)
-
     -- Save last interacted with task (to be able to scroll to it later)
     -- in separate "if" statement so it doesn't block other interactions
     if event.element.tags.task_id then
