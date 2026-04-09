@@ -1,4 +1,18 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: 2026-04-09
+  Features:
+    - Added location feature to tasks
+      - Added view location button for each task in the task list window
+      - Added set location button in new task and edit task forms
+      - Added camera to display live view of location in new task and edit task form
+  Bugfixes:
+    - Fixed bug when changing the group of a task did not refresh the old group
+    - Fixed 'e' or 'esc' not closing task list and groups windows
+    - Fixed issue where the window was closed but the shortcut was in the 'on' state
+  Changes:
+    - Setup testing system and added automated tests for adding and moving tasks and opening the main task list window.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2026-03-08
   Bugfixes:
