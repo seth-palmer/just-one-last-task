@@ -657,28 +657,28 @@ function TaskListWindow.refresh_group(player, group_id)
     if tab_content then
         -- remove all children
         tab_content.clear()
-    end
 
-    -- Get tasks, checking if the control button "Show Completed".
-    -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
-    local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
-    for _, task in pairs(group_tasks) do
-        -- Check if task is selected 
-        local selected_tasks = PlayerState.get_selected_tasks(player)
-        local is_selected = PlayerState.is_task_selected(player, task.id)
+        -- Get tasks, checking if the control button "Show Completed".
+        -- Get's only the tasks that match the state of that checkbox (complete/incomplete)
+        local group_tasks = Task_manager.get_tasks(group_id, PlayerState.get_setting_show_completed(player))
+        for _, task in pairs(group_tasks) do
+            -- Check if task is selected 
+            local selected_tasks = PlayerState.get_selected_tasks(player)
+            local is_selected = PlayerState.is_task_selected(player, task.id)
 
-        -- Display the task (see new_gui_task() for getting subtasks)
-        -- local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
-        local gui_task = TaskListWindow.new_gui_task(player, task, tab_content)
-    end
+            -- Display the task (see new_gui_task() for getting subtasks)
+            -- local gui_task = TaskListWindow.new_gui_task(tab_content, task, tab_in_ammount, selected_tasks, player)
+            local gui_task = TaskListWindow.new_gui_task(player, task, tab_content)
+        end
 
-    -- Add placeholder text if no tasks
-    if #group_tasks == 0 then
-        local placeholder = tab_content.add {
-            type = "label",
-            caption = {"jolt_task_list_window.no_tasks_info_text"}
-        }
-        placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
+        -- Add placeholder text if no tasks
+        if #group_tasks == 0 then
+            local placeholder = tab_content.add {
+                type = "label",
+                caption = {"jolt_task_list_window.no_tasks_info_text"}
+            }
+            placeholder.style.font_color = {r=0.6, g=0.6, b=0.6}
+        end
     end
 end
 
