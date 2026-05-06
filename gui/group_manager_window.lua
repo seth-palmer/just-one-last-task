@@ -233,6 +233,19 @@ function GroupManagerWindow.open(player)
     }
 end
 
+--- Reopen to refresh any group management window that is already open
+function GroupManagerWindow.refresh_for_all()
+    -- Get all players
+    for _, player in pairs(game.players) do
+        local window = player.gui.screen[constants.jolt.group_management.window_name]
+        -- If they have group management window open, 
+        -- reopen to refresh it
+        if window then
+            GroupManagerWindow.open(player)
+        end
+    end
+end
+
 --- Close the window for the player
 ---@param player any
 function GroupManagerWindow.close(player)

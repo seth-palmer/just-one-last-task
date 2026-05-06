@@ -379,7 +379,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
             -- Refresh windows
            TaskListWindow.refresh_for_all()
-           GroupManagerWindow.open(player)
+           GroupManagerWindow.refresh_for_all()
         end
 
 
@@ -439,6 +439,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
             -- Refresh windows
            TaskListWindow.open(player)
+           GroupManagerWindow.refresh_for_all()
            GroupManagerWindow.open(player)
         end
 
@@ -458,7 +459,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.refresh_for_all()
-       GroupManagerWindow.open(player)
+       GroupManagerWindow.refresh_for_all()
 
         -- Close confirmation window
         player.gui.screen[constants.jolt.delete_group.window_name].destroy()
@@ -471,7 +472,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.refresh_for_all()
-       GroupManagerWindow.open(player)
+       GroupManagerWindow.refresh_for_all()
 
     -- Move group left button
     elseif element_name == constants.jolt.group_management.move_group_left then
@@ -486,7 +487,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.refresh_for_all()
-       GroupManagerWindow.open(player)
+       GroupManagerWindow.refresh_for_all()
 
     -- Move group right button
     elseif element_name == constants.jolt.group_management.move_group_right then
@@ -501,7 +502,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.refresh_for_all()
-       GroupManagerWindow.open(player)
+       GroupManagerWindow.refresh_for_all()
 
     -- Save group button 
     elseif element_name == constants.jolt.group_management.btn_save_group then
@@ -513,7 +514,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         -- Refresh windows
        TaskListWindow.refresh_for_all()
-       GroupManagerWindow.open(player)
+       GroupManagerWindow.refresh_for_all()
 
     -- Go to Location button in task list
     elseif element_name == constants.jolt.task_list.location_button then
