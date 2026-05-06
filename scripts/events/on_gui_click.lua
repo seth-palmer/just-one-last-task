@@ -553,7 +553,9 @@ script.on_event(defines.events.on_gui_click, function(event)
             surface = player.surface})
         
         -- save the task id to the player state since can't pass it to an event
-        local task_id = event.element.tags.task_id
+        local element = event.element
+        if not element or not element.valid then return end
+        local task_id = element.tags.task_id
         PlayerState.save_task_id_for_task_location(player, task_id)
         
         -- Continued in "events.on_player_selected_area"
