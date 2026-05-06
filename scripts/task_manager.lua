@@ -578,7 +578,8 @@ function TaskManager.new(params)
             return groups[id]
         end
         if group == nil then
-            error("Group not found with id: " .. (id or "[nil value]"))
+            return nil
+            --error("Group not found with id: " .. (id or "[nil value]"))
         end
 
         return group

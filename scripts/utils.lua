@@ -36,6 +36,21 @@ function Utils.find_element(parent, name)
     end
 end
 
+--- Determines if the string starts with the provided prefix
+--- Source - https://stackoverflow.com/a/22831842
+--- Posted by filmor
+--- Retrieved 2026-05-06, License - CC BY-SA 3.0
+function Utils.string_starts_with(original, prefix)
+   return string.sub(original,1,string.len(prefix))==prefix
+end
+
+--- Returns the string after the provided prefix
+function Utils.split_after(string, prefix)
+    if string.sub(string, 1, #prefix) == prefix then
+        return string.sub(string, #prefix + 1)
+    end
+    return nil  -- prefix not found
+end
 
 -- TIP:
 -- use log to debug without and 'event'

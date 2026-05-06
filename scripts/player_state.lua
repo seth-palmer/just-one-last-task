@@ -1,4 +1,3 @@
-
 local constants = require("constants")
 local Outcome = require("scripts.outcome")
 
@@ -261,13 +260,21 @@ function PlayerState.pop_close_button(player, button_name)
 end
 
 
---- Returns the current group id
+--- Returns the current group id, 
 ---@param player any player associated
----@return string|nil current_group_id id of the current group for the player
+---@return string|nil current_group_id id of the 
+--- group for the player, or the id of the first group if the group does not exist
 function PlayerState.get_current_group_id(player)
     local current_group_id = storage.players[player.index].jolt.ui.selected_group_tab_id
 
-    return current_group_id
+    -- Check if group exists
+    if Task_manager.does_group_exist(current_group_id) then
+        return current_group_id
+    else
+        -- get the first group
+        local first_group_id = next(Task_manager.get_groups())
+        return first_group_id
+    end
 end
 
 --- Sets the current group id

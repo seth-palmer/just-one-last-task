@@ -378,7 +378,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             PlayerState.set_group_management_selected_group_id(player, new_group_id)
 
             -- Refresh windows
-           TaskListWindow.open(player)
+           TaskListWindow.refresh_for_all()
            GroupManagerWindow.open(player)
         end
 
@@ -457,7 +457,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         end
 
         -- Refresh windows
-       TaskListWindow.open(player)
+       TaskListWindow.refresh_for_all()
        GroupManagerWindow.open(player)
 
         -- Close confirmation window
@@ -470,7 +470,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.set_group_management_selected_group_id(player, selected_group_id)
 
         -- Refresh windows
-       TaskListWindow.open(player)
+       TaskListWindow.refresh_for_all()
        GroupManagerWindow.open(player)
 
     -- Move group left button
@@ -485,7 +485,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_left(group_id)
 
         -- Refresh windows
-       TaskListWindow.open(player)
+       TaskListWindow.refresh_for_all()
        GroupManagerWindow.open(player)
 
     -- Move group right button
@@ -500,7 +500,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_right(group_id)
 
         -- Refresh windows
-       TaskListWindow.open(player)
+       TaskListWindow.refresh_for_all()
        GroupManagerWindow.open(player)
 
     -- Save group button 
@@ -512,7 +512,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.save_current_group(player)
 
         -- Refresh windows
-       TaskListWindow.open(player)
+       TaskListWindow.refresh_for_all()
        GroupManagerWindow.open(player)
 
     -- Go to Location button in task list
