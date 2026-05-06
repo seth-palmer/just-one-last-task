@@ -275,9 +275,6 @@ script.on_event(defines.events.on_gui_click, function(event)
                 -- Display error message
                 Utils.display_error(player, outcome.message)
             end
-
-            -- Refresh list of tasks
-            TaskListWindow.refresh_for_all()
         
         else -- Otherwise mark mark complete / uncomplete 
             -- clear selected tasks 
@@ -289,10 +286,10 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- Log action so we know what task to update
             local data = {task_id = task_id}
             VisualActionLog.add(constants.jolt.actions.updated_task_completed_status, data)
-
-            -- Refresh window
-            TaskListWindow.refresh_for_all()
         end
+
+        -- Refresh window
+        TaskListWindow.refresh_for_all()
 
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
@@ -301,7 +298,10 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.set_setting_show_completed(player, not show_completed)
 
         -- Refresh list of tasks
-       TaskListWindow.open(player)
+        TaskListWindow.open(player)
+
+        -- Refresh window
+        TaskListWindow.refresh_for_all()
 
     -- Toggle details for individual task
     elseif element_name == constants.jolt.task_list.toggle_details_button then
@@ -391,8 +391,8 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- Make the new window and set close button
             -- Setup options for the new window
             local options = {
-                width = WARNING_WINDOW_WIDTH,
-                height = WARNING_WINDOW_HEIGHT,
+                width = constants.jolt.warning_window.width,
+                height = constants.jolt.warning_window.height,
                 player = player,
                 window_name = constants.jolt.delete_group.window_name,
                 window_title = {"jolt_group_management.confirm_delete_window_title"},

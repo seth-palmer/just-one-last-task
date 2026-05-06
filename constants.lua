@@ -141,6 +141,10 @@ constants.jolt = {
     },
     tools = {
         location_selector = "jolt_location_selector",
+    },
+    warning_window = {
+        width = 300,
+        height = 180,
     }
 
 }
