@@ -294,8 +294,13 @@ script.on_event(defines.events.on_gui_click, function(event)
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
         -- Invert the setting stored in task manager 
-        local show_completed = PlayerState.get_setting_show_completed(player)
-        PlayerState.set_setting_show_completed(player, not show_completed)
+        local old_show_completed = PlayerState.get_setting_show_completed(player)
+        PlayerState.set_setting_show_completed(player, not old_show_completed)
+
+        -- clear selected tasks only when toggling off
+        if old_show_completed == true then
+            PlayerState.clear_selected_tasks(player)
+        end
 
         -- Refresh list of tasks
         TaskListWindow.open(player)

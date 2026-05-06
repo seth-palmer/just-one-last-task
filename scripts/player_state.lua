@@ -98,8 +98,7 @@ end
 function PlayerState.add_selected_task(player, task_id)
     -- If task was already selected deselect it 
     if PlayerState.is_task_selected(player, task_id) then
-        local selected_tasks = PlayerState.get_selected_tasks(player)
-        selected_tasks[task_id] = nil
+        storage.players[player.index].jolt.ui.selected_tasks[task_id] = nil
         return Outcome.success()
     end
 
