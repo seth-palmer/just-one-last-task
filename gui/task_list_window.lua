@@ -818,7 +818,7 @@ local function refresh_from_visual_log(player)
                 -- Scroll to the selected_tasks
                 local task_id = Task_manager.get_top_most_selected_task(player)
                 local task = Task_manager.get_task(task_id)
-                if not task.parent_id then
+                if task and not task.parent_id then
                     local task_row = get_task_row(player, task.group_id, task_id)
                     if task_row and task_row.parent then
                         task_row.parent.scroll_to_element(task_row, "in-view") -- or "top-third"
@@ -832,7 +832,7 @@ local function refresh_from_visual_log(player)
                 -- Scroll to the selected_tasks
                 local task_id = Task_manager.get_bottom_most_selected_task(player)
                 local task = Task_manager.get_task(task_id)
-                if not task.parent_id then
+                if task and not task.parent_id then
                     local task_row = get_task_row(player, task.group_id, task_id)
                     if task_row and task_row.parent then
                         task_row.parent.scroll_to_element(task_row, "in-view") -- or "top-third"
@@ -867,5 +867,25 @@ function TaskListWindow.refresh(player)
     refresh_from_visual_log(player)
     local tasks = PlayerState.get_selected_tasks(player)
 end
+
+--- Refreshes the window for all players
+function TaskListWindow.refresh_for_all()
+    local players = game.players
+
+    for _, player in pairs(game.players) do
+        -- Refresh the groups list and the current scroll pane
+        refresh_current_group(player)
+
+        -- Refresh controls (move down/up delete etc.)
+        refresh_window_controls(player)
+
+        -- Special refreshes depending on the action
+        refresh_from_visual_log(player)
+        local tasks = PlayerState.get_selected_tasks(player)
+    end
+end
+
+
+
 
 return TaskListWindow

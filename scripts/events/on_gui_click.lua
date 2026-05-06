@@ -82,7 +82,7 @@ function OnGuiClick.add_new_task(event)
         
 
         -- Refresh data
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
        return outcome.value
     end
@@ -175,7 +175,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
-        TaskListWindow.refresh(player)
+        TaskListWindow.refresh_for_all()
 
         -- open window to add a new task
         -- TaskFormWindow.open(event, "New Task", nil, {})
@@ -192,7 +192,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         VisualActionLog.add(constants.jolt.actions.moved_tasks_up, data)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.move_task_down_button then
@@ -205,7 +205,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         VisualActionLog.add(constants.jolt.actions.moved_tasks_down, data)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.delete_tasks_button then
@@ -221,7 +221,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
@@ -277,7 +277,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             end
 
             -- Refresh list of tasks
-            TaskListWindow.refresh(player)
+            TaskListWindow.refresh_for_all()
         
         else -- Otherwise mark mark complete / uncomplete 
             -- clear selected tasks 
@@ -291,7 +291,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             VisualActionLog.add(constants.jolt.actions.updated_task_completed_status, data)
 
             -- Refresh window
-            TaskListWindow.refresh(player)
+            TaskListWindow.refresh_for_all()
         end
 
     -- Toggle viewing completed/incomplete tasks 
@@ -315,7 +315,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         VisualActionLog.add(constants.jolt.actions.updated_show_task_details_status, data)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
     
     -- On click of the "+ Subtask" button 
     elseif element_name == constants.jolt.task_list.add_subtask_button then
@@ -341,7 +341,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.clear_selected_tasks(player)
 
         -- Refresh window
-        TaskListWindow.refresh(player)
+        TaskListWindow.refresh_for_all()
 
     -- Group Management button
     elseif element_name == constants.jolt.group_management.open_window_button then
