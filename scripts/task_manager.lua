@@ -603,13 +603,22 @@ function TaskManager.new(params)
         return groups[group_id] ~= nil
     end
 
-
+    --- Compares the two tasks to see if they both have the same parent task
+    ---@param task1_id string id of the first task
+    ---@param task2_id string id of the second task
+    ---@return boolean are_tasks_siblings true if they are, false if not
     function self.are_tasks_siblings(task1_id, task2_id)
         local task1 = tasks[task1_id]
         local task2 = tasks[task2_id]
-        -- Both top-level (no parent)
-        -- Or both subtasks with the same parent
-        return task1.parent_id == task2.parent_id
+
+        -- Make sure both tasks have not been deleted
+        if task1 and task2 then
+            -- Both top-level (no parent)
+            -- Or both subtasks with the same parent
+            return task1.parent_id == task2.parent_id
+        else
+            return false
+        end
     end
 
 

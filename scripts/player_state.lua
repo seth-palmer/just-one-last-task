@@ -118,10 +118,30 @@ function PlayerState.add_selected_task(player, task_id)
 end
 
 --- Returns the selected tasks for the player
+--- Includes error checking to only return tasks that actually exist
 ---@param player any player associated
 ---@return table selected_tasks tasks for the player 
 function PlayerState.get_selected_tasks(player)
-    return storage.players[player.index].jolt.ui.selected_tasks
+    -- Get selected tasks
+    local selected_tasks = storage.players[player.index].jolt.ui.selected_tasks
+    local valid_selected_tasks = {}
+
+    -- Check to make sure all tasks still exist 
+    for task_id, _ in pairs(selected_tasks) do
+        -- if they exist then add them to the valid task list
+        if storage.jolt.tasks[task_id] then
+            valid_selected_tasks[task_id] = true
+        end
+    end
+    -- format is 
+    --[[
+    {
+        ["8de2f9f2-0615-4d1e-b4b6-63bfada967fe"] = true,
+        ["8de2f9f2-0615-4d1e-b4b6-63bfada967fe"] = true,
+    }
+    ]]
+
+    return valid_selected_tasks or {}
 end
 
 

@@ -777,6 +777,9 @@ local function refresh_from_visual_log(player)
             
             if entry.type == actions.updated_task_completed_status then
                 refresh_task_data(player, entry.data.task_id)
+                -- since the task might reapear in other players gui 
+                -- refresh as if it is a new task
+                refresh_for_new_task(player, entry.data.task_id)
 
             elseif entry.type == actions.updated_show_task_details_status then
                 refresh_task_data(player, entry.data.task_id)
