@@ -387,7 +387,7 @@ describe("pinning task list window open", function ()
     end)
 end)
 
-describe("selecting tasks", function ()
+describe.only("selecting tasks", function ()
     local player
     local group_2_id
     local task_1_id
@@ -420,6 +420,7 @@ describe("selecting tasks", function ()
 
 
     before_each(function ()
+        PlayerState.set_setting_show_completed(player, false)
         PlayerState.clear_selected_tasks(player)
         TaskListWindow.open(player)
     end)
@@ -445,7 +446,7 @@ describe("selecting tasks", function ()
         local controls_container = task_row.children[1]
         assert.equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
     end)
-    test.only("test deselecting a task changes it visually", function ()
+    test("test deselecting a task changes it visually", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
 
         -- select a task 
@@ -502,7 +503,57 @@ describe("selecting tasks", function ()
         -- task should be not highlighted
         local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
         local controls_container = task_row.children[1]
-        assert.not_equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
+        assert.equals(false, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
+    end)
+    test("test toggling on show completed does not clear selected tasks", function ()
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+
+        TaskListWindow.refresh_for_all()
+
+        -- task selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        assert.equals(true, selected_tasks[task_1_id])
+
+        PlayerState.set_setting_show_completed(player, false)
+        Click.toggle_show_completed_checkbox(player)
+
+        -- task should still be highlighted
+
+        -- need to refetch the window AFTER refreshes
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.equals(true, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
+    end)
+    test("test toggling off show completed clears selected tasks", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+
+        TaskListWindow.refresh_for_all()
+
+        -- task selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.equals(true, selected_tasks[task_1_id])
+
+        Click.toggle_show_completed_checkbox(player)
+        Click.toggle_show_completed_checkbox(player)
+
+        -- need to refetch the window AFTER refreshes
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- task should be not be highlighted
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.equals(false, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
     end)
 end)
 

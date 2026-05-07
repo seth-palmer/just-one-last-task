@@ -32,6 +32,23 @@ function OnGuiClick.group_change_button(player, event)
     TaskListWindow.refresh_for_all()
 end
 
+function OnGuiClick.toggle_show_completed_checkbox(player)
+    -- Invert the setting stored in task manager 
+    local old_show_completed = PlayerState.get_setting_show_completed(player)
+    PlayerState.set_setting_show_completed(player, not old_show_completed)
+
+    -- clear selected tasks ONLY when toggling off
+    if old_show_completed == true then
+        PlayerState.clear_selected_tasks(player)
+    end
+
+    -- Refresh list of tasks
+    TaskListWindow.open(player)
+
+    -- Refresh window
+    TaskListWindow.refresh_for_all()
+end
+
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
 function OnGuiClick.add_new_task(event)
@@ -310,20 +327,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
-        -- Invert the setting stored in task manager 
-        local old_show_completed = PlayerState.get_setting_show_completed(player)
-        PlayerState.set_setting_show_completed(player, not old_show_completed)
-
-        -- clear selected tasks only when toggling off
-        if old_show_completed == true then
-            PlayerState.clear_selected_tasks(player)
-        end
-
-        -- Refresh list of tasks
-        TaskListWindow.open(player)
-
-        -- Refresh window
-        TaskListWindow.refresh_for_all()
+        OnGuiClick.toggle_show_completed_checkbox(player)
 
     -- Toggle details for individual task
     elseif element_name == constants.jolt.task_list.toggle_details_button then
