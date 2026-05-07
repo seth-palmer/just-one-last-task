@@ -51,6 +51,7 @@ constants.jolt = {
         moved_tasks_down = "moved_tasks_down",
         moved_tasks_up = "moved_tasks_up",
         selected_task = "selected_task",
+        cleared_selected_tasks = "cleared_selected_tasks",
     },
     -- For shortcut buttons
     shortcuts = {

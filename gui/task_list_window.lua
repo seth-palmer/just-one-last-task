@@ -653,7 +653,6 @@ local function refresh_task_data(player, task_id, group_id)
         
         -- Add the update root task so all subtasks data is refreshed
         local root_task_data = Task_manager.get_task(root_task_id)
-        -- TaskListWindow.new_gui_task(parent, root_task_data, 0, selected_tasks, player)
         TaskListWindow.new_gui_task(player, root_task_data, parent)
         
         -- Swap new element into the old position
@@ -862,7 +861,10 @@ local function refresh_from_visual_log(player)
 
             elseif entry.type == actions.selected_task then
                 refresh_task_data(player, entry.data.task_id)
-                
+            elseif entry.type == actions.cleared_selected_tasks then
+                for task_id, _ in pairs(entry.data.tasks) do
+                    refresh_task_data(player, task_id)
+                end
             elseif entry.type == actions.moved_tasks_up then
                 TaskListWindow.refresh_group_tasks_slowly(player, entry.data.group_id)
 

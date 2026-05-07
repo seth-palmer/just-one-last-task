@@ -15,6 +15,23 @@ local TaskFormWindow = require("gui.task_form_window")
 
 local OnGuiClick = {}
 
+--- When a group is changed in the task list window.
+---@param player any target player
+function OnGuiClick.group_change_button(player, event)
+    -- Save selected group id
+    local selected_group_id = event.element.tags.group_id
+    PlayerState.set_current_group_id(player, selected_group_id)
+
+    -- Clear selected tasks 
+    local selected_tasks = PlayerState.get_selected_tasks(player)
+    local data = {tasks = selected_tasks}
+    VisualActionLog.add(constants.jolt.actions.cleared_selected_tasks, data)
+    PlayerState.clear_selected_tasks(player)
+
+    -- Refresh window
+    TaskListWindow.refresh_for_all()
+end
+
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
 function OnGuiClick.add_new_task(event)
@@ -341,15 +358,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- If selected an tab group icon button change the tasks
     elseif event.element.tags.is_group_change_button then
-        -- Save selected group id
-        local selected_group_id = event.element.tags.group_id
-        PlayerState.set_current_group_id(player, selected_group_id)
-
-        -- Clear selected tasks 
-        PlayerState.clear_selected_tasks(player)
-
-        -- Refresh window
-        TaskListWindow.refresh_for_all()
+        OnGuiClick.group_change_button(player, event)
 
     -- Group Management button
     elseif element_name == constants.jolt.group_management.open_window_button then

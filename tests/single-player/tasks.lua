@@ -420,6 +420,7 @@ describe("selecting tasks", function ()
 
 
     before_each(function ()
+        PlayerState.clear_selected_tasks(player)
         TaskListWindow.open(player)
     end)
     
@@ -427,16 +428,14 @@ describe("selecting tasks", function ()
     test("test selecting a task changes it visually", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
 
-
         -- select a task 
         PlayerState.add_selected_task(player, task_1_id)
         local data = {task_id = task_1_id}
         VisualActionLog.add(constants.jolt.actions.selected_task, data)
 
         TaskListWindow.refresh_for_all()
-        
 
-        -- no tasks selected
+        -- task selected
         local selected_tasks = PlayerState.get_selected_tasks(player)
         -- use assert.same for table comparisons
         assert.equals(true, selected_tasks[task_1_id])
@@ -446,10 +445,38 @@ describe("selecting tasks", function ()
         local controls_container = task_row.children[1]
         assert.equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
     end)
+    test.only("test deselecting a task changes it visually", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+        TaskListWindow.refresh_for_all()
+
+        -- select the same task to deselect it 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+        TaskListWindow.refresh_for_all()
+
+        -- no tasks selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.equals(nil, selected_tasks[task_1_id])
+
+        -- task should not be highlighted
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.not_equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
+        
+    end)
     test("test changing groups deselects tasks", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
 
         -- steps taken from "event.element.tags.is_group_change_button then" in on_gui_click.lua
+        -- then moved those steps to the fn "OnGuiClick.group_change_button"
+        -- to test for easily
 
         -- select a task 
         PlayerState.add_selected_task(player, task_1_id)
@@ -457,17 +484,15 @@ describe("selecting tasks", function ()
         VisualActionLog.add(constants.jolt.actions.selected_task, data)
 
         TaskListWindow.refresh_for_all()
-        
-        -- change groups
-        PlayerState.set_current_group_id(player, group_2_id)
 
-        -- Clear selected tasks 
-        PlayerState.clear_selected_tasks(player)
-        TaskListWindow.refresh_for_all()
+        local event = {element = {tags = {}}}
+        event.element.tags.group_id = group_2_id
+        Click.group_change_button(player, event)
 
         -- change back to original group 
-        PlayerState.set_current_group_id(player, DEFAULT_START_GROUP_ID)
-        TaskListWindow.refresh_for_all()
+        local event = {element = {tags = {}}}
+        event.element.tags.group_id = DEFAULT_START_GROUP_ID
+        Click.group_change_button(player, event)
 
         -- no tasks selected
         local selected_tasks = PlayerState.get_selected_tasks(player)
