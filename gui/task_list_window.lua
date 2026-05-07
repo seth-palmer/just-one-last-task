@@ -50,7 +50,6 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
         -- Style it with the selected style
         -- IMPORTANT! this is how to style background colors have to use sprites
         controls_container.style = constants.jolt.styles.backgrounds.selected
-        
     end
     controls_container.style.padding = 0
     controls_container.style.margin = 2
