@@ -454,7 +454,7 @@ script.on_event(defines.events.on_gui_click, function(event)
             end
 
             -- Refresh windows
-           TaskListWindow.open(player)
+           TaskListWindow.refresh_for_all()
            GroupManagerWindow.refresh_for_all()
            GroupManagerWindow.open(player)
         end
