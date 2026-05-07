@@ -387,7 +387,7 @@ describe("pinning task list window open", function ()
     end)
 end)
 
-describe.only("selecting tasks", function ()
+describe("selecting tasks", function ()
     local player
     local group_2_id
     local task_1_id
