@@ -194,6 +194,7 @@ end
 ---@param task_id string target task  
 ---@return boolean show_details true if details are shown for the player, false otherwise
 function PlayerState.get_task_show_details(player, task_id)
+    storage.players[player.index].jolt.ui.tasks_show_details_state_list = storage.players[player.index].jolt.ui.tasks_show_details_state_list or {}
     local list = storage.players[player.index].jolt.ui.tasks_show_details_state_list
     if list then
         local show_details = list[task_id]
@@ -207,7 +208,8 @@ end
 ---@param task_id string target task 
 ---@param state boolean state to set show details to
 function PlayerState.set_task_show_details(player, task_id, state)
-    local list = storage.players[player.index].jolt.ui.tasks_show_details_state_list
+    storage.players[player.index].jolt.ui.tasks_show_details_state_list = storage.players[player.index].jolt.ui.tasks_show_details_state_list or {}
+    local list = storage.players[player.index].jolt.ui.tasks_show_details_state_list or {}
     if list then
         if state then
             list[task_id] = true

@@ -318,8 +318,6 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task_show_details = PlayerState.get_task_show_details(player, task.id)
         PlayerState.set_task_show_details(player, task.id, not task_show_details)
         
-        log("show details: " .. tostring(task_show_details))
-
         -- Log the task_id and action
         local data = {task_id = task_id}
         VisualActionLog.add(constants.jolt.actions.updated_show_task_details_status, data)
