@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.0
+Date: 2026-05-07
+  Features:
+    - Updated mod to work for multiplayer.
+    - Task List window and Group Management window now refresh after other players make changes.
+  Changes:
+    - Toggling off "Show Completed" control now deselects all tasks.
+    - Added automated tests for selecting task related functionality.
+  Bugfixes:
+    - Fixed bug where the warning window for deleting a group was the wrong size.
+    - Fixed rare crash where setting a task location soon after world creation.
+---------------------------------------------------------------------------------------------------
 Version: 0.4.1
 Date: 2026-04-09
   Bugfixes:

@@ -17,15 +17,6 @@ local TaskFormWindow = require("gui.task_form_window")
 -- Event Imports 
 local OnGuiClick = require("scripts.events.on_gui_click")
 
--- Window width and height constants
-local TASK_LIST_MAX_WINDOW_HEIGHT = 600
-local AUTO_SCALE_WINDOW_HEIGHT = 0
-local TASK_LIST_WINDOW_WIDTH = 400
-
-local WARNING_WINDOW_WIDTH = 300
-local WARNING_WINDOW_HEIGHT = 180
-local SUBTITLE_MAX_WIDTH = TASK_LIST_WINDOW_WIDTH - 130
-
 
 --region =======Debug Functions=======
 
@@ -139,6 +130,7 @@ script.on_configuration_changed(function(event)
                             selected_group_icon_id = nil,
                             last_interacted_task_id = nil,
                             show_completed_tasks = false,
+                            tasks_show_details_state_list = {},
                         }
                     }
                     -- Clean up old keys

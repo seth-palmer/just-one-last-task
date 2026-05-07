@@ -51,6 +51,7 @@ constants.jolt = {
         moved_tasks_down = "moved_tasks_down",
         moved_tasks_up = "moved_tasks_up",
         selected_task = "selected_task",
+        cleared_selected_tasks = "cleared_selected_tasks",
     },
     -- For shortcut buttons
     shortcuts = {
@@ -141,6 +142,10 @@ constants.jolt = {
     },
     tools = {
         location_selector = "jolt_location_selector",
+    },
+    warning_window = {
+        width = 300,
+        height = 0, -- 0 height means auto
     }
 
 }

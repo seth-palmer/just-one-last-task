@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global, undefined-field
 --- Imports
 local TaskManager = require("scripts.task_manager")
 local PlayerState = require("scripts.player_state")
@@ -13,6 +14,7 @@ local GroupManagerWindow = require("gui.group_manager_window")
 local TaskFormWindow = require("gui.task_form_window")
 
 local Click = require("scripts.events.on_gui_click")
+local DEFAULT_START_GROUP_ID = "a1"
 
 local function delete_all_tasks()
     storage.jolt.tasks = {}
@@ -20,12 +22,30 @@ local function delete_all_tasks()
 end
 
 local function reset_groups_to_default()
-    local nauvis_group = {id="a1", name="Nauvis", icon="space-location/nauvis"}
+    local nauvis_group = {id=DEFAULT_START_GROUP_ID, name="Nauvis", icon="space-location/nauvis"}
     local default_group_data = {}
     default_group_data[nauvis_group.id] = nauvis_group
-    local default_group_order = {"a1"}
+    local default_group_order = {DEFAULT_START_GROUP_ID}
     storage.jolt.groups = default_group_data
     storage.jolt.group_order = default_group_order
+end
+
+local function add_task(player, title)
+    local window = player.gui.screen[constants.jolt.task_list.window]
+    local event = {player_index = player.index}
+    
+    TaskFormWindow.open(player, {})
+
+    local task_form_window = player.gui.screen[constants.jolt.new_task.window]
+    local title_textbox = Utils.find_element(task_form_window, constants.jolt.new_task.title_textbox)
+    
+    title_textbox.text = title
+
+    local add_task_button = Utils.find_element(task_form_window, constants.jolt.new_task.confirm_button)
+    local event = {player_index = player.index, control = false}
+    local new_task_id = Click.add_new_task(event)
+
+    return new_task_id
 end
 
 --- Test if window opens/closes and buttons exist
@@ -131,7 +151,7 @@ describe("adding task", function ()
         -- form should remain open 
         assert.equals(true, task_form_window.valid)
 
-        local group_id = "a1"
+        local group_id = DEFAULT_START_GROUP_ID
         -- no task should be created (count children)
         local group_scroll_pane = Utils.find_element(window, constants.jolt.task_list.tasks_scroll_pane_prefix .. group_id)
         -- should have only one child (the "No tasks" message)
@@ -145,8 +165,6 @@ describe("adding task", function ()
         TaskFormWindow.open(player, {})
 
         local task_form_window = player.gui.screen[constants.jolt.new_task.window]
-
-
         local title_textbox = Utils.find_element(task_form_window, constants.jolt.new_task.title_textbox)
         assert.equals(true, title_textbox.valid)
         
@@ -221,6 +239,8 @@ end)
 describe("adding subtask", function ()
     local player
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
         Task_manager = TaskManager.new()
 
         -- open the task list window
@@ -236,6 +256,8 @@ end)
 describe("editing task", function ()
     local player
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
         Task_manager = TaskManager.new()
 
         -- open the task list window
@@ -252,6 +274,8 @@ end)
 describe("marking task complete or incomplete", function ()
     local player
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
         Task_manager = TaskManager.new()
 
         -- open the task list window
@@ -276,6 +300,8 @@ end)
 describe("expanding and collapsing task details", function ()
     local player
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
         Task_manager = TaskManager.new()
 
         -- open the task list window
@@ -361,19 +387,173 @@ describe("pinning task list window open", function ()
     end)
 end)
 
-
 describe("selecting tasks", function ()
     local player
+    local group_2_id
+    local task_1_id
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
+
         Task_manager = TaskManager.new()
 
         -- open the task list window
         player = game.players[1]
         TaskListWindow.open(player)
+
+        local group_2 = {name = "2", icon="space-location/nauvis"}
+        group_2_id = Task_manager.add_group(group_2)
+
+        
+        -- Add 3 tasks to group 1
+        PlayerState.set_current_group_id(player, DEFAULT_START_GROUP_ID)
+        task_1_id = add_task(player, "task 1")
+        local task_2_id = add_task(player, "task 2")
+        local task_3_id = add_task(player, "task 3")
+
+        -- Add 1 task to group 2
+        PlayerState.set_current_group_id(player, group_2_id)
+        local task_1_id = add_task(player, "task 1b")
+
+        PlayerState.set_current_group_id(player, DEFAULT_START_GROUP_ID)
     end)
 
-    test.todo("", function ()
+
+    before_each(function ()
+        PlayerState.set_setting_show_completed(player, false)
+        PlayerState.clear_selected_tasks(player)
+        TaskListWindow.open(player)
+    end)
+    
+
+    test("test selecting a task changes it visually", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+
+        TaskListWindow.refresh_for_all()
+
+        -- task selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.equals(true, selected_tasks[task_1_id])
+
+        -- task should be highlighted
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
+    end)
+    test("test deselecting a task changes it visually", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+        TaskListWindow.refresh_for_all()
+
+        -- select the same task to deselect it 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+        TaskListWindow.refresh_for_all()
+
+        -- no tasks selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.equals(nil, selected_tasks[task_1_id])
+
+        -- task should not be highlighted
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.not_equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
         
+    end)
+    test("test changing groups deselects tasks", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- steps taken from "event.element.tags.is_group_change_button then" in on_gui_click.lua
+        -- then moved those steps to the fn "OnGuiClick.group_change_button"
+        -- to test for easily
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+
+        TaskListWindow.refresh_for_all()
+
+        local event = {element = {tags = {}}}
+        event.element.tags.group_id = group_2_id
+        Click.group_change_button(player, event)
+
+        -- change back to original group 
+        local event = {element = {tags = {}}}
+        event.element.tags.group_id = DEFAULT_START_GROUP_ID
+        Click.group_change_button(player, event)
+
+        -- no tasks selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.same({}, selected_tasks)
+
+        -- task should be not highlighted
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.equals(false, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
+    end)
+    test("test toggling on show completed does not clear selected tasks", function ()
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+
+        TaskListWindow.refresh_for_all()
+
+        -- task selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        assert.equals(true, selected_tasks[task_1_id])
+
+        PlayerState.set_setting_show_completed(player, false)
+        Click.toggle_show_completed_checkbox(player)
+
+        -- task should still be highlighted
+
+        -- need to refetch the window AFTER refreshes
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.equals(true, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
+    end)
+    test("test toggling off show completed clears selected tasks", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+
+        TaskListWindow.refresh_for_all()
+
+        -- task selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.equals(true, selected_tasks[task_1_id])
+
+        Click.toggle_show_completed_checkbox(player)
+        Click.toggle_show_completed_checkbox(player)
+
+        -- need to refetch the window AFTER refreshes
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- task should be not be highlighted
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.equals(false, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
     end)
 end)
 
@@ -381,6 +561,8 @@ end)
 describe("moving tasks", function ()
     local player
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
         Task_manager = TaskManager.new()
 
         -- open the task list window
@@ -418,6 +600,8 @@ end)
 describe("deleting tasks", function ()
     local player
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
         Task_manager = TaskManager.new()
 
         -- open the task list window
@@ -435,6 +619,8 @@ end)
 describe("task location", function ()
     local player
     before_all(function ()
+        reset_groups_to_default()
+        delete_all_tasks()
         Task_manager = TaskManager.new()
 
         -- open the task list window

@@ -1,4 +1,3 @@
-
 local constants = require("constants")
 local Outcome = require("scripts.outcome")
 
@@ -27,6 +26,7 @@ function PlayerState.initialize(player_index)
             last_interacted_task_id = nil,
             show_completed_tasks = false,
             setting_location = false,
+            tasks_show_details_state_list = {},
         },
     }
 end
@@ -98,8 +98,7 @@ end
 function PlayerState.add_selected_task(player, task_id)
     -- If task was already selected deselect it 
     if PlayerState.is_task_selected(player, task_id) then
-        local selected_tasks = PlayerState.get_selected_tasks(player)
-        selected_tasks[task_id] = nil
+        storage.players[player.index].jolt.ui.selected_tasks[task_id] = nil
         return Outcome.success()
     end
 
@@ -118,10 +117,30 @@ function PlayerState.add_selected_task(player, task_id)
 end
 
 --- Returns the selected tasks for the player
+--- Includes error checking to only return tasks that actually exist
 ---@param player any player associated
 ---@return table selected_tasks tasks for the player 
 function PlayerState.get_selected_tasks(player)
-    return storage.players[player.index].jolt.ui.selected_tasks
+    -- Get selected tasks
+    local selected_tasks = storage.players[player.index].jolt.ui.selected_tasks
+    local valid_selected_tasks = {}
+
+    -- Check to make sure all tasks still exist 
+    for task_id, _ in pairs(selected_tasks) do
+        -- if they exist then add them to the valid task list
+        if storage.jolt.tasks[task_id] then
+            valid_selected_tasks[task_id] = true
+        end
+    end
+    -- format is 
+    --[[
+    {
+        ["8de2f9f2-0615-4d1e-b4b6-63bfada967fe"] = true,
+        ["8de2f9f2-0615-4d1e-b4b6-63bfada967fe"] = true,
+    }
+    ]]
+
+    return valid_selected_tasks or {}
 end
 
 
@@ -169,6 +188,39 @@ end
 function PlayerState.get_setting_show_completed(player)
     return storage.players[player.index].jolt.ui.show_completed_tasks
 end
+
+--- Gets the state of if the details should be shown
+---@param player any target player
+---@param task_id string target task  
+---@return boolean show_details true if details are shown for the player, false otherwise
+function PlayerState.get_task_show_details(player, task_id)
+    storage.players[player.index].jolt.ui.tasks_show_details_state_list = storage.players[player.index].jolt.ui.tasks_show_details_state_list or {}
+    local list = storage.players[player.index].jolt.ui.tasks_show_details_state_list
+    if list then
+        local show_details = list[task_id]
+        return show_details or false
+    end
+    return false
+end
+
+--- Gets the state of if the details should be shown
+---@param player any target player
+---@param task_id string target task 
+---@param state boolean state to set show details to
+function PlayerState.set_task_show_details(player, task_id, state)
+    storage.players[player.index].jolt.ui.tasks_show_details_state_list = storage.players[player.index].jolt.ui.tasks_show_details_state_list or {}
+    local list = storage.players[player.index].jolt.ui.tasks_show_details_state_list or {}
+    if list then
+        if state then
+            list[task_id] = true
+        else
+            list[task_id] = nil
+        end
+    end
+    
+end
+
+
 
 --- Returns the saved location of the window for the player
 ---@param player any with the window
@@ -242,13 +294,21 @@ function PlayerState.pop_close_button(player, button_name)
 end
 
 
---- Returns the current group id
+--- Returns the current group id, 
 ---@param player any player associated
----@return string|nil current_group_id id of the current group for the player
+---@return string|nil current_group_id id of the 
+--- group for the player, or the id of the first group if the group does not exist
 function PlayerState.get_current_group_id(player)
     local current_group_id = storage.players[player.index].jolt.ui.selected_group_tab_id
 
-    return current_group_id
+    -- Check if group exists
+    if Task_manager.does_group_exist(current_group_id) then
+        return current_group_id
+    else
+        -- get the first group
+        local first_group_id = next(Task_manager.get_groups())
+        return first_group_id
+    end
 end
 
 --- Sets the current group id

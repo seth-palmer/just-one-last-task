@@ -15,6 +15,40 @@ local TaskFormWindow = require("gui.task_form_window")
 
 local OnGuiClick = {}
 
+--- When a group is changed in the task list window.
+---@param player any target player
+function OnGuiClick.group_change_button(player, event)
+    -- Save selected group id
+    local selected_group_id = event.element.tags.group_id
+    PlayerState.set_current_group_id(player, selected_group_id)
+
+    -- Clear selected tasks 
+    local selected_tasks = PlayerState.get_selected_tasks(player)
+    local data = {tasks = selected_tasks}
+    VisualActionLog.add(constants.jolt.actions.cleared_selected_tasks, data)
+    PlayerState.clear_selected_tasks(player)
+
+    -- Refresh window
+    TaskListWindow.refresh_for_all()
+end
+
+function OnGuiClick.toggle_show_completed_checkbox(player)
+    -- Invert the setting stored in task manager 
+    local old_show_completed = PlayerState.get_setting_show_completed(player)
+    PlayerState.set_setting_show_completed(player, not old_show_completed)
+
+    -- clear selected tasks ONLY when toggling off
+    if old_show_completed == true then
+        PlayerState.clear_selected_tasks(player)
+    end
+
+    -- Refresh list of tasks
+    TaskListWindow.open(player)
+
+    -- Refresh window
+    TaskListWindow.refresh_for_all()
+end
+
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
 function OnGuiClick.add_new_task(event)
@@ -82,7 +116,7 @@ function OnGuiClick.add_new_task(event)
         
 
         -- Refresh data
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
        return outcome.value
     end
@@ -175,7 +209,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
-        TaskListWindow.refresh(player)
+        TaskListWindow.refresh_for_all()
 
         -- open window to add a new task
         -- TaskFormWindow.open(event, "New Task", nil, {})
@@ -192,7 +226,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         VisualActionLog.add(constants.jolt.actions.moved_tasks_up, data)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.move_task_down_button then
@@ -205,7 +239,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         VisualActionLog.add(constants.jolt.actions.moved_tasks_down, data)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
     -- Move selected task(s) down
     elseif element_name == constants.jolt.task_list.delete_tasks_button then
@@ -221,7 +255,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.clear_selected_tasks(player)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
 
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
@@ -275,9 +309,6 @@ script.on_event(defines.events.on_gui_click, function(event)
                 -- Display error message
                 Utils.display_error(player, outcome.message)
             end
-
-            -- Refresh list of tasks
-            TaskListWindow.refresh(player)
         
         else -- Otherwise mark mark complete / uncomplete 
             -- clear selected tasks 
@@ -289,19 +320,14 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- Log action so we know what task to update
             local data = {task_id = task_id}
             VisualActionLog.add(constants.jolt.actions.updated_task_completed_status, data)
-
-            -- Refresh window
-            TaskListWindow.refresh(player)
         end
+
+        -- Refresh window
+        TaskListWindow.refresh_for_all()
 
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then
-        -- Invert the setting stored in task manager 
-        local show_completed = PlayerState.get_setting_show_completed(player)
-        PlayerState.set_setting_show_completed(player, not show_completed)
-
-        -- Refresh list of tasks
-       TaskListWindow.open(player)
+        OnGuiClick.toggle_show_completed_checkbox(player)
 
     -- Toggle details for individual task
     elseif element_name == constants.jolt.task_list.toggle_details_button then
@@ -310,12 +336,15 @@ script.on_event(defines.events.on_gui_click, function(event)
         local task = Task_manager.get_task(task_id)
 
         -- invert property to mark that details should be shown/hidden
-        task.show_details = not task.show_details
+        local task_show_details = PlayerState.get_task_show_details(player, task.id)
+        PlayerState.set_task_show_details(player, task.id, not task_show_details)
+        
+        -- Log the task_id and action
         local data = {task_id = task_id}
         VisualActionLog.add(constants.jolt.actions.updated_show_task_details_status, data)
 
         -- Refresh list of tasks
-       TaskListWindow.refresh(player)
+       TaskListWindow.refresh_for_all()
     
     -- On click of the "+ Subtask" button 
     elseif element_name == constants.jolt.task_list.add_subtask_button then
@@ -333,15 +362,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- If selected an tab group icon button change the tasks
     elseif event.element.tags.is_group_change_button then
-        -- Save selected group id
-        local selected_group_id = event.element.tags.group_id
-        PlayerState.set_current_group_id(player, selected_group_id)
-
-        -- Clear selected tasks 
-        PlayerState.clear_selected_tasks(player)
-
-        -- Refresh window
-        TaskListWindow.refresh(player)
+        OnGuiClick.group_change_button(player, event)
 
     -- Group Management button
     elseif element_name == constants.jolt.group_management.open_window_button then
@@ -373,8 +394,8 @@ script.on_event(defines.events.on_gui_click, function(event)
             PlayerState.set_group_management_selected_group_id(player, new_group_id)
 
             -- Refresh windows
-           TaskListWindow.open(player)
-           GroupManagerWindow.open(player)
+           TaskListWindow.refresh_for_all()
+           GroupManagerWindow.refresh_for_all()
         end
 
 
@@ -391,8 +412,8 @@ script.on_event(defines.events.on_gui_click, function(event)
             -- Make the new window and set close button
             -- Setup options for the new window
             local options = {
-                width = WARNING_WINDOW_WIDTH,
-                height = WARNING_WINDOW_HEIGHT,
+                width = constants.jolt.warning_window.width,
+                height = constants.jolt.warning_window.height,
                 player = player,
                 window_name = constants.jolt.delete_group.window_name,
                 window_title = {"jolt_group_management.confirm_delete_window_title"},
@@ -433,7 +454,8 @@ script.on_event(defines.events.on_gui_click, function(event)
             end
 
             -- Refresh windows
-           TaskListWindow.open(player)
+           TaskListWindow.refresh_for_all()
+           GroupManagerWindow.refresh_for_all()
            GroupManagerWindow.open(player)
         end
 
@@ -452,8 +474,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         end
 
         -- Refresh windows
-       TaskListWindow.open(player)
-       GroupManagerWindow.open(player)
+       TaskListWindow.refresh_for_all()
+       GroupManagerWindow.refresh_for_all()
 
         -- Close confirmation window
         player.gui.screen[constants.jolt.delete_group.window_name].destroy()
@@ -465,8 +487,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         PlayerState.set_group_management_selected_group_id(player, selected_group_id)
 
         -- Refresh windows
-       TaskListWindow.open(player)
-       GroupManagerWindow.open(player)
+       TaskListWindow.refresh_for_all()
+       GroupManagerWindow.refresh_for_all()
 
     -- Move group left button
     elseif element_name == constants.jolt.group_management.move_group_left then
@@ -480,8 +502,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_left(group_id)
 
         -- Refresh windows
-       TaskListWindow.open(player)
-       GroupManagerWindow.open(player)
+       TaskListWindow.refresh_for_all()
+       GroupManagerWindow.refresh_for_all()
 
     -- Move group right button
     elseif element_name == constants.jolt.group_management.move_group_right then
@@ -495,8 +517,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.move_group_right(group_id)
 
         -- Refresh windows
-       TaskListWindow.open(player)
-       GroupManagerWindow.open(player)
+       TaskListWindow.refresh_for_all()
+       GroupManagerWindow.refresh_for_all()
 
     -- Save group button 
     elseif element_name == constants.jolt.group_management.btn_save_group then
@@ -507,8 +529,8 @@ script.on_event(defines.events.on_gui_click, function(event)
         Task_manager.save_current_group(player)
 
         -- Refresh windows
-       TaskListWindow.open(player)
-       GroupManagerWindow.open(player)
+       TaskListWindow.refresh_for_all()
+       GroupManagerWindow.refresh_for_all()
 
     -- Go to Location button in task list
     elseif element_name == constants.jolt.task_list.location_button then
@@ -548,7 +570,9 @@ script.on_event(defines.events.on_gui_click, function(event)
             surface = player.surface})
         
         -- save the task id to the player state since can't pass it to an event
-        local task_id = event.element.tags.task_id
+        local element = event.element
+        if not element or not element.valid then return end
+        local task_id = element.tags.task_id
         PlayerState.save_task_id_for_task_location(player, task_id)
         
         -- Continued in "events.on_player_selected_area"
