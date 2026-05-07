@@ -26,6 +26,7 @@ function PlayerState.initialize(player_index)
             last_interacted_task_id = nil,
             show_completed_tasks = false,
             setting_location = false,
+            tasks_show_details_state_list = {},
         },
     }
 end
@@ -187,6 +188,37 @@ end
 function PlayerState.get_setting_show_completed(player)
     return storage.players[player.index].jolt.ui.show_completed_tasks
 end
+
+--- Gets the state of if the details should be shown
+---@param player any target player
+---@param task_id string target task  
+---@return boolean show_details true if details are shown for the player, false otherwise
+function PlayerState.get_task_show_details(player, task_id)
+    local list = storage.players[player.index].jolt.ui.tasks_show_details_state_list
+    if list then
+        local show_details = list[task_id]
+        return show_details or false
+    end
+    return false
+end
+
+--- Gets the state of if the details should be shown
+---@param player any target player
+---@param task_id string target task 
+---@param state boolean state to set show details to
+function PlayerState.set_task_show_details(player, task_id, state)
+    local list = storage.players[player.index].jolt.ui.tasks_show_details_state_list
+    if list then
+        if state then
+            list[task_id] = true
+        else
+            list[task_id] = nil
+        end
+    end
+    
+end
+
+
 
 --- Returns the saved location of the window for the player
 ---@param player any with the window

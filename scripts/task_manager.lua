@@ -387,7 +387,6 @@ function TaskManager.new(params)
             title=task_params.title,
             description=task_params.description,
             is_complete = false,
-            show_details = false,
             parent_id = task_params.parent_id or nil,
             subtasks = {},
             coordinates = task_params.coordinates,

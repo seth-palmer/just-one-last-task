@@ -168,9 +168,10 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     sbtn_details.style.size = {26,26}
 
 
-    -- TODO: store the show_details in the player table instead of the task
+    -- get the show_details 
+    local is_show_details = PlayerState.get_task_show_details(player, task.id)
     -- If details are expanded add extra controls and subtasks
-    if task.show_details then
+    if is_show_details then
         -- Change icon to indicate details can be collapsed
         sbtn_details.sprite = constants.jolt.sprites.down
 
@@ -584,8 +585,11 @@ local function get_task_row(player, group_id, task_id)
     local task = Task_manager.get_task(task_id)
 
     -- If subtask 
-    if task.parent_id  ~= nil then
-        return get_task_row(player, group_id, task.parent_id)[constants.jolt.task_list.tasks_row_prefix .. task_id]
+    if task and task.parent_id ~= nil then
+        local task_row = get_task_row(player, group_id, task.parent_id)
+        if task_row then
+            return task_row[constants.jolt.task_list.tasks_row_prefix .. task_id]
+        end
     else
         local pane = get_group_pane(player, group_id)
         if not pane or not pane.valid then return nil end
@@ -605,7 +609,7 @@ local function get_root_task(player, task_id, group_id)
         return get_root_task(player, task.parent_id, group_id)
     else
         local pane = get_group_pane(player, group_id)
-
+        if not pane or not pane.valid then return nil end
         return pane[constants.jolt.task_list.tasks_row_prefix .. task_id], task_id
     end
 end

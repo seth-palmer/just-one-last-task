@@ -139,6 +139,7 @@ script.on_configuration_changed(function(event)
                             selected_group_icon_id = nil,
                             last_interacted_task_id = nil,
                             show_completed_tasks = false,
+                            tasks_show_details_state_list = {},
                         }
                     }
                     -- Clean up old keys
