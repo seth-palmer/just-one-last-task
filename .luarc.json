@@ -13,5 +13,14 @@
     "done",
     "after_ticks",
     "on_tick"
-  ]
+  ],
+    "diagnostics.globals": [
+        "openTasksListMenu",
+        "basicwindow",
+        "storage",
+        "script",
+        "game",
+        "remote",
+        "before_all"
+    ]
 }

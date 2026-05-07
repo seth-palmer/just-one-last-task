@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global, undefined-field
 --- Imports
 local TaskManager = require("scripts.task_manager")
 local PlayerState = require("scripts.player_state")
