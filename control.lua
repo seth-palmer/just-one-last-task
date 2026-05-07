@@ -17,15 +17,6 @@ local TaskFormWindow = require("gui.task_form_window")
 -- Event Imports 
 local OnGuiClick = require("scripts.events.on_gui_click")
 
--- Window width and height constants
-local TASK_LIST_MAX_WINDOW_HEIGHT = 600
-local AUTO_SCALE_WINDOW_HEIGHT = 0
-local TASK_LIST_WINDOW_WIDTH = 400
-
-local WARNING_WINDOW_WIDTH = 300
-local WARNING_WINDOW_HEIGHT = 180
-local SUBTITLE_MAX_WIDTH = TASK_LIST_WINDOW_WIDTH - 130
-
 
 --region =======Debug Functions=======
 

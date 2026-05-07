@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-field
 -- If the "add to top" is selected in the new task window
 local ADD_TO_TOP_CHECKBOX_DEFAULT_STATE = false
 local TASK_LIST_WINDOW_WIDTH = 600

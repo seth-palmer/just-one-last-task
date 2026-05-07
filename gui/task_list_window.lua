@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-doc-name, undefined-field
 --[[
 task_list_window.lua contains gui elements for the main window 
 with tasks.
@@ -723,7 +724,7 @@ local function refresh_for_new_task(player, task_id)
     local task = Task_manager.get_task(task_id)
 
     -- For subtasks just refresh the root parents task data
-    if task.parent_id then
+    if task and task.parent_id then
         refresh_task_data(player, task_id)
     else
         -- Refresh the whole group pane
@@ -803,11 +804,12 @@ end
 function TaskListWindow.remove_task(player, group_id, task_id)
     -- Get the scroll pane 
     local scroll_pane = get_group_pane(player, group_id)
-
-    -- Remove the task 
-    local task_element = scroll_pane[constants.jolt.task_list.tasks_row_prefix .. task_id]
-    if task_element then
-        task_element.destroy()
+    if scroll_pane then
+        -- Remove the task 
+        local task_element = scroll_pane[constants.jolt.task_list.tasks_row_prefix .. task_id]
+        if task_element then
+            task_element.destroy()
+        end
     end
 end
 
