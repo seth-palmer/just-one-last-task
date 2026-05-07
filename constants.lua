@@ -145,7 +145,7 @@ constants.jolt = {
     },
     warning_window = {
         width = 300,
-        height = 160,
+        height = 0, -- 0 height means auto
     }
 
 }
