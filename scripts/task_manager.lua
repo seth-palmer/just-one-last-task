@@ -35,7 +35,8 @@ function TaskManager.new(params)
         -- Get the task
         local task = tasks[task_id]
         if task == nil then 
-            return Outcome.fail("No task in with matching id: " .. tostring(task_id))
+            local error_message = {"jolt_new_task_window.error_task_deleted"}
+            return Outcome.fail(error_message)
         end
 
         -- Invert completed status 
@@ -481,7 +482,8 @@ function TaskManager.new(params)
         -- Get the task
         local task = tasks[task_id]
         if task == nil then 
-            return Outcome.fail("No task with matching id: " .. tostring(task_id))
+            local error_message = {"jolt_new_task_window.error_task_deleted"}
+            return Outcome.fail(error_message)
         end
 
         -- Update task values
@@ -502,7 +504,8 @@ function TaskManager.new(params)
     function self.set_task_location(task_id, new_location)
         local task = tasks[task_id]
         if task == nil then 
-            return Outcome.fail("No task with matching id: " .. tostring(task_id))
+            local error_message = {"jolt_new_task_window.error_task_deleted"}
+            return Outcome.fail(error_message)
         else
             task.location = new_location
             return Outcome.success()
@@ -516,7 +519,10 @@ function TaskManager.new(params)
     function self.update_group(group_params, group_id)
         -- Get the group
         local group = groups[group_id]
-        if group == nil then error("No group in with matching id: " .. tostring(group_id)) end
+        if group == nil then
+            return 
+            -- error("No group in with matching id: " .. tostring(group_id)) 
+        end
 
         -- Update group values
         group.name = group_params.name
