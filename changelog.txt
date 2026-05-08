@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.1
+Date: 2026-05-08
+  Bugfixes:
+    - Fixed crash when creating a subtask for a deleted parent task.
+    - Fixed crash when saving the edit for a deleted task.
+ ---------------------------------------------------------------------------------------------------
 Version: 0.5.0
 Date: 2026-05-07
   Features:
