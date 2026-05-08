@@ -64,7 +64,7 @@ function OnGuiClick.add_new_task(event)
     local old_task
     if task_data.is_edit_task then
         old_task = Task_manager.get_task(task_data.id)
-        old_task_group_id = old_task.group_id
+        old_task_group_id = old_task and old_task.group_id or ""
     end
     
 
@@ -74,10 +74,7 @@ function OnGuiClick.add_new_task(event)
     if not outcome.success then
 
         -- Create "flying text" with error message
-        player.create_local_flying_text {
-            text = outcome.message,
-            create_at_cursor=true,
-        }
+        Utils.display_error(player, outcome.message)
 
     else -- If valid data add task
         -- Log data for editing or adding a new task 
