@@ -398,6 +398,11 @@ function TaskManager.new(params)
         if not (new_task.parent_id == nil) then
             -- If this is a subtask add its id to the parent 
             local parent_task = tasks[new_task.parent_id]
+            -- If parent task has been deleted exit
+            if not parent_task then
+                local error_message = {"jolt_new_task_window.error_parent_task_deleted"}
+                return Outcome.fail(error_message)
+            end
             table.insert(parent_task.subtasks, id)
 
             -- end early since we don't need to set task priority
