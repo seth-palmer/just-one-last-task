@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   fill="#000000"
+   height="800px"
+   width="800px"
+   version="1.2"
+   id="_x31_"
+   viewBox="-63 65 128 128"
+   xml:space="preserve"
+   sodipodi:docname="running.svg"
+   inkscape:version="1.4.2 (ebf0e94, 2025-05-08)"
+   inkscape:export-filename="running_64x64.png"
+   inkscape:export-xdpi="7.6799998"
+   inkscape:export-ydpi="7.6799998"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs1" /><sodipodi:namedview
+   id="namedview1"
+   pagecolor="#505050"
+   bordercolor="#eeeeee"
+   borderopacity="1"
+   inkscape:showpageshadow="0"
+   inkscape:pageopacity="0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#505050"
+   inkscape:zoom="0.27125"
+   inkscape:cx="-420.2765"
+   inkscape:cy="73.732719"
+   inkscape:window-width="1920"
+   inkscape:window-height="1048"
+   inkscape:window-x="1680"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="_x31_" />
+<path
+   d="M 38.7,87.6 C 35.1,92.7 28.1,93.9 23,90.4 17.9,86.9 16.7,79.8 20.2,74.7 c 3.6,-5.1 10.6,-6.3 15.7,-2.8 5.1,3.5 6.4,10.6 2.8,15.7 z m 25.4,12.5 -13.2,19 c -1.5,2.3 -4.6,2.8 -6.9,1.3 L 25,107.2 4.7,137.3 22,149.4 c 1.5,1 2.7,2.7 3,4.5 l 4.9,27.7 c 0.6,3.8 -2,7.5 -5.8,8.2 -3.8,0.6 -7.5,-2 -8.2,-5.8 l -4.4,-24.9 -21.8,-15.5 c 0,0 -11.5,16.6 -12.3,17.6 -0.8,1 -1.5,2.4 -2.8,3.1 -1.7,1 -3.7,1.1 -5.4,0.7 L -58,157.7 c -3.7,-1 -5.9,-4.8 -4.9,-8.6 1,-3.7 4.8,-5.9 8.6,-4.9 L -32,150.1 3.6,98.4 h -13.7 l -11.7,16.8 c -1.5,2.3 -4.6,2.8 -6.9,1.3 -2.3,-1.5 -2.8,-4.6 -1.3,-6.9 l 13.2,-18.9 c 1,-1.5 2.7,-2.3 4.4,-2.1 h 22.8 c 3.4,0 6.8,1 9.7,3.1 l 7.3,5.2 18,12.7 10.6,-15 c 1.5,-2.3 4.6,-2.8 6.9,-1.3 2.3,1.5 2.8,4.7 1.2,6.8 z"
+   id="path1"
+   sodipodi:nodetypes="sscssccccccccccccscccccccccscccsccccsc"
+   style="fill:#55a4ed;fill-opacity:1" />
+</svg>

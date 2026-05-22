@@ -41,6 +41,20 @@ constants.jolt = {
                 selected = "jolt_task_selected",
             }
     },
+    status_icon_list = {
+        "[img=jolt-icon-status-completed]",
+        "[img=jolt-icon-status-in-progress]",
+        "[img=jolt-icon-status-blocked]",
+        "[img=jolt-icon-status-paused]",
+        "[img=jolt-icon-status-not-started]",
+    },
+    task_status = {
+        completed = "1",
+        in_progress = "2",
+        blocked = "3",
+        paused = "4",
+        not_started = "5",
+    },
     --- An enum to store actions for action_log.lua
     actions = {
         updated_task_completed_status = "updated_task_completed_status",

@@ -238,6 +238,46 @@ data:extend({
         size = 64,
         flags = {"gui-icon"}
     },
+    {
+        type = "sprite",
+        name = "jolt-icon-status-completed",
+        filename = "__just-one-last-task__/graphics/icons/status_completed_64x64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-status-in-progress",
+        filename = "__just-one-last-task__/graphics/icons/status_in_progress_64x64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-status-blocked",
+        filename = "__just-one-last-task__/graphics/icons/status_blocked_64x64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-status-paused",
+        filename = "__just-one-last-task__/graphics/icons/status_paused_64x64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
+    {
+        type = "sprite",
+        name = "jolt-icon-status-not-started",
+        filename = "__just-one-last-task__/graphics/icons/status_not_started_64x64.png",
+        priority = "extra-high-no-scale",
+        size = 64,
+        flags = {"gui-icon"}
+    },
 })
 
 
