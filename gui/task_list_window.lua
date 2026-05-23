@@ -61,6 +61,7 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
         items = constants.jolt.status_icon_list,
         selected_index = task.status,
         style = "jolt_dark_dropdown",
+        tags = {is_jolt = true, name=constants.jolt.task_list.dropdown_status_tag, task_id=task.id}
     }
     dropdown_status.style.width = 65
 
@@ -131,6 +132,7 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     if not (task.parent_id == nil) then
         tab_in_ammount = tab_in_ammount + tab_increment
         checkbox_completed.style.left_margin = tab_in_ammount
+        dropdown_status.style.left_margin = tab_in_ammount
     end
 
     -- Push other controls to the right by making the checkbox expand

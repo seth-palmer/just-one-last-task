@@ -124,38 +124,12 @@ end
 --- Watch for clicks on any of the jolt mod gui elements
 script.on_event(defines.events.on_gui_click, function(event)
     -- Exit if invalid
-    local element = event.element
-    if not element or not element.valid then return end
-
-    local element_name = event.element.name
-
-    --[[
-    IMPORTANT: for a gui element to be detected it must either have an 
-                element name with the prefix "jolt" 
-                
-                OR have the tag "is_jolt = true"
-
-        Example: 
-
-        local icon_button = button_table.add{
-            type="sprite-button",
-            sprite=group.icon,
-            style="slot_button",
-            -- Add tags since can't use the same name for each
-            -- but can check tag for group_mgnmt_btn and then get group_id
-            tags = {is_jolt = true, is_group_management_icon_button=true, group_id=group.id}
-        }
-    ]]--
-
-    -- Early exit: ignore elements that don't belong to me
-    if event.element.tags and event.element.tags.is_jolt or element_name:find("^jolt") then
-        --TIP: uncomment below to debug naming issues
-        -- is our gui element so continue
-    else
-        -- debug_print(event, "tags is jolt = " )
-        -- debug_print(event, event.element.tags.is_jolt)
+    if not Utils.is_element_from_jolt_mod(event) then
         return
     end
+
+    local element = event.element
+    local element_name = element.name
 
     -- Get the player that is interacting with our gui
     local player = game.get_player(event.player_index)

@@ -139,6 +139,7 @@ constants.jolt = {
         tasks_row_prefix = "jolt_tasks_row_",
         group_title_label = "jolt_tasks_group_title_label",
         location_button = "jolt_location_button",
+        dropdown_status_tag = "jolt_tag_task_list_dropdown_status",
     },
     -- For new task window
     new_task = {

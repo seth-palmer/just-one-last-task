@@ -25,6 +25,45 @@ function Utils.display_error(player, message)
     }
 end
 
+
+--[[
+    IMPORTANT: for a gui element to be detected it must either have an 
+                element name with the prefix "jolt" 
+                
+                OR have the tag "is_jolt = true"
+
+        Example: 
+
+        local icon_button = button_table.add{
+            type="sprite-button",
+            sprite=group.icon,
+            style="slot_button",
+            -- Add tags since can't use the same name for each
+            -- but can check tag for group_mgnmt_btn and then get group_id
+            tags = {is_jolt = true, is_group_management_icon_button=true, group_id=group.id}
+        }
+    ]]--
+--- Returns true if the element is from just-one-last-task mod
+---@param element any element to check
+function Utils.is_element_from_jolt_mod(event)
+    -- Exit if invalid element data
+    local element = event.element
+    if not element or not element.valid then return false end
+
+    local element_name = element.name
+
+    -- Early exit: ignore elements that don't belong to me
+    if element.tags and element.tags.is_jolt or element_name:find("^jolt") or (element.tags.name and element.tags.name:find("^jolt")) then
+        --TIP: uncomment below to debug naming issues
+        -- is our gui element so continue
+        return true
+    else
+        -- debug_print(event, "tags is jolt = " )
+        -- debug_print(event, event.element.tags.is_jolt)
+        return false
+    end
+end
+
 --- Helper function to find a child in a parent
 ---@param parent any
 ---@param name any
