@@ -48,13 +48,16 @@ constants.jolt = {
         "[img=jolt-icon-status-paused] Paused ",
         "[img=jolt-icon-status-not-started] Not Started",
     },
+    --- An enum to store task status
+    --- Access with dropdowns like log(constants.jolt.task_status[dropdown_status.selected_index])
     task_status = {
-        completed = "1",
-        in_progress = "2",
-        blocked = "3",
-        paused = "4",
-        not_started = "5",
+        "completed",
+        "in-progress",
+        "blocked",
+        "paused",
+        "not-started",
     },
+    default_task_status = 5,
     --- An enum to store actions for action_log.lua
     actions = {
         updated_task_completed_status = "updated_task_completed_status",
@@ -145,6 +148,7 @@ constants.jolt = {
         title_textbox = "jolt_new_task_title_textbox",
         add_to_top_checkbox = "jolt_new_task_checkbox_add_to_top",
         group_dropdown = "jolt_new_task_group_dropdown",
+        status_dropdown = "jolt_new_task_status_dropdown",
         form_container = "jolt_new_task_form_container",
         description_textbox = "jolt_new_task_description_textbox",
         set_location_button = "jolt_set_task_location_button",

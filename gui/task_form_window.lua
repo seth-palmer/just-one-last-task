@@ -65,6 +65,7 @@ function TaskFormWindow.open(player, task)
     local title = task.title or ""
     local description = task.description or ""
     local task_id = task.task_id or ""
+    local task_status = task.status or constants.jolt.default_task_status
     local checkbox_state_add_to_top = task.checkbox_add_to_top or ADD_TO_TOP_CHECKBOX_DEFAULT_STATE
     
     -- Get the current groups' id
@@ -192,6 +193,16 @@ function TaskFormWindow.open(player, task)
         enabled = not is_subtask,
     }
 
+     -- Task status dropdown 
+    local task_status_label = Gui.new_label(new_task_form, "Status:", player)
+    local dropdown_status = new_task_form.add {
+        type = "drop-down",
+        name = constants.jolt.new_task.status_dropdown,
+        items = constants.jolt.status_icon_list,
+        selected_index = task_status,
+        style = "dropdown",
+    }
+
     local task_description_label = Gui.new_label(new_task_form, "Location:", player)
 
     -- Location buttons 
@@ -253,14 +264,14 @@ function TaskFormWindow.get_form_data(player)
     local textbox_description = form_container[constants.jolt.new_task.description_textbox]
     local checkbox_add_to_top = form_container[constants.jolt.new_task.add_to_top_checkbox]
     local dropdown_group = form_container[constants.jolt.new_task.group_dropdown]
-
-
+    local dropdown_status = form_container[constants.jolt.new_task.status_dropdown]
     
     -- Get Values
     local task_id = form_container.tags.task_id
     local title = textbox_title.text
     local description = textbox_description.text
     local add_to_top = checkbox_add_to_top.state
+    local task_status = dropdown_status.selected_index
 
     -- If it has a parent_id then it is a subtask
     local is_subtask = form_container.tags.parent_id
@@ -299,6 +310,7 @@ function TaskFormWindow.get_form_data(player)
         add_to_top = add_to_top,
         coordinates = location and location.coordinates or nil,
         surface_index = location and location.surface_index or nil,
+        status = task_status,
     }
 
 

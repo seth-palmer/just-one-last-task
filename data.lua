@@ -410,22 +410,6 @@ data:extend({
         size = 64,
         flags = {"gui-icon"}
     },
-    {
-        type = "sprite",
-        name = "jolt-icon-status-not-started_2",
-        filename = "__just-one-last-task__/graphics/icons/status_not_started1_64x64.png",
-        priority = "extra-high-no-scale",
-        size = 64,
-        flags = {"gui-icon"}
-    },
-    {
-        type = "sprite",
-        name = "jolt-icon-status-not-started_3",
-        filename = "__just-one-last-task__/graphics/icons/status_not_started3_64x64.png",
-        priority = "extra-high-no-scale",
-        size = 64,
-        flags = {"gui-icon"}
-    },
 })
 
 

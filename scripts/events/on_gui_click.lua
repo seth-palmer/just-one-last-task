@@ -278,11 +278,11 @@ script.on_event(defines.events.on_gui_click, function(event)
             group_id = task.group_id,
             description = task.description,
             task_id = task_id,
+            status = task.status,
             parent_id = task.parent_id,
             coordinates = task.coordinates,
             surface_index = task.surface_index,
         }
-        -- TaskFormWindow.open(event, "Edit Task", nil, params)
         TaskFormWindow.open(player, params)
 
 

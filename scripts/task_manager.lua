@@ -392,6 +392,7 @@ function TaskManager.new(params)
             subtasks = {},
             coordinates = task_params.coordinates,
             surface_index = task_params.surface_index,
+            status = task_params.status,
         }
 
         tasks[id] = new_task
@@ -494,6 +495,7 @@ function TaskManager.new(params)
         -- the task is being edited use the old coords as a temp fix
         task.coordinates = task_params.coordinates or task.coordinates
         task.surface_index = task_params.surface_index or task.surface_index
+        task.status = task_params.status
 
         return Outcome.success(task_id)
     end
