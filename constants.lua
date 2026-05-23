@@ -42,11 +42,11 @@ constants.jolt = {
             }
     },
     status_icon_list = {
-        "[img=jolt-icon-status-completed]",
-        "[img=jolt-icon-status-in-progress]",
-        "[img=jolt-icon-status-blocked]",
-        "[img=jolt-icon-status-paused]",
-        "[img=jolt-icon-status-not-started]",
+        "[img=jolt-icon-status-completed] Done",
+        "[img=jolt-icon-status-in-progress] In Progress",
+        "[img=jolt-icon-status-blocked] Blocked",
+        "[img=jolt-icon-status-paused] Paused ",
+        "[img=jolt-icon-status-not-started] Not Started",
     },
     task_status = {
         completed = "1",

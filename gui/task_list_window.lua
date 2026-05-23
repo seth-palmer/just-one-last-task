@@ -54,12 +54,13 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     controls_container.style.padding = 0
     controls_container.style.margin = 2
 
+
     -- Task status dropdown 
     local dropdown_status = controls_container.add {
         type = "drop-down",
         items = constants.jolt.status_icon_list,
         selected_index = 5,
-
+        style = "jolt_dark_dropdown",
     }
     dropdown_status.style.width = 65
 
