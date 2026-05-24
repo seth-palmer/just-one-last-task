@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.6.0
+Date: 2026-05-24
+  Features:
+    - Added task status dropdown with options "Completed, In-progress, Blocked, Paused, Not Started" and icons for each.
+    - Added dropdown for each task in task list window, and in the edit and new task forms.
+  Changes:
+    - Removed the "toggle details" button, and moved the functionality to clicking on each task's title.
+    - Added a tooltip for each task of its title (for long titles) and instructions to click to expand details.
+    - Reduced tabbed in amount for subtasks from 20 to 15 pixels.
+    - Removed the checkbox for marking tasks complete since task status replaces it.
+---------------------------------------------------------------------------------------------------
 Version: 0.5.1
 Date: 2026-05-08
   Bugfixes:
