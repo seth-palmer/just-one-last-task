@@ -29,27 +29,6 @@ function TaskManager.new(params)
     local task_priorities = (storage.jolt or storage.task_data).priorities
 
 
-    --- Marks the provided task as complete/incomplete
-    ---@param task_id string - id the the task to modify
-    function self.toggle_task_completed(task_id)
-        -- Get the task
-        local task = tasks[task_id]
-        if task == nil then 
-            local error_message = {"jolt_new_task_window.error_task_deleted"}
-            return Outcome.fail(error_message)
-        end
-
-        -- Invert completed status 
-        task.is_complete = not task.is_complete
-
-        -- Move task to the end?
-        -- if task.is_complete then
-        --     Task_manager.move_task_to_bottom(task.id)
-        -- end
-
-        return Outcome.success(task_id)
-    end
-
     --- Get the list of groups
     --- (Note groups do not contain lists of tasks
     --- use get_tasks and provide the group_id)
@@ -165,7 +144,7 @@ function TaskManager.new(params)
             -- Only return tasks for the specific group 
             -- and matching the target complete status
             if task.group_id == group_id 
-                and (include_completed or task.is_complete == false)
+                and (include_completed or task.status ~= constants.jolt.task_status_index.completed)
                 and task.parent_id == nil then
                 table.insert(ordered_tasks, tasks[task_id])
             end
@@ -387,7 +366,6 @@ function TaskManager.new(params)
             group_id=task_params.group_id,
             title=task_params.title,
             description=task_params.description,
-            is_complete = false,
             parent_id = task_params.parent_id or nil,
             subtasks = {},
             coordinates = task_params.coordinates,
@@ -570,7 +548,7 @@ function TaskManager.new(params)
             local subtask = self.get_task(subtask_id)
 
             -- Only return tasks that match the target complete status
-            if include_completed or subtask.is_complete == false then
+            if include_completed or subtask.status ~= constants.jolt.task_status_index.completed then
                 -- Add to table
                 table.insert(subtasks, subtask)
             end

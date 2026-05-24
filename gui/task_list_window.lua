@@ -27,7 +27,7 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     params = params or {}
     local tab_in_ammount = params.tab_in_ammount or 0
     local selected_tasks = params.selected_tasks or PlayerState.get_selected_tasks(player)
-    local tab_increment = 20
+    local tab_increment = 15
 
     -- A container to hold all tasks, controls, and subtasks 
     local task_container = parent.add {
@@ -65,20 +65,27 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     }
     dropdown_status.style.width = 65
 
-    -- add a name and task id so this can be identified in 
-    -- an on click event
-    -- A checkbox to toggle completed status 
-    local checkbox_completed = controls_container.add{
-        name = constants.jolt.task_list.task_checkbox,
-        type="checkbox",
-        state=task.is_complete,
-        caption=task.title,
-        tags = {is_jolt = true, task_id = task.id}
+
+    local lbl_task_title = controls_container.add {
+        -- name = constants.jolt.task_list.task_checkbox,
+        name = constants.jolt.task_list.task_title,
+        type = "label",
+        caption = task.title,
+        tags = {is_jolt = true, task_id = task.id},
+        tooltip = task.title .. "\n\n[img=utility/expand] Click to expand/collapse task details"
     }
     local margin = 4
-    checkbox_completed.style.margin = margin
+    lbl_task_title.style.margin = margin
+    lbl_task_title.style.right_margin = 15
+    lbl_task_title.style.minimal_width = 200
+    lbl_task_title.style.maximal_width = 200 - (tab_in_ammount + tab_increment)
 
-    
+    -- Push the rest of the controlls to the right
+    local pusher = controls_container.add {
+        type = "empty-widget",
+    }
+    pusher.style.horizontally_stretchable = true
+
 
     -- check if the task is selected 
     local is_selected = selected_tasks[task.id] == true
@@ -97,48 +104,48 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     -- If it has a description add blue "..." indicator 
     if task.description ~= '' then
         local new_caption
-        local title = checkbox_completed.caption
+        local title = lbl_task_title.caption
 
         -- Append to the task title
         new_caption = string.format("%s [font=default-bold][color=%s]...[/color][/font]", title, font_color)
 
         -- Set the new caption
-        checkbox_completed.caption = new_caption
+        lbl_task_title.caption = new_caption
     end
 
     -- If it has subtasks add icon and display number of incompleted subtasks
     if #task.subtasks > 0 then
-        local title = checkbox_completed.caption
-        local new_caption
+        local title = lbl_task_title.caption
+        local new_caption, new_tooltip
+        local tooltip = lbl_task_title.tooltip
 
         -- Get number of imcompleted subtasks
         local incomplete_subtasks = #Task_manager.get_subtasks(task.id)
 
         -- Prepend to the task title
         new_caption = string.format("[img=%s][color=%s]%s:[/color] %s", constants.jolt.sprites.subtasks, font_color, incomplete_subtasks, title)
+        new_tooltip = string.format("[img=%s][color=%s]%s:[/color] %s", constants.jolt.sprites.subtasks, font_color, incomplete_subtasks, tooltip)
 
         -- Set the new caption
-        checkbox_completed.caption = new_caption
+        lbl_task_title.caption = new_caption
+        lbl_task_title.tooltip = new_tooltip
     end
 
     
 
     -- Change the style for selected tasks
     if is_selected then
-        checkbox_completed.style.font = "default-bold"
-        checkbox_completed.style.font_color = {r=0, g=0, b=0}
+        lbl_task_title.style.font = "default-bold"
+        lbl_task_title.style.font_color = {r=0, g=0, b=0}
     end
     
     if not (task.parent_id == nil) then
         tab_in_ammount = tab_in_ammount + tab_increment
-        checkbox_completed.style.left_margin = tab_in_ammount
+        -- lbl_task_title.style.left_margin = tab_in_ammount
         dropdown_status.style.left_margin = tab_in_ammount
     end
 
-    -- Push other controls to the right by making the checkbox expand
-    checkbox_completed.style.maximal_width = 300
-    checkbox_completed.style.minimal_width = 50
-    checkbox_completed.style.horizontally_stretchable = true
+    
     
     -- A button to edit the task
     local sbtn_edit = controls_container.add {
@@ -167,24 +174,10 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
     sbtn_location.style.right_margin = 4
 
 
-    -- A sprite button with cheverons to mark if the details are expanded or not
-    local sbtn_details = controls_container.add {
-        type="sprite-button",
-        name = constants.jolt.task_list.toggle_details_button,
-        sprite = constants.jolt.sprites.right,
-        tooltip={"jolt.tooltip_toggle_details"},
-        tags = {is_jolt = true, task_id = task.id, group_id=task.group_id}
-    }
-    sbtn_details.style.size = {26,26}
-
-
     -- get the show_details 
     local is_show_details = PlayerState.get_task_show_details(player, task.id)
     -- If details are expanded add extra controls and subtasks
     if is_show_details then
-        -- Change icon to indicate details can be collapsed
-        sbtn_details.sprite = constants.jolt.sprites.down
-
         -- Display description 
         local description_label = Gui.new_label(task_container, task.description)
         description_label.style.maximal_width = 260
@@ -205,7 +198,7 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
             -- If "show_complete" setting is checked then show all subtasks,
             -- Otherwise show only tasks that are not completed
             local show_completed = PlayerState.get_setting_show_completed(player)
-            if show_completed or subtask.is_complete == false then
+            if show_completed or subtask.status ~= constants.jolt.task_status_index.completed then
                 -- TaskListWindow.new_gui_task(task_container, subtask, tab_in_ammount, selected_tasks, player)
                 TaskListWindow.new_gui_task(player, subtask, task_container, {selected_tasks = selected_tasks, tab_in_ammount = tab_in_ammount})
             end
@@ -512,17 +505,18 @@ function TaskListWindow.close(player)
 
     -- update the shortcut
     player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
-
 end
 
 
 
 --region Local_Refresh_Functions
 
---- Refreshes the groups list
+
+
+
+--- Refreshes the groups list and which is the active scroll pane of tasks
 ---@param player any
-local function refresh_current_group(player)
-    
+local function update_active_group(player)
 
     local selected_group_id = PlayerState.get_current_group_id(player)
     local group = Task_manager.get_group(selected_group_id)
@@ -581,6 +575,7 @@ end
 local function get_group_pane(player, group_id)
     local window = player.gui.screen[constants.jolt.task_list.window]
     if not window or not window.valid then return nil end
+    if not group_id then return nil end
     return window.main_frame.content_frame[
         constants.jolt.task_list.tasks_scroll_pane_prefix .. group_id
     ]
@@ -631,9 +626,8 @@ local function refresh_task_data(player, task_id, group_id)
     -- find the task
     local task = Task_manager.get_task(task_id)
 
-
     -- If no data then task was deleted so remove it 
-    if not task then 
+    if not task then
         local task_row = get_task_row(player, group_id, task_id)
         if task_row then task_row.destroy() return end
     end
@@ -676,8 +670,9 @@ local function refresh_task_data(player, task_id, group_id)
     local root_task_row = get_task_row(player, group_id, root_task_id)
 
     -- If completed tasks are not shown remove it 
-    -- and it it is not a subtask remove the root task
-    if (not task.parent_id and not PlayerState.get_setting_show_completed(player)) and task.is_complete then
+    -- and it is not a subtask remove the root task
+    if (not task.parent_id and not PlayerState.get_setting_show_completed(player)) and (task.status == constants.jolt.task_status_index.completed) then
+        
         if root_task_row ~= nil then
             -- If we are removing the last task, refresh the group 
             -- to get the empty task message
@@ -828,13 +823,13 @@ local function refresh_from_visual_log(player)
     if VisualActionLog.is_new_action_since_index(current_index) then
         -- Get list of new updates to visually apply 
         local log_entries = VisualActionLog.get_entries_since_index(current_index)
-
+        
         -- get actions enum 
         local actions = constants.jolt.actions
         for index, entry in ipairs(log_entries) do
             
             if entry.type == actions.updated_task_completed_status then
-                refresh_task_data(player, entry.data.task_id)
+                --refresh_task_data(player, entry.data.task_id)
                 -- since the task might reapear in other players gui 
                 -- refresh as if it is a new task
                 refresh_for_new_task(player, entry.data.task_id)
@@ -871,10 +866,12 @@ local function refresh_from_visual_log(player)
 
             elseif entry.type == actions.selected_task then
                 refresh_task_data(player, entry.data.task_id)
+
             elseif entry.type == actions.cleared_selected_tasks then
                 for task_id, _ in pairs(entry.data.tasks) do
                     refresh_task_data(player, task_id)
                 end
+
             elseif entry.type == actions.moved_tasks_up then
                 TaskListWindow.refresh_group_tasks_slowly(player, entry.data.group_id)
 
@@ -922,7 +919,7 @@ end
 ---@param player any - player associated
 function TaskListWindow.refresh(player)
     -- Refresh the groups list and the current scroll pane
-    refresh_current_group(player)
+    update_active_group(player)
 
     -- Refresh controls (move down/up delete etc.)
     refresh_window_controls(player)

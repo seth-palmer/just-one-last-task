@@ -151,7 +151,7 @@ script.on_configuration_changed(function(event)
         TaskFormWindow.close(player)
         GroupManagerWindow.close(player)
     end
-    
+
     -- setup visual log if needed
     VisualActionLog.initialize()
 end)

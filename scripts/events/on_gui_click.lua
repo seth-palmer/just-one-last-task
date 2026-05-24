@@ -104,7 +104,6 @@ function OnGuiClick.add_new_task(event)
         -- But NOT for editing tasks
         if event.control and not task_data.is_edit_task then
             TaskFormWindow.clear_form(player)
-            -- TaskFormWindow.open(event, "New Task", nil, {})
 
         else
             -- Close task form window
@@ -261,11 +260,11 @@ script.on_event(defines.events.on_gui_click, function(event)
 
 
     -- Task checkbox clicked to select or mark complete / uncomplete 
-    elseif element_name == constants.jolt.task_list.task_checkbox then
-        -- Get the stored task id from tags 
+    elseif element_name == constants.jolt.task_list.task_title then
+        -- Get the task 
         local task_id = event.element.tags.task_id
 
-        -- check for ctrl+click 
+        -- For ctrl+clicks select the task
         if event.control then
             -- Add selected task to list
             -- Note: (non sibling tasks will not be added)
@@ -280,21 +279,25 @@ script.on_event(defines.events.on_gui_click, function(event)
                 -- Display error message
                 Utils.display_error(player, outcome.message)
             end
-        
-        else -- Otherwise mark mark complete / uncomplete 
-            -- clear selected tasks 
-            PlayerState.clear_selected_tasks(player)
 
-            -- Mark the task complete/incomplete
-            Task_manager.toggle_task_completed(task_id)
+            -- Refresh 
+            TaskListWindow.refresh(player)
+            
+        else -- expand/collapse details
+            -- Get the task 
+            local task = Task_manager.get_task(task_id)
 
-            -- Log action so we know what task to update
+            -- invert property to mark that details should be shown/hidden
+            local task_show_details = PlayerState.get_task_show_details(player, task.id)
+            PlayerState.set_task_show_details(player, task.id, not task_show_details)
+
+            -- Log the task_id and action
             local data = {task_id = task_id}
             VisualActionLog.add(constants.jolt.actions.updated_task_completed_status, data)
-        end
 
-        -- Refresh window
-        TaskListWindow.refresh_for_all()
+            -- Refresh list of tasks
+            TaskListWindow.refresh_for_all()
+        end
 
     -- Toggle viewing completed/incomplete tasks 
     elseif element_name == constants.jolt.task_list.show_completed_checkbox then

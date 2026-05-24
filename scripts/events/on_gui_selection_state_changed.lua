@@ -32,8 +32,19 @@ function OnGuiSelectionStateChanged.dropdown_task_status_changed(player, event)
         -- log task updated if succeeded
         if outcome.success then
             local group_id = task.group_id or Task_manager.get_parent_group(task.id)
+
+            -- Only log one action here, if you also log "edited_task" then weird bug where
+            -- first task in list is removed
             local data = {task_id = task_id, group_id = group_id}
-            VisualActionLog.add(constants.jolt.actions.edited_task, data)
+            VisualActionLog.add(constants.jolt.actions.updated_task_completed_status, data)
+
+             -- If the task is marked complete AND "show completed is OFF"
+             -- Deselect the task if it is selected
+            if new_status == constants.jolt.task_status_index.completed
+                and PlayerState.get_setting_show_completed(player) == false
+                and PlayerState.is_task_selected(player, task_id) then
+                PlayerState.add_selected_task(player, task_id)
+            end
 
             TaskListWindow.refresh_for_all()
         end

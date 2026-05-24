@@ -57,6 +57,13 @@ constants.jolt = {
         "paused",
         "not-started",
     },
+    task_status_index = {
+        completed = 1,
+        in_progress = 2,
+        blocked = 3,
+        paused = 4,
+        not_started = 5,
+    },
     default_task_status = 5,
     --- An enum to store actions for action_log.lua
     actions = {
@@ -140,6 +147,7 @@ constants.jolt = {
         group_title_label = "jolt_tasks_group_title_label",
         location_button = "jolt_location_button",
         dropdown_status_tag = "jolt_tag_task_list_dropdown_status",
+        task_title = "jolt_task_list_task_title",
     },
     -- For new task window
     new_task = {
