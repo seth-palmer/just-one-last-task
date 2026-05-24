@@ -63,7 +63,7 @@ function TaskListWindow.new_gui_task(player, task, parent, params)
         style = "jolt_dark_dropdown",
         tags = {is_jolt = true, name=constants.jolt.task_list.dropdown_status_tag, task_id=task.id}
     }
-    dropdown_status.style.width = 65
+    dropdown_status.style.width = 68
 
 
     local lbl_task_title = controls_container.add {

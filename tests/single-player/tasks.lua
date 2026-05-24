@@ -14,6 +14,7 @@ local GroupManagerWindow = require("gui.group_manager_window")
 local TaskFormWindow = require("gui.task_form_window")
 
 local Click = require("scripts.events.on_gui_click")
+local OnGuiSelectionStateChanged = require("scripts.events.on_gui_selection_state_changed")
 local DEFAULT_START_GROUP_ID = "a1"
 
 local function delete_all_tasks()
@@ -391,6 +392,7 @@ describe("selecting tasks", function ()
     local player
     local group_2_id
     local task_1_id
+    local task_2_id
     before_all(function ()
         reset_groups_to_default()
         delete_all_tasks()
@@ -408,7 +410,7 @@ describe("selecting tasks", function ()
         -- Add 3 tasks to group 1
         PlayerState.set_current_group_id(player, DEFAULT_START_GROUP_ID)
         task_1_id = add_task(player, "task 1")
-        local task_2_id = add_task(player, "task 2")
+        task_2_id = add_task(player, "task 2")
         local task_3_id = add_task(player, "task 3")
 
         -- Add 1 task to group 2
@@ -446,6 +448,8 @@ describe("selecting tasks", function ()
         local controls_container = task_row.children[1]
         assert.equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
     end)
+
+
     test("test deselecting a task changes it visually", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
 
@@ -472,6 +476,8 @@ describe("selecting tasks", function ()
         assert.not_equals(constants.jolt.styles.backgrounds.selected, controls_container.style.name)
         
     end)
+
+
     test("test changing groups deselects tasks", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
 
@@ -505,6 +511,8 @@ describe("selecting tasks", function ()
         local controls_container = task_row.children[1]
         assert.equals(false, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
     end)
+
+
     test("test toggling on show completed does not clear selected tasks", function ()
 
         -- select a task 
@@ -529,6 +537,8 @@ describe("selecting tasks", function ()
         local controls_container = task_row.children[1]
         assert.equals(true, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
     end)
+
+
     test("test toggling off show completed clears selected tasks", function ()
         local window = player.gui.screen[constants.jolt.task_list.window]
 
@@ -554,6 +564,81 @@ describe("selecting tasks", function ()
         local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
         local controls_container = task_row.children[1]
         assert.equals(false, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
+    end)
+
+
+    test("test marking task completed deselects it if show completed is off", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        PlayerState.set_setting_show_completed(player, false)
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+       
+
+        -- task selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.equals(true, selected_tasks[task_1_id])
+
+        -- update the task status 
+        local event = {
+            element = {
+                selected_index = 1,
+                tags = {task_id = task_1_id}
+            }
+        }
+        OnGuiSelectionStateChanged.dropdown_task_status_changed(player, event)
+
+
+        -- need to refetch the window AFTER refreshes
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+        -- controls should be disabled 
+        local delete_tasks_button = Utils.find_element(window, constants.jolt.task_list.delete_tasks_button)
+        assert.equals(false, delete_tasks_button.enabled)
+    end)
+
+
+    test("test marking task completed does not select it it if show completed is on", function ()
+        local window = player.gui.screen[constants.jolt.task_list.window]
+        PlayerState.set_setting_show_completed(player, true)
+
+        -- select a task 
+        PlayerState.add_selected_task(player, task_1_id)
+        local data = {task_id = task_1_id}
+        VisualActionLog.add(constants.jolt.actions.selected_task, data)
+       
+
+        -- task selected
+        local selected_tasks = PlayerState.get_selected_tasks(player)
+        -- use assert.same for table comparisons
+        assert.equals(true, selected_tasks[task_1_id])
+
+        -- update the task status 
+        local event = {
+            element = {
+                selected_index = 1,
+                tags = {task_id = task_1_id}
+            }
+        }
+        OnGuiSelectionStateChanged.dropdown_task_status_changed(player, event)
+
+
+        -- need to refetch the window AFTER refreshes
+        local window = player.gui.screen[constants.jolt.task_list.window]
+
+
+        -- task should be not be highlighted
+        local task_row = Utils.find_element(window, constants.jolt.task_list.tasks_row_prefix .. task_1_id)
+        local controls_container = task_row.children[1]
+        assert.equals(true, constants.jolt.styles.backgrounds.selected == controls_container.style.name)
+ 
+
+        -- controls should be enabled
+        local delete_tasks_button = Utils.find_element(window, constants.jolt.task_list.delete_tasks_button)
+        assert.equals(true, delete_tasks_button.enabled)
     end)
 end)
 
