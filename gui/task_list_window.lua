@@ -629,9 +629,15 @@ local function refresh_task_data(player, task_id, group_id)
     -- If no data then task was deleted so remove it 
     if not task then
         local task_row = get_task_row(player, group_id, task_id)
-        if task_row then task_row.destroy() return end
+        if task_row then
+            task_row.destroy()
+            return
+        end
     end
 
+    -- extra check required to prevent a crash in multiplayer (reason unknown)
+    if task == nil then return end
+    
     -- subtasks don't have group_id so fetch that 
     local group_id = task.group_id or Task_manager.get_parent_group(task.id)
 
