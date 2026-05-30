@@ -357,7 +357,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         -- Add group with template data and open window
         -- !! Use "virtual-signal" and not "virtual" for sprites
         local group = {name="", icon="virtual-signal/signal-question-mark"}
-        local new_group_id = Task_manager.add_group(group)
+        local new_group_id = Task_manager.add_group(group).value
 
         -- If new group id is nil then display an error 
         if not new_group_id then

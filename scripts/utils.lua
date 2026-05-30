@@ -64,6 +64,13 @@ function Utils.is_element_from_jolt_mod(event)
     end
 end
 
+--- Returns the text with the first letter capitalized
+--- Source: https://stackoverflow.com/questions/2421695/first-character-uppercase-lua#2421746
+---@param text string text to convert
+function Utils.first_to_upper(text)
+    return (text:gsub("^%l", string.upper))
+end
+
 --- Helper function to find a child in a parent
 ---@param parent any
 ---@param name any

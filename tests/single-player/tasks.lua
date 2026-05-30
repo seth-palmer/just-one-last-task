@@ -217,7 +217,7 @@ describe("adding task", function ()
         
         -- add group 
         local new_group = {name = "2", icon="space-location/nauvis"}
-        local new_group_id = Task_manager.add_group(new_group)
+        local new_group_id = Task_manager.add_group(new_group).value
         assert.equals(true, new_group_id ~= nil)
 
         -- select that group
@@ -404,7 +404,7 @@ describe("selecting tasks", function ()
         TaskListWindow.open(player)
 
         local group_2 = {name = "2", icon="space-location/nauvis"}
-        group_2_id = Task_manager.add_group(group_2)
+        group_2_id = Task_manager.add_group(group_2).value
 
         
         -- Add 3 tasks to group 1

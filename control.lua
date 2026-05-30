@@ -17,6 +17,7 @@ local TaskFormWindow = require("gui.task_form_window")
 -- Event Imports 
 local OnGuiClick = require("scripts.events.on_gui_click")
 local OnGuiSelectionStateChanged = require("scripts.events.on_gui_selection_state_changed")
+local OnResearchFinished = require("scripts.events.on_research_finished")
 
 
 --region =======Debug Functions=======

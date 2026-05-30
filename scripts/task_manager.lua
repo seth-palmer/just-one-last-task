@@ -270,15 +270,19 @@ function TaskManager.new(params)
 
     --- Adds the new group with data provided
     ---@param params table with id, name, and icon values
-    ---@return string id the new group id, or nil if an error
+    ---@return Outcome result outcome.value for the group_id or nil
     function self.add_group(params)
         -- Check if there are too many groups 
         if #group_order >= MAX_GUI_GROUPS then
-            return nil
+            -- return nil
+            local message = {"jolt_group_management.error_max_groups_reached"}
+            return Outcome.fail(message)
         end
 
         -- Create Make a new id for the group
         local id = Utils.uuid()
+
+        -- TODO: Check valid icon 
 
         -- Make a new group
         local new_group = {
@@ -291,8 +295,9 @@ function TaskManager.new(params)
 
         -- add its id to list of group order
         table.insert(group_order, id)
-
-        return id
+        
+        -- return id
+        return Outcome.success(id)
     end
 
     --- Deletes the provided group matching the id
