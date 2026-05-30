@@ -1,3 +1,4 @@
 .vscode
 just-one-last-task.code-workspace
-factorio-test-data-dir/
+factorio-test-data-dir/*
+!factorio-test-data-dir/saves/
