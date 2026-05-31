@@ -44,7 +44,10 @@ local function add_task(player, title)
 
     local add_task_button = Utils.find_element(task_form_window, constants.jolt.new_task.confirm_button)
     local event = {player_index = player.index, control = false}
-    local new_task_id = Click.add_new_task(event)
+
+    -- Get the task data from the form
+    local task_data = TaskFormWindow.get_form_data(player)
+    local new_task_id = Click.add_new_task(event, task_data)
 
     return new_task_id
 end
@@ -145,7 +148,9 @@ describe("adding task", function ()
 
 
         local event = {player_index = player.index, control = false}
-        local new_task_id = Click.add_new_task(event)
+        -- Get the task data from the form
+        local task_data = TaskFormWindow.get_form_data(player)
+        local new_task_id = Click.add_new_task(event, task_data)
         assert.equals(nil, new_task_id)
 
 
@@ -173,7 +178,9 @@ describe("adding task", function ()
 
         local add_task_button = Utils.find_element(task_form_window, constants.jolt.new_task.confirm_button)
         local event = {player_index = player.index, control = false}
-        local new_task_id = Click.add_new_task(event)
+        -- Get the task data from the form
+        local task_data = TaskFormWindow.get_form_data(player)
+        local new_task_id = Click.add_new_task(event, task_data)
 
         -- form should close 
         assert.equals(false, task_form_window.valid)
@@ -200,7 +207,9 @@ describe("adding task", function ()
 
         local add_task_button = Utils.find_element(task_form_window, constants.jolt.new_task.confirm_button)
         local event = {player_index = player.index, control = true}
-        local new_task_id = Click.add_new_task(event)
+        -- Get the task data from the form
+        local task_data = TaskFormWindow.get_form_data(player)
+        local new_task_id = Click.add_new_task(event, task_data)
 
         -- form should stay open 
         assert.equals(true, task_form_window.valid)
@@ -217,7 +226,7 @@ describe("adding task", function ()
         
         -- add group 
         local new_group = {name = "2", icon="space-location/nauvis"}
-        local new_group_id = Task_manager.add_group(new_group)
+        local new_group_id = Task_manager.add_group(new_group).value
         assert.equals(true, new_group_id ~= nil)
 
         -- select that group
@@ -249,9 +258,44 @@ describe("adding subtask", function ()
         TaskListWindow.open(player)
     end)
 
-    test.todo("", function ()
+    test("adding subtask to top", function ()
+        -- Make task 
+        local parent_task_title = "parent"
+        local parent_task_id = add_task(player, parent_task_title)
+        TaskListWindow.open(player)
+
+        local parent_task = Task_manager.get_task(parent_task_id)
         
+
+        -- add subtask "b" first
+        local subtask_title = "subtask_b"
+        TaskFormWindow.open(player, {})
+        local task_data = TaskFormWindow.get_form_data(player)
+        task_data.parent_id = parent_task_id
+        task_data.add_to_top = true
+        task_data.title = subtask_title
+
+        local event = {player_index = player.index, control = false}
+        local subtask_1_id = Click.add_new_task(event, task_data)
+
+        TaskFormWindow.open(player, parent_task)
+
+        -- add subtask "a" next
+        local subtask_title = "subtask_a"
+        local task_data = TaskFormWindow.get_form_data(player)
+        task_data.parent_id = parent_task_id
+        task_data.add_to_top = true
+        task_data.title = subtask_title
+
+        local subtask_2_id = Click.add_new_task(event, task_data)
+
+        -- check that they are in the right order
+        local parent_task = Task_manager.get_task(parent_task_id)
+        assert.equals(subtask_2_id, parent_task.subtasks[1])
+        assert.equals(subtask_1_id, parent_task.subtasks[2])
     end)
+
+    
 end)
 
 describe("editing task", function ()
@@ -404,7 +448,7 @@ describe("selecting tasks", function ()
         TaskListWindow.open(player)
 
         local group_2 = {name = "2", icon="space-location/nauvis"}
-        group_2_id = Task_manager.add_group(group_2)
+        group_2_id = Task_manager.add_group(group_2).value
 
         
         -- Add 3 tasks to group 1

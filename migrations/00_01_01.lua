@@ -5,7 +5,7 @@ local TaskListWindow = require("gui.task_list_window")
 local Migration = {}
 function Migration.for_internal_data_structure()
     if storage.task_data and not storage.jolt then
-        log("jolt: migrating old data structure")
+        log("jolt: migrating old data structure from 0.1.0")
         storage.jolt = storage.task_data
         storage.task_data = nil
     end

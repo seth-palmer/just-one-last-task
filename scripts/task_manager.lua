@@ -270,15 +270,19 @@ function TaskManager.new(params)
 
     --- Adds the new group with data provided
     ---@param params table with id, name, and icon values
-    ---@return string id the new group id, or nil if an error
+    ---@return Outcome result outcome.value for the group_id or nil
     function self.add_group(params)
         -- Check if there are too many groups 
         if #group_order >= MAX_GUI_GROUPS then
-            return nil
+            -- return nil
+            local message = {"jolt_group_management.error_max_groups_reached"}
+            return Outcome.fail(message)
         end
 
         -- Create Make a new id for the group
         local id = Utils.uuid()
+
+        -- TODO: Check valid icon 
 
         -- Make a new group
         local new_group = {
@@ -291,8 +295,9 @@ function TaskManager.new(params)
 
         -- add its id to list of group order
         table.insert(group_order, id)
-
-        return id
+        
+        -- return id
+        return Outcome.success(id)
     end
 
     --- Deletes the provided group matching the id
@@ -354,7 +359,7 @@ function TaskManager.new(params)
     ---@return any new_task_id - an outcome, outcome.value has the id of the new task
     function self.add_task(task_params, add_to_top)
         if type(add_to_top) ~= "boolean" then
-            error("New task error: Must provide a boolean for variable [add_to_top]")
+            return
         end
 
         -- Create Make a new id for the task
@@ -383,7 +388,12 @@ function TaskManager.new(params)
                 local error_message = {"jolt_new_task_window.error_parent_task_deleted"}
                 return Outcome.fail(error_message)
             end
-            table.insert(parent_task.subtasks, id)
+            -- Add id to bottom/end of the parent's subtask list
+            if not add_to_top then
+                table.insert(parent_task.subtasks, id)
+            else -- or insert top shifing everything else down  
+                table.insert(parent_task.subtasks, 1, id)
+            end
 
             -- end early since we don't need to set task priority
             return Outcome.success(id)

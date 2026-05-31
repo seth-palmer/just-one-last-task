@@ -17,6 +17,7 @@ local TaskFormWindow = require("gui.task_form_window")
 -- Event Imports 
 local OnGuiClick = require("scripts.events.on_gui_click")
 local OnGuiSelectionStateChanged = require("scripts.events.on_gui_selection_state_changed")
+local OnResearchFinished = require("scripts.events.on_research_finished")
 
 
 --region =======Debug Functions=======
@@ -49,26 +50,27 @@ end
 
 --endregion =======Debug Functions=======
 
+--- For initializing a new save and creating groups for all planets researched
+local function create_groups_for_all_planets_researched()
+    for planet_name in pairs(game.planets) do
+        -- check if researched
+        local tech = game.forces["player"].technologies["planet-discovery-" .. planet_name]
+        if tech and tech.researched then
+            
+            -- create a group for the planet
+            local group_name = Utils.first_to_upper(planet_name)
+            local group_icon = "space-location/" .. planet_name
+            local new_group = {name = group_name, icon = group_icon}
+            Task_manager.add_group(new_group)
+        end
+    end
+end
 
 
-
-
--- Make sure the intro cinematic of freeplay doesn't play every time we restart
--- This is just for convinience, don't worry if you don't understand how this works
+-- Initialize the mod for the first time
 -- See on_init() section in https://wiki.factorio.com/Tutorial:Scripting
 -- Only runs when a new game is created https://lua-api.factorio.com/latest/classes/LuaBootstrap.html#on_init
 script.on_init(function()
-    -- TODO comment out before release
-    -- local freeplay = remote.interfaces["freeplay"]
-    -- if freeplay then -- Disable freeplay popup-message
-    --     if freeplay["set_skip_intro"] then
-    --         remote.call("freeplay", "set_skip_intro", true)
-    --     end
-    --     if freeplay["set_disable_crashsite"] then
-    --         remote.call("freeplay", "set_disable_crashsite", true)
-    --     end
-    -- end
-
     -- Setup default group(s) (store data! not objects/functions)
     -- AVOID using space age specific icons as it will crash in the base game
     local nauvis_group = {id="a1", name="Nauvis", icon="space-location/nauvis"}
@@ -98,6 +100,9 @@ script.on_init(function()
 
     -- setup visual log 
     VisualActionLog.initialize()
+
+    -- add planets if they are researched
+    create_groups_for_all_planets_researched()
 end)
 
 
@@ -182,6 +187,7 @@ end)
 --- Enter in a textfield.
 --- https://lua-api.factorio.com/latest/events.html#on_gui_confirmed
 script.on_event(defines.events.on_gui_confirmed, function(event)
+    local player = game.get_player(event.player_index)
     -- Exit if invalid
     local element = event.element
     if not element or not element.valid then return end
@@ -196,7 +202,9 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
 
     -- Add a new task when pressing [Enter] in the title textbox
     if element_name == constants.jolt.new_task.title_textbox then
-        OnGuiClick.add_new_task(event)
+        -- Get the task data from the form
+        local task_data = TaskFormWindow.get_form_data(player)
+        OnGuiClick.add_new_task(event, task_data)
     end
 end)
 

@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.7.0
+Date: 2026-05-31
+  Features:
+    - After researching a planet, a group is made for it with it's planet name and icon.
+    - When loading an existing save, groups are made for all researched planets.
+  Bugfixes:
+    - "Add to top" checkbox now works when adding subtasks.
+---------------------------------------------------------------------------------------------------
 Version: 0.6.0
 Date: 2026-05-24
   Features:

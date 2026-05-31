@@ -41,6 +41,8 @@ constants.jolt = {
                 selected = "jolt_task_selected",
             }
     },
+    planet_tech_string_start = "planet-discovery-",
+    planet_tech_name_search = "planet%-discovery%-",
     status_icon_list = {
         "[img=jolt-icon-status-completed] Done",
         "[img=jolt-icon-status-in-progress] In Progress",
