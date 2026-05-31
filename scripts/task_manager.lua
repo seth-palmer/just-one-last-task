@@ -359,7 +359,8 @@ function TaskManager.new(params)
     ---@return any new_task_id - an outcome, outcome.value has the id of the new task
     function self.add_task(task_params, add_to_top)
         if type(add_to_top) ~= "boolean" then
-            error("New task error: Must provide a boolean for variable [add_to_top]")
+            log("New task error: Must provide a boolean for variable [add_to_top]")
+            return
         end
 
         -- Create Make a new id for the task
@@ -388,7 +389,12 @@ function TaskManager.new(params)
                 local error_message = {"jolt_new_task_window.error_parent_task_deleted"}
                 return Outcome.fail(error_message)
             end
-            table.insert(parent_task.subtasks, id)
+            -- Add id to bottom/end of the parent's subtask list
+            if not add_to_top then
+                table.insert(parent_task.subtasks, id)
+            else -- or insert top shifing everything else down  
+                table.insert(parent_task.subtasks, 1, id)
+            end
 
             -- end early since we don't need to set task priority
             return Outcome.success(id)
