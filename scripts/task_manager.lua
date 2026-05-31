@@ -359,7 +359,6 @@ function TaskManager.new(params)
     ---@return any new_task_id - an outcome, outcome.value has the id of the new task
     function self.add_task(task_params, add_to_top)
         if type(add_to_top) ~= "boolean" then
-            log("New task error: Must provide a boolean for variable [add_to_top]")
             return
         end
 

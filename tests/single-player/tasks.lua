@@ -291,7 +291,6 @@ describe("adding subtask", function ()
 
         -- check that they are in the right order
         local parent_task = Task_manager.get_task(parent_task_id)
-        log(serpent.block(parent_task))
         assert.equals(subtask_2_id, parent_task.subtasks[1])
         assert.equals(subtask_1_id, parent_task.subtasks[2])
     end)

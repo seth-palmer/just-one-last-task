@@ -52,7 +52,6 @@ end
 
 --- For initializing a new save and creating groups for all planets researched
 local function create_groups_for_all_planets_researched()
-    log("initializing planets...")
     for planet_name in pairs(game.planets) do
         -- check if researched
         local tech = game.forces["player"].technologies["planet-discovery-" .. planet_name]
