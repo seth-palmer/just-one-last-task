@@ -188,6 +188,7 @@ end)
 --- Enter in a textfield.
 --- https://lua-api.factorio.com/latest/events.html#on_gui_confirmed
 script.on_event(defines.events.on_gui_confirmed, function(event)
+    local player = game.get_player(event.player_index)
     -- Exit if invalid
     local element = event.element
     if not element or not element.valid then return end
@@ -202,7 +203,9 @@ script.on_event(defines.events.on_gui_confirmed, function(event)
 
     -- Add a new task when pressing [Enter] in the title textbox
     if element_name == constants.jolt.new_task.title_textbox then
-        OnGuiClick.add_new_task(event)
+        -- Get the task data from the form
+        local task_data = TaskFormWindow.get_form_data(player)
+        OnGuiClick.add_new_task(event, task_data)
     end
 end)
 

@@ -51,13 +51,8 @@ end
 
 --- Tries to add a new task checking the data in the new task window
 ---@param event any
-function OnGuiClick.add_new_task(event)
+function OnGuiClick.add_new_task(event, task_data)
     local player = game.get_player(event.player_index)
-
-    
-    
-    -- Get the task data from the form
-    local task_data = TaskFormWindow.get_form_data(player)
 
     -- Fetch the old task data for logging the old group_id
     local old_task_group_id = ""
@@ -229,11 +224,15 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     -- Add a new task confirm button clicked
     elseif element_name == constants.jolt.new_task.confirm_button then
-        OnGuiClick.add_new_task(event)
+        -- Get the task data from the form
+        local task_data = TaskFormWindow.get_form_data(player)
+        OnGuiClick.add_new_task(event, task_data)
 
     -- If confirm button for edit task was clicked edit the task 
     elseif element_name == constants.jolt.edit_task.confirm_button then
-        OnGuiClick.add_new_task(event)
+        -- Get the task data from the form
+        local task_data = TaskFormWindow.get_form_data(player)
+        OnGuiClick.add_new_task(event, task_data)
 
     -- Edit task when edit button clicked 
     elseif element_name == constants.jolt.task_list.edit_task_button then
