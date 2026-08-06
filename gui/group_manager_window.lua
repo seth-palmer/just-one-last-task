@@ -25,7 +25,7 @@ function GroupManagerWindow.open(player)
     PlayerState.bind_close_button(player, close_name, window_name)
 
     -- The selected group
-    local selected_group = {title = "", icon="virtual/signal-question-mark"}
+    local selected_group = {title = "", icon=constants.jolt.icons.question_mark}
 
     local main_frame = window.add {
         type = "frame",
@@ -95,9 +95,18 @@ function GroupManagerWindow.open(player)
         -- Example: local nauvis_group = {id=1, name="Nauvis", icon="space-location/nauvis"}
         local group = Task_manager.get_group(value)
 
+        -- Check sprite path is valid 
+        local sprite
+        if helpers.is_valid_sprite_path(group.icon) then
+            sprite = group.icon
+        else
+            sprite = constants.jolt.icons.question_mark
+            -- invalid icon so change icon to be question mark
+            group.icon = constants.jolt.icons.question_mark
+        end
         local icon_button = button_table.add{
-            type="sprite-button",
-            sprite=group.icon,
+            type = "sprite-button",
+            sprite = sprite,
             style="slot_button",
             -- Add tags since can't use the same name for each
             -- but can check tag for group_mgnmt_btn and then get group_id
@@ -162,7 +171,6 @@ function GroupManagerWindow.open(player)
     -- Translate back for edge case where it uses 'virtual'
     -- in a choose elem btn, but 'virtual-signal' in a sprite
     if icon_type == "virtual-signal" then icon_type = "virtual" end
-
     -- MUST set elem_value after icon button
     -- (can't set property inside of it)
     icon_button.elem_value = {type = icon_type, name = icon_name}

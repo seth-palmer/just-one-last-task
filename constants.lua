@@ -50,6 +50,10 @@ constants.jolt = {
         "[img=jolt-icon-status-paused] Paused ",
         "[img=jolt-icon-status-not-started] Not Started",
     },
+    --- Enum of path to icons
+    icons = {
+        question_mark = "virtual-signal/signal-question-mark",
+    },
     --- An enum to store task status
     --- Access with dropdowns like log(constants.jolt.task_status[dropdown_status.selected_index])
     task_status = {

@@ -364,11 +364,19 @@ function TaskListWindow.create_group_tabs(player, group_controls_frame, content_
         -- Get the group from its id
         local group = Task_manager.get_group(group_id)
 
+        -- Check sprite path is valid 
+        local sprite
+        if helpers.is_valid_sprite_path(group.icon) then
+            sprite = group.icon
+        else
+            sprite = constants.jolt.icons.question_mark
+        end
+
         -- Icon button is the "tab", clicking it changes to that group
         -- displaying only tasks in it
         local icon_button = button_table.add{
             type="sprite-button",
-            sprite=group.icon,
+            sprite = sprite,
             style="slot_button",
             -- Add tags since can't use the same name for each
             -- but can check tag for group_management_btn and then get group_id
