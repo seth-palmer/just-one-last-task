@@ -145,27 +145,27 @@ end)
 ---@param event any
 local function toggle_task_list_window(event)
     local player = game.get_player(event.player_index)
-        -- debug_print(event, event)
+    -- debug_print(event, event)
 
-        local is_shortcut_toggled = player.is_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window)
-        -- debug_print(event, "is shortcut enabled: " .. tostring(is_shortcut_toggled))
+    local is_shortcut_toggled = player.is_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window)
+    -- debug_print(event, "is shortcut enabled: " .. tostring(is_shortcut_toggled))
 
-        local pinned = PlayerState.is_task_list_pinned_open(player)
-        -- debug_print(event, pinned)
+    local pinned = PlayerState.is_task_list_pinned_open(player)
+    -- debug_print(event, pinned)
 
-        -- If the window is already open close it
-        if player.gui.screen[constants.jolt.task_list.window] then
-            TaskListWindow.close(player)
+    -- If the window is already open close it
+    if player.gui.screen[constants.jolt.task_list.window] then
+        TaskListWindow.close(player)
 
-            -- update the style of the shortcut button
-            player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
+        -- update the style of the shortcut button
+        player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, false)
 
-        else -- otherwise open the task list window
-            TaskListWindow.open(player)
+    else -- otherwise open the task list window
+        TaskListWindow.open(player)
 
-            -- update the style of the shortcut button
-            player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, true)
-        end
+        -- update the style of the shortcut button
+        player.set_shortcut_toggled(constants.jolt.shortcuts.open_task_list_window, true)
+    end
 end
 
 --- Watch for clicks on the task shortcut icon to open and close
