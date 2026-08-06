@@ -1,10 +1,10 @@
 {
   "name": "just-one-last-task",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "title": "Just One Last Task - (JOLT)",
   "author": "Arcosh",
   "factorio_version": "2.1",
-  "dependencies": ["base >= 2.0", "? space-age"],
+  "dependencies": ["base >= 2.0", "? space-age", "? apia >= 0.3.0"],
   "description": "A task/todo mod where you can organize tasks by groups, perfect for Space Age with a group for each planet."
 }
 
