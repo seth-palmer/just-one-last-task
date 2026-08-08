@@ -1,8 +1,6 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.8.0
-Date: 2026-08-06
-  Features:
-    - Updated for Factorio v2.1
+Version: 0.7.1
+Date: 2026-08-08
   Bugfixes:
     - Fixed crash when a mod was removed and group icon path of planets was invalid. Now fallsback to question mark icon.
     - Fixed crash when apia-carnova mod was installed.
